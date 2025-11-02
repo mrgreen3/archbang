@@ -254,6 +254,11 @@
         <command>scrot-notify a</command>
       </action>
     </keybind>
+    <keybind key="W-F12">
+      <action name="Execute">
+        <command>~/AB_Scripts/set-res-1080</command>
+      </action>
+    </keybind>
     <keybind key="A-t">
       <action name="Execute">
         <command>alacritty</command>
