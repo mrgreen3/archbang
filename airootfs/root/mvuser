@@ -1,39 +1,45 @@
 #!/bin/sh
 
-if [ -e /home/ablive ];then
-  echo "You can only rename the user once."
-  echo
-  echo -en "Enter the new username\n=> " && read
-  while [ -z "$(echo $REPLY |grep -E '^[a-z_][a-z0-9_-]*[$]?$')" ];do
-   echo "Please enter a valid username. (lowercase, can't start with a figure)"
-   echo -n '=> ' && read
-  done
+# Detect which live user exists (sblive for swaybang, ablive for archbang)
+LIVE_USER=""
+[ -e /home/sblive ] && LIVE_USER="sblive"
+[ -e /home/ablive ] && LIVE_USER="ablive"
 
-  usr1="ablive"
-  usr2="$REPLY"
-  echo "Type the pasword for the new user :"
-  while true; do
-   passwd $usr1 && break
-  done
-  sync
-  IFS='
-'
-  echo "Modified files :"
-  find /home/$usr1 -type f -exec sed -i "s/ablive/$usr2/g" {} +
-  echo "Modification of the config files finished !"
-  sleep 1
-  echo "Renaming user..."
-  sed -i "s/$usr1/$usr2/g" /etc/group
-  sed -i "s/$usr1/$usr2/g" /etc/gshadow
-  sed -i "s/$usr1/$usr2/g" /etc/passwd
-  sed -i "s/$usr1/$usr2/"  /etc/shadow
-  # switch user 'ablive' to new username
-  mv /home/$usr1 /home/$usr2 &> /dev/null
-  # change owner to new user
-  chown -R $usr2:users /home/$usr2
-  chgrp $usr2 /home/$usr2 &> /dev/null
-else
+if [ -z "$LIVE_USER" ]; then
   echo "The user has already been renamed !"
   echo "Press enter..."
   read
+  exit 0
 fi
+
+echo "You can only rename the user once."
+echo
+echo -en "Enter the new username\n=> " && read
+while [ -z "$(echo $REPLY |grep -E '^[a-z_][a-z0-9_-]*[$]?$')" ];do
+ echo "Please enter a valid username. (lowercase, can't start with a figure)"
+ echo -n '=> ' && read
+done
+
+usr1="$LIVE_USER"
+usr2="$REPLY"
+echo "Type the pasword for the new user :"
+while true; do
+ passwd $usr1 && break
+done
+sync
+IFS='
+'
+echo "Modified files :"
+find /home/$usr1 -type f -exec sed -i "s/$usr1/$usr2/g" {} +
+echo "Modification of the config files finished !"
+sleep 1
+echo "Renaming user..."
+sed -i "s/$usr1/$usr2/g" /etc/group
+sed -i "s/$usr1/$usr2/g" /etc/gshadow
+sed -i "s/$usr1/$usr2/g" /etc/passwd
+sed -i "s/$usr1/$usr2/"  /etc/shadow
+# switch live user to new username
+mv /home/$usr1 /home/$usr2 &> /dev/null
+# change owner to new user
+chown -R $usr2:users /home/$usr2
+chgrp $usr2 /home/$usr2 &> /dev/null

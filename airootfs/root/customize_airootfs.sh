@@ -64,11 +64,6 @@ done
 useradd -m -p "" -G "wheel" -s /bin/bash -g users ablive 
 chown ablive /home/ablive
 
-# Edit a .desktop file so it does not show in Openbox menu
-for app in bssh bvnc qv4l2 qvidcap avahi-discover conky gparted; do
-	echo "Hidden=true" >> /usr/share/applications/$app.desktop
-done
-
 # Start required systemd services
 systemctl enable {pacman-init,NetworkManager}.service -f
 

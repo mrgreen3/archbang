@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# abinstall ArchBANG installer
+# Abinstall ArchBang installer
 # Modified by Mr Green mrgreen(at)archbang(dot)org
 # based on lilo fifo...scripts
 
@@ -22,6 +22,37 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
+
+log_file=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -l|--log)
+      timestamp=$(date +%F_%T | tr ':' '-')
+      log_file="/tmp/abinstall_${timestamp}.log"
+      shift
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+# Redirect all output to log if set
+if [[ -n "$log_file" ]]; then
+  exec > >(tee -a "$log_file") 2>&1
+  echo "Logging to $log_file"
+fi
+
+# --- Parse simple key=value or -i flags ---
+for arg in "$@"; do
+  case $arg in
+    -i|--install) INTERACTIVE=0 ;;
+    hostname=*)   host_name="${arg#*=}" ;;
+    locale=*)     LOCALE_VALUE="${arg#*=}" ;;
+    keymap=*)     KEYMAP_VALUE="${arg#*=}" ;;
+  esac
+done
 
 
 #GLOBAL VARIABLES {{{
@@ -49,12 +80,11 @@
   #}}}
   # PROMPT {{{
     prompt1="Enter your option: "
-    prompt2="Enter n° of options (ex: 1 2 3 or 1-3): "
+    prompt2="Enter number of options (ex: 1 2 3 or 1-3): "
     prompt3="You have to manually enter the following commands, then press ${BYellow}ctrl+d${Reset} or type ${BYellow}exit${Reset}:"
   #}}}
   # EDITOR {{{
-    AUTOMATIC_MODE=0
-    EDITOR="nano"
+    EDITOR="vim"
   #}}}
   # MOUNTPOINTS {{{
     EFI_MOUNTPOINT="/boot/efi"
@@ -69,12 +99,22 @@
   LVM=0
   LUKS=0
   LUKS_DISK="sda2"
-  EXTERNAL=`echo -e "(${BYellow}external${Reset})"`
+  LUKS_NAME="cryptroot"
+  VG_NAME="lvm"
+  LV_ROOT="root"
+  LIVE_USER="ablive"
   [[ $1 == -v || $1 == --verbose ]] && VERBOSE_MODE=1 || VERBOSE_MODE=0 # VERBOSE MODE
   [[ -f $LOG ]] && rm -f $LOG
   SPIN="/-\|" #SPINNER POSITION
   AUTOMATIC_MODE=0
   TRIM=0
+  cpu_id=""
+  # --- Optional installer variables (can be overridden by args) ---
+  host_name=""          # For hostname
+  LOCALE_VALUE=""       # For locale
+  KEYMAP_VALUE=""       # For keyboard layout
+  INTERACTIVE=1         # 1 = ask, 0 = skip prompts
+
 #}}}
 #COMMON FUNCTIONS {{{
   error_msg() { #{{{
@@ -137,8 +177,28 @@
     fi
   }
   #}}}
-  check_trim() { #{{{
-    [[ -n $(hdparm -I /dev/sda | grep TRIM &> /dev/null) ]] && TRIM=1
+   check_trim() { #{{{
+    # Check if any block device supports TRIM/discard
+    TRIM=0
+    for device in /sys/block/*/queue/discard_granularity; do
+      if [[ -f "$device" ]]; then
+        discard_value=$(cat "$device" 2>/dev/null)
+        if [[ "$discard_value" -gt 0 ]]; then
+          TRIM=1
+          break
+        fi
+      fi
+    done
+  }
+   #}}}
+   detect_cpu() { #{{{
+    if grep -q "GenuineIntel" /proc/cpuinfo; then
+      cpu_id="intel"
+    elif grep -q "AuthenticAMD" /proc/cpuinfo; then
+      cpu_id="amd"
+    else
+      cpu_id=""
+    fi
   }
   #}}}
   check_root() { #{{{
@@ -154,6 +214,11 @@
   check_hostname() { #{{{
     if [[ `echo ${HOSTNAME} | sed 's/ //g'` == "" ]]; then
       error_msg "ERROR! Hostname is not configured."
+    fi
+  } #}}}
+  check_archiso() { #{{{
+    if [[ ! -d "/run/archiso/airootfs" ]]; then
+      error_msg "ERROR! Not running from ArchBang live environment"
     fi
   } #}}}
   read_input() { #{{{
@@ -207,6 +272,12 @@
     T_COLS=`tput cols`
     echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
   } #}}}
+  print_success() { #{{{
+    #Console width number
+    T_COLS=`tput cols`
+    echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
+  } #}}}
+
   print_warning() { #{{{
     T_COLS=`tput cols`
     echo -e "${BYellow}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
@@ -331,6 +402,8 @@ configure_mirrors() {
   # Backup list
   #  cp ${MIRROR} ${MNT}/etc/pacman.d/mirrorlist.backup
 
+  print_title "Configuring mirrors..."
+  print_info "Select location"
   # Remove everything before Albania
   sed -i '1,/^## Albania/{/^## Albania/!d}' ${MIRROR} 
 
@@ -384,8 +457,6 @@ configure_mirrors() {
   } #}}}
 #}}}
 
-LOG_ERR=/tmp/error_log
-touch $LOG_ERR
 WIKI="https://wiki.archlinux.org/index.php"
 
 #ARCHLINUX INSTALL SCRIPTS MODE {{{
@@ -399,10 +470,8 @@ select_xkeymap(){
     read_input_text "Confirm keymap: $XKEYMAP"
   done
 # Desktop keymap
-# change in openbox/autostart... modify
-  sed -i "s/\"us\"/\"${XKEYMAP}\"/g" $MNT/home/ablive/.config/openbox/autostart
-# Global setting
-#  sed -i "s/us/${XKEYMAP}/g" $MNT/etc/X11/xorg.conf.d/01-keyboard-layout.conf
+# change in openbox/autostart
+   sed -i "s/\"us\"/\"${XKEYMAP}\"/g" $MNT/home/ablive/.config/openbox/autostart
 }
 #}}}
 
@@ -468,21 +537,36 @@ create_partition_scheme(){
 }
 #}}}
 #SETUP PARTITION{{{
-create_partition(){
-  apps_list=("gparted" "cfdisk" "cgdisk" "fdisk" "gdisk" "parted");
+create_partition() {
+  apps_list=("gparted" "cfdisk" "cgdisk" "fdisk" "gdisk" "parted")
   PS3="$prompt1"
   echo -e "Select partition program:"
   select OPT in "${apps_list[@]}"; do
     if contains_element "$OPT" "${apps_list[@]}"; then
       select_device
-      case $OPT in
+
+      case "$OPT" in
+        gparted)
+          if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
+            echo "Launching GParted under Wayland..."
+            sudo --preserve-env=WAYLAND_DISPLAY,XDG_RUNTIME_DIR \
+                 env WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
+                     XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR \
+                 gparted
+          else
+            sudo gparted
+          fi
+          ;;
         parted)
-          parted -a opt ${device}
+          parted -a opt "${device}"
           ;;
         *)
-          $OPT ${device}
+          $OPT "${device}"
           ;;
       esac
+
+      echo "Press ENTER to return to installer..."
+      read
       break
     else
       invalid_option
@@ -491,68 +575,114 @@ create_partition(){
 }
 #}}}
 #SETUP LUKS {{{
-setup_luks(){
+setup_luks() {
   print_title "LUKS - ${WIKI}/LUKS"
-  print_info "The Linux Unified Key Setup or LUKS is a disk-encryption specification created by Clemens Fruhwirth and originally intended for Linux."
-  print_danger "\tDo not use this for boot partitions"
-  block_list=(`lsblk | grep 'part' | awk '{print "/dev/" substr($1,3)}'`)
+  print_info "The Linux Unified Key Setup (LUKS) provides full-disk encryption for Linux."
+  print_danger "\tDo not use this for /boot or EFI partitions."
+
+  # list available partitions, skipping EFI/boot and existing mapper devices
+  block_list=($(lsblk -nrpo NAME,TYPE,MOUNTPOINT | awk '$2=="part" && $3=="" {print $1}'))
   PS3="$prompt1"
-  echo -e "Select partition:"
-  select OPT in "${block_list[@]}"; do
+  echo -e "Select partition to encrypt with LUKS:"
+  select OPT in "${block_list[@]}" "Cancel"; do
     if contains_element "$OPT" "${block_list[@]}"; then
-      cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 5000 --use-random --verify-passphrase luksFormat $OPT
-      cryptsetup open --type luks $([[ $TRIM -eq 1 ]] && echo "--allow-discards") $OPT crypt
+      # confirm not encrypting /boot or EFI accidentally
+      if [[ "$OPT" =~ .*1$ ]] && blkid "$OPT" | grep -q "vfat"; then
+        print_error "$OPT appears to be EFI or /boot; skipping."
+        return 1
+      fi
+
+      print_info "Setting up LUKS on $OPT ..."
+      cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 \
+                 --iter-time 5000 --verify-passphrase luksFormat "$OPT" || return 1
+
+      print_info "Opening LUKS container..."
+      if [[ $TRIM -eq 1 ]]; then
+        cryptsetup open --type luks --allow-discards "$OPT" "${LUKS_NAME}"
+      else
+        cryptsetup open --type luks "$OPT" "${LUKS_NAME}"
+      fi
+
+      # mark LUKS enabled and record device info
       LUKS=1
-      LUKS_DISK=`echo ${OPT} | sed 's/\/dev\///'`
+      LUKS_PART="$OPT"
+      LUKS_MAPPER="/dev/mapper/${LUKS_NAME}"
+      export LUKS LUKS_NAME LUKS_PART LUKS_MAPPER
+
+      print_success "LUKS container created at ${LUKS_MAPPER}"
       break
-    elif [[ $OPT == "Cancel" ]]; then
-      break
+
+    elif [[ "$OPT" == "Cancel" ]]; then
+      print_warning "LUKS setup cancelled."
+      return 1
     else
       invalid_option
     fi
   done
 }
+
 #}}}
 #SETUP LVM {{{
-setup_lvm(){
+setup_lvm() {
   print_title "LVM - ${WIKI}/LVM"
-  print_info "LVM is a logical volume manager for the Linux kernel; it manages disk drives and similar mass-storage devices. "
-  print_warning "Last partition will take 100% of free space left"
+  print_info "LVM manages logical volumes inside your selected device."
+  print_warning "Last logical volume will take 100% of remaining space."
+
+  # Determine target device
   if [[ $LUKS -eq 1 ]]; then
-    pvcreate /dev/mapper/crypt
-    vgcreate lvm /dev/mapper/crypt
+    TARGET_DEV="/dev/mapper/${LUKS_NAME}"
   else
-    block_list=(`lsblk | grep 'part' | awk '{print "/dev/" substr($1,3)}'`)
+    block_list=($(lsblk -nrpo NAME,TYPE | awk '$2=="part"{print $1}'))
     PS3="$prompt1"
     echo -e "Select partition:"
     select OPT in "${block_list[@]}"; do
       if contains_element "$OPT" "${block_list[@]}"; then
-        pvcreate $OPT
-        vgcreate lvm $OPT
+        TARGET_DEV="$OPT"
         break
       else
         invalid_option
       fi
     done
   fi
-  read -p "Enter number of partitions [ex: 2]: " number_partitions
+
+  # Safety check
+  if [[ -z "$TARGET_DEV" ]]; then
+    print_error "No valid target device selected."
+    return 1
+  fi
+
+  # Initialise LVM
+  pvcreate "$TARGET_DEV"
+  vgcreate "$VG_NAME" "$TARGET_DEV"
+
+  # Ask only for root + extras
+  read -p "Enter root volume size (e.g. 25G): " ROOT_SIZE
+  lvcreate -L "${ROOT_SIZE}" "$VG_NAME" -n root
+
+  echo
+  print_info "Now you can add extra volumes such as home, var, swap..."
+  read -p "How many extra volumes? [0-9]: " extra_count
+
   i=1
-  while [[ $i -le $number_partitions ]]; do
-    read -p "Enter $iª partition name [ex: home]: " partition_name
-    if [[ $i -eq $number_partitions ]]; then
-      lvcreate -l 100%FREE lvm -n ${partition_name}
+  while [[ $i -le $extra_count ]]; do
+    read -p "Name for volume $i (e.g. home): " lvname
+    if [[ $i -eq $extra_count ]]; then
+      lvcreate -l 100%FREE "$VG_NAME" -n "$lvname"
     else
-      read -p "Enter $iª partition size [ex: 25G, 200M]: " partition_size
-      lvcreate -L ${partition_size} lvm -n ${partition_name}
+      read -p "Size for $lvname (e.g. 10G): " lvsize
+      lvcreate -L "$lvsize" "$VG_NAME" -n "$lvname"
     fi
-    i=$(( i + 1 ))
+    i=$((i+1))
   done
+
   LVM=1
+  export LVM VG_NAME
 }
+
 #}}}
 #SELECT|FORMAT PARTITIONS {{{
 format_partitions(){
-  print_title "FILESYSTEMS - ${WIK}/File_Systems"
+  print_title "FILESYSTEMS - ${WIKI}/File_Systems"
   print_info "This step will select and format the selected partiton where the archlinux will be installed"
   print_danger "\tAll data on the ROOT and SWAP partition will be LOST."
   i=0
@@ -674,18 +804,18 @@ format_partitions(){
     fi
   }
 
-  set_efi_partition(){
-    efi_options=("/boot/efi" "/boot")
-    PS3="$prompt1"
-    echo -e "Select EFI mountpoint:\n"
-    select EFI_MNT in "${efi_options[@]}"; do
-      if contains_element "${EFI_MNT}" "${efi_options[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-    done
-  }
+#SET EFI PARTITION {{{
+set_efi_partition() {
+  # Automatically mount EFI System Partition to /boot for UEFI installs
+  if [[ $UEFI -eq 1 ]]; then
+    EFI_MNT="/boot"
+    print_info "UEFI mode detected — EFI partition will be mounted at ${EFI_MNT}"
+  else
+    EFI_MNT=""
+    print_info "BIOS mode detected — no EFI mount required."
+  fi
+}
+#}}}
 
   while true; do
     PS3="$prompt1"
@@ -699,9 +829,9 @@ format_partitions(){
         if contains_element "${partition}" "${partitions_list[@]}"; then
           case ${partition_name[i]} in
             root)
-              ROOT_PART=`echo ${partition} | sed 's/\/dev\/mapper\///' | sed 's/\/dev\///'`
-              ROOT_MNT=${partition}
-              format_partition "${partition}" "${MNT}"
+             ROOT_PART="${partition}"     # ✅ keep full path (/dev/…)
+             ROOT_MNT="${partition}"
+             format_partition "${partition}" "${MNT}"
               ;;
             EFI)
               set_efi_partition
@@ -752,26 +882,38 @@ format_partitions(){
 copy_progress() {
     local SRC_DIR="$1"
     local DEST_DIR="$2"
-    local BAR_WIDTH=40
+    
     [[ -d "$SRC_DIR" ]] || { echo "Error: Source '$SRC_DIR' missing"; return 1; }
+    [[ -d "$DEST_DIR" ]] || { echo "Error: Destination '$DEST_DIR' missing"; return 1; }
+    
     local TOTAL_SIZE=$(du -sb "$SRC_DIR" | awk '{print $1}')
     echo "Total size: $(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)"
-	echo
-    #tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"
-	tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"
-    echo -e "\n✅ Copy Complete!"
+    echo
+    
+    if tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"; then
+        echo -e "\n✅ Copy Complete!"
+        return 0
+    else
+        echo -e "\n❌ Copy Failed!"
+        return 1
+    fi
 }
 
 #}}}
 #INSTALL ARCHBANG {{{
 install_archbang(){
-  print_title "INSTALL ArchBANG - www.archbang.org"
+  print_title "INSTALL ARCHBANG - www.archbang.org"
   print_info "Installing please wait..."
-  
-  # copy source to new install, test copy over any changes made live to target drive
-  #rsync -a --info=progress2 /run/archiso/airootfs/ "${MNT}/" 
-  copy_progress /run/archiso/airootfs/ "${MNT}/"
-  # need to add arch_chroot path and test! for unique machine id
+
+  # Check if running from live environment
+  check_archiso
+
+  # copy source to new install
+  if ! copy_progress /run/archiso/airootfs/ "${MNT}/"; then
+    error_msg "ERROR: Failed to copy system files"
+  fi
+
+  # Generate unique machine id
   arch-chroot ${MNT} systemd-machine-id-setup
 
   # put live driver into new install
@@ -780,7 +922,7 @@ install_archbang(){
   # Remove abinstall from target device
   rm -f ${MNT}/home/ablive/AB_Scripts/abinstall &> /dev/null
 
-  # Remove installer from root-menu   
+  # Remove installer from root-menu
   sed -i '/<!-- abinstall 5 -->/,+5d' ${MNT}/home/ablive/.config/openbox/menu.xml
 
   # Remove Gparted from root-menu
@@ -789,18 +931,17 @@ install_archbang(){
   # remove autologin from install
   rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
 
-  # systemd
+  # systemd journald configuration
   rm ${MNT}/etc/systemd/system/default.target &> /dev/null
-  # add variable and then mv file to auto-storage.conf?
-  sed -i 's/volatile/auto/g' /${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf
-  mv /${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf /${MNT}/etc/systemd/journald.conf.d/auto-storage.conf
-  
-  # remove pacman-init.service link and etc-gpg thing
-  unlink ${MNT}/etc/systemd/system/multi-user.target.wants/pacman-init.service
+  sed -i 's/volatile/auto/g' ${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf
+  mv ${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf ${MNT}/etc/systemd/journald.conf.d/auto-storage.conf
+
+  # remove pacman-init.service link
+  unlink ${MNT}/etc/systemd/system/multi-user.target.wants/pacman-init.service &>/dev/null
   rm -f ${MNT}/etc/systemd/system/pacman-init.service
 
   rm -f ${MNT}/etc/systemd/system/etc-pacman.d-gnupg.mount
-  
+
   # clean out ablive overlay files from /etc/skel on new install
   rm -r ${MNT}/etc/skel &>/dev/null
 
@@ -814,14 +955,26 @@ configure_fstab(){
 #}}}
 
 #CONFIGURE HOSTNAME {{{
-configure_hostname(){
+configure_hostname() {
   print_title "HOSTNAME - ${WIKI}/hostname"
-  print_info "A host name is a unique name created to identify a machine on a network. Length is restricted to 63 characters."
-  read -p "Hostname [ex: archbang]: " host_name
-  echo "$host_name" > ${MNT}/etc/hostname
-  arch_chroot "sed -i '/127.0.0.1/s/$/ '${host_name}'/' /etc/hosts"
-  arch_chroot "sed -i '/::1/s/$/ '${host_name}'/' /etc/hosts"
+  print_info "A host name identifies your machine on a network (max 63 chars)."
+
+  if [[ $INTERACTIVE -eq 1 && -z "$host_name" ]]; then
+    read -p "Hostname [ex: arch]: " host_name
+  fi
+
+  host_name="${host_name:-archbang}"
+
+  print_info "Using hostname: ${host_name}"
+  echo "${host_name}" > "${MNT}/etc/hostname"
+
+  arch_chroot "cat > /etc/hosts <<EOF
+127.0.0.1   localhost
+::1         localhost
+127.0.1.1   ${host_name}.localdomain ${host_name}
+EOF"
 }
+
 #}}}
 #CONFIGURE TIMEZONE {{{
 configure_timezone(){
@@ -837,20 +990,13 @@ configure_timezone(){
 #}}}
 #CONFIGURE HARDWARECLOCK {{{
 configure_hardwareclock(){
-  print_title "HARDWARE CLOCK TIME - ${WIKI}/Internationalization"
-  print_info "This is set in /etc/adjtime. (Warning can cause time drift correction to be miscalibrated)."
-  hwclock_list=('UTC' 'Localtime');
-  PS3="$prompt1"
-  select OPT in "${hwclock_list[@]}"; do
-    case "$REPLY" in
-      1) arch_chroot "hwclock --systohc --utc";
-        ;;
-      2) arch_chroot "hwclock --systohc --localtime";
-        ;;
-      *) invalid_option ;;
-    esac
-    [[ -n $OPT ]] && break
-  done
+#  print_title "HARDWARE CLOCK - ${WIKI}/Hardware_Clock"
+#  print_info "Setting hardware clock to UTC (default Arch convention)."
+
+  # Always use UTC
+  arch_chroot "hwclock --systohc --utc"
+
+#  print_success "Hardware clock set to UTC."
 }
 #}}}
 #CONFIGURE LOCALE {{{
@@ -863,7 +1009,6 @@ configure_locale(){
     read_input_text "Confirm locale ($LOCALE)"
   done
   echo 'LANG="'$LOCALE_UTF8'"' > ${MNT}/etc/locale.conf
-  #arch_chroot "echo ${LOCALE_UTF8} > /etc/locale.gen"
   arch_chroot "sed -i '/en_US\.UTF-8/ s/^#*/#/'  /etc/locale.gen"
   arch_chroot "sed -i '/'${LOCALE_UTF8}'/s/^#//' /etc/locale.gen"
   arch_chroot "locale-gen"
@@ -871,192 +1016,149 @@ configure_locale(){
 #}}}
 #CONFIGURE MKINITCPIO {{{
 configure_mkinitcpio(){
-  print_title "MKINITCPIO - ${WIKI}/Mkinitcpio"
-  print_info "mkinitcpio is a Bash script used to create an initial ramdisk environment."
-  proc=$(grep -m1 vendor_id /proc/cpuinfo | awk '{print $3}')
-  if [ "${proc}" = "GenuineIntel" ]; then
-    cpu_id="intel"
-  else
-    cpu_id="amd"
-  fi
-  # comment out xz to allow zstd to be used as compression
-  sed '/xz/s/^/#/' ${MNT}/etc/mkinitcpio.conf
-  # delete whole hooks line, replace with installed version
-  sed -i '/^HOOKS/c\HOOKS=(base udev autodetect modconf block filesystems keyboard fsck)' "${MNT}/etc/mkinitcpio.conf"
-  
-  [[ $LUKS -eq 1 ]] && sed -i '/^HOOK/s/block/block keymap encrypt/' ${MNT}/etc/mkinitcpio.conf
-  [[ $LVM -eq 1 ]] && sed -i '/^HOOK/s/filesystems/lvm2 filesystems/' ${MNT}/etc/mkinitcpio.conf
-  arch_chroot "mkinitcpio -p linux"
+    print_title "Configuring mkinitcpio"
+    print_info "Setting up initramfs hooks based on your system configuration."
+
+    # Determine hooks based on setup
+    if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
+        MKINITCPIO_HOOKS="base udev autodetect modconf block keyboard encrypt lvm2 filesystems fsck"
+    elif [[ $LUKS -eq 1 ]]; then
+        MKINITCPIO_HOOKS="base udev autodetect modconf block keyboard encrypt filesystems fsck"
+    elif [[ $LVM -eq 1 ]]; then
+        MKINITCPIO_HOOKS="base udev autodetect modconf block keyboard lvm2 filesystems fsck"
+    else
+        MKINITCPIO_HOOKS="base udev autodetect modconf block keyboard filesystems fsck"
+    fi
+
+    # Update mkinitcpio.conf
+    arch_chroot "sed -i -E 's|^HOOKS=.*|HOOKS=(${MKINITCPIO_HOOKS})|' /etc/mkinitcpio.conf"
+
+    # Rebuild initramfs
+    arch_chroot "mkinitcpio -p linux"
+
+    print_info "Initramfs configuration complete."
+    pause_function
 }
-#}}}
-#INSTALL BOOTLOADER {{{
-install_bootloader(){
-  print_title "BOOTLOADER - ${WIKI}/Bootloader"
-  print_info "The boot loader is responsible for loading the kernel and initial RAM disk before initiating the boot process."
-  print_warning "\tROOT Partition: ${ROOT_MNT}"
-  if [[ $UEFI -eq 1 ]]; then
-    print_warning "\tUEFI Mode Detected"
-    bootloaders_list=("Grub2" "Syslinux" "Systemd" "Skip")
-  else
-    print_warning "\tBIOS Mode Detected"
-    bootloaders_list=("Grub2" "Syslinux" "Skip")
-  fi
-  PS3="$prompt1"
-  echo -e "Select bootloader:\n"
-  select bootloader in "${bootloaders_list[@]}"; do
-    case "$REPLY" in
-      1)
-        echo "Grub2"
-        break
-        ;;
-      2)
-        echo "Syslinux"
-        break
-        ;;
-      3)
-        break
-        ;;
-      4)
-        [[ $UEFI -eq 1 ]] && break || invalid_option
-        ;;
-      *)
-        invalid_option
-        ;;
-    esac
-  done
-}
-#}}}
+
 #CONFIGURE BOOTLOADER {{{
+# {{{ CONFIGURE BOOTLOADER
+# # {{{ CONFIGURE BOOTLOADER
 configure_bootloader(){
-  case $bootloader in
-    Grub2)
-      print_title "GRUB2 - ${WIKI}/GRUB2"
-      print_info "GRUB2 is the next generation of the GRand Unified Bootloader (GRUB).\nIn brief, the bootloader is the first software program that runs when a computer starts. It is responsible for loading and transferring control to the Linux kernel."
-      grub_install_mode=("Automatic" "Manual")
-      PS3="$prompt1"
-      echo -e "Grub Install:\n"
-      select OPT in "${grub_install_mode[@]}"; do
-        case "$REPLY" in
-          1)
-            if [[ $LUKS -eq 1 ]]; then
-              sed -i -e 's/GRUB_CMDLINE_LINUX="\(.\+\)"/GRUB_CMDLINE_LINUX="\1 cryptdevice=\/dev\/'"${LUKS_DISK}"':crypt"/g' -e 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=\/dev\/'"${LUKS_DISK}"':crypt"/g' ${MNT}/etc/default/grub
-            fi
-            print_info "Testing GRUB install outside chroot..."
-            if [[ $UEFI -eq 1 ]]; then
-              grub-install --target=x86_64-efi \
-                --efi-directory=${EFI_MNT} \
-                --bootloader-id=arch_grub \
-                --boot-directory=${MNT}/boot \
-                --recheck \
-                2>&1 | tee -a /var/log/abinstall.log
-            else
-              grub-install --target=i386-pc \
-                --boot-directory=${MNT}/boot \
-                --recheck --force "${BOOT_MNT}" \
-                2>&1 | tee -a /var/log/abinstall.log
-            fi
+  print_title "GRUB2 configuration"
+  print_info "Installing GRUB bootloader with support for LUKS, LVM, and microcode."
 
-            if [[ $? -ne 0 ]]; then
-              print_warning "GRUB install (via external method) FAILED — check /var/log/abinstall.log"
-            else
-              print_info "GRUB install (via external method) completed successfully."
-            fi
+  # --- Detect system mode (UEFI or BIOS) ---
+  if [[ -d /sys/firmware/efi ]]; then
+      UEFI=1
+      print_info "UEFI mode detected"
+  else
+      UEFI=0
+      print_info "BIOS (legacy) mode detected"
+  fi
 
-            break
-            ;;
+  # --- Verify EFI partition is mounted if UEFI ---
+  if [[ $UEFI -eq 1 ]]; then
+      if ! mount | grep -q "${MNT}/boot"; then
+          print_error "EFI partition is not mounted at ${MNT}/boot!"
+          lsblk -f
+          return 1
+      fi
+  fi
 
-          2)
-            arch-chroot ${MNT}
-            break
-            ;;
-          *)
-            invalid_option
-            ;;
-        esac
-      done
-      arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
-      ;;
-    Syslinux)
-      print_title "SYSLINUX - ${WIKI}/Syslinux"
-      print_info "Syslinux is a collection of boot loaders capable of booting from hard drives, CDs, and over the network via PXE. It supports the fat, ext2, ext3, ext4, and btrfs file systems."
-      syslinux_install_mode=("[MBR] Automatic" "[PARTITION] Automatic" "Manual")
-      PS3="$prompt1"
-      echo -e "Syslinux Install:\n"
-      select OPT in "${syslinux_install_mode[@]}"; do
-        case "$REPLY" in
-          1)
-            arch_chroot "syslinux-install_update -iam"
-            if [[ $LUKS -eq 1 ]]; then
-              sed -i "s/APPEND root=.*/APPEND root=\/dev\/mapper\/${ROOT_PART} cryptdevice=\/dev\/${LUKS_DISK}:crypt ro/g" ${MNT}/boot/syslinux/syslinux.cfg
-            elif [[ $LVM -eq 1 ]]; then
-              sed -i "s/sda[0-9]/\/dev\/mapper\/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
-            else
-              sed -i "s/sda[0-9]/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
-            fi
-            print_warning "The partition in question needs to be whatever you have as / (root), not /boot."
-            pause_function
-            break
-            ;;
-          2)
-            arch_chroot "syslinux-install_update -i"
-            if [[ $LUKS -eq 1 ]]; then
-              sed -i "s/APPEND root=.*/APPEND root=\/dev\/mapper\/${ROOT_PART} cryptdevice=\/dev\/${LUKS_DISK}:crypt ro/g" ${MNT}/boot/syslinux/syslinux.cfg
-            elif [[ $LVM -eq 1 ]]; then
-              sed -i "s/sda[0-9]/\/dev\/mapper\/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
-            else
-              sed -i "s/sda[0-9]/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
-            fi
-            print_warning "The partition in question needs to be whatever you have as / (root), not /boot."
-            pause_function
-            break
-            ;;
-          *)
-            invalid_option
-            ;;
-        esac
-      done
-    # add sed for intel/amd ucode here..
-      sed -i "s/..\/initramfs-linux.img/..\/${cpu_id}-ucode.img,..\/initramfs-linux.img/" ${MNT}/boot/syslinux/syslinux.cfg
-      ;;
-    Systemd)
-      print_title "SYSTEMD-BOOT - ${WIKI}/Systemd-boot"
-      print_info "systemd-boot (previously called gummiboot), is a simple UEFI boot manager which executes configured EFI images."
-      print_warning "\tSystemd-boot heavily suggests that /boot is mounted to the EFI partition, not /boot/efi, in order to simplify updating and configuration."
-      gummiboot_install_mode=("Automatic" "Manual")
-      PS3="$prompt1"
-      echo -e "Gummiboot install:\n"
-      select OPT in "${gummiboot_install_mode[@]}"; do
-        case "$REPLY" in
-          1)
-            arch_chroot "bootctl --path=${EFI_MNT} install"
-            print_warning "Please check your .conf file"
-            partuuid=`blkid -s PARTUUID ${ROOT_MNT} | awk '{print $2}' | sed 's/"//g' | sed 's/^.*=//'`
-            if [[ $LUKS -eq 1 ]]; then
-              echo -e "title\tArch Linux\nlinux\t/vmlinuz-linux\ninitrd\t/initramfs-linux.img\noptions\tcryptdevice=\/dev\/${LUKS_DISK}:luks root=\/dev\/mapper\/${ROOT_PART} rw" > ${MNT}/boot/loader/entries/arch.conf
-            elif [[ $LVM -eq 1 ]]; then
-              echo -e "title\tArch Linux\nlinux\t/vmlinuz-linux\ninitrd\t/initramfs-linux.img\noptions\troot=\/dev\/mapper\/${ROOT_PART} rw" > ${MNT}/boot/loader/entries/arch.conf
-            else
-              echo -e "title\tArch Linux\nlinux\t/vmlinuz-linux\ninitrd\t/${cpu_id}-ucode.img\ninitrd\t/initramfs-linux.img\noptions\troot=PARTUUID=${partuuid} rw" > ${MNT}/boot/loader/entries/arch.conf
-			  echo -e "title\tArch Linux Fallback\nlinux\t/vmlinuz-linux\ninitrd\t/${cpu_id}-ucode.img\ninitrd\t/initramfs-linux-fallback.img\noptions\troot=PARTUUID=${partuuid} rw" > ${MNT}/boot/loader/entries/arch-fallback.conf
-            fi
-            echo -e "default  arch.conf\ntimeout  5" > ${MNT}/boot/loader/loader.conf
-            pause_function
-            break
-            ;;
-          2)
-            arch-chroot ${MNT}
-            break
-            ;;
-          *)
-            invalid_option
-            ;;
-        esac
-      done
-      ;;
-  esac
+  # --- Detect root partition automatically ---
+  if [[ -z "$ROOT_PART" || ! -b "$ROOT_PART" ]]; then
+      ROOT_PART=$(lsblk -no PATH,MOUNTPOINT | grep " ${MNT}$" | awk '{print $1}')
+      print_info "Detected root partition: ${ROOT_PART}"
+  fi
+
+  if [[ -z "$ROOT_PART" || ! -b "$ROOT_PART" ]]; then
+      print_error "Unable to determine root partition for GRUB setup!"
+      lsblk -f
+      return 1
+  fi
+
+  # --- Handle LUKS UUID detection if used ---
+  if [[ $LUKS -eq 1 ]]; then
+      if [[ -n "$LUKS_PART" ]]; then
+          LUKS_UUID=$(blkid -s UUID -o value "$LUKS_PART")
+      elif [[ -n "$LUKS_DISK" ]]; then
+          LUKS_UUID=$(blkid -s UUID -o value "/dev/${LUKS_DISK}")
+      fi
+      print_info "Detected LUKS UUID: $LUKS_UUID"
+  fi
+
+  # --- Install GRUB ---
+  if [[ $UEFI -eq 1 ]]; then
+      print_info "Installing GRUB (UEFI mode) to /boot/EFI/GRUB/"
+      arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck"
+
+  else
+      print_info "Installing GRUB (BIOS mode)"
+
+      # --- Ensure correct device for BIOS installs ---
+      # BIOS GRUB must install to the entire disk (e.g. /dev/vda), not a partition (e.g. /dev/vda1)
+      if [[ -z "$BOOT_DEV" || "$BOOT_DEV" =~ [0-9]$ ]]; then
+          BOOT_DEV=$(lsblk -no pkname "$ROOT_PART" | awk '{print "/dev/"$1}')
+          print_info "Corrected BOOT_DEV to ${BOOT_DEV} (parent of ${ROOT_PART})"
+      fi
+
+      # Validate disk exists
+      if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
+          print_error "Could not determine valid boot device for BIOS install!"
+          lsblk -f
+          return 1
+      fi
+
+      # --- Run grub-install outside chroot (BIOS) ---
+      grub-install --target=i386-pc --boot-directory=${MNT}/boot ${BOOT_DEV}
+      if [[ $? -ne 0 ]]; then
+          print_error "GRUB installation failed for BIOS mode!"
+          lsblk -f
+          return 1
+      fi
+      print_success "GRUB successfully installed to ${BOOT_DEV}"
+  fi
+
+  # --- Build kernel parameters ---
+  if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
+      ROOT_LV="${VG_NAME}-${LV_ROOT}"
+      CMDLINE="cryptdevice=UUID=${LUKS_UUID}:${LUKS_NAME} root=/dev/mapper/${ROOT_LV} rw"
+  elif [[ $LUKS -eq 1 ]]; then
+      CMDLINE="cryptdevice=UUID=${LUKS_UUID}:${LUKS_NAME} root=/dev/mapper/${LUKS_NAME} rw"
+  elif [[ $LVM -eq 1 ]]; then
+      ROOT_LV="${VG_NAME}-${LV_ROOT}"
+      CMDLINE="root=/dev/mapper/${ROOT_LV} rw"
+  else
+      partuuid=$(blkid -s PARTUUID -o value "$ROOT_PART")
+      if [[ -z "$partuuid" ]]; then
+          uuid=$(blkid -s UUID -o value "$ROOT_PART")
+          CMDLINE="root=UUID=${uuid} rw"
+          print_warning "PARTUUID not found; using filesystem UUID instead."
+      else
+          CMDLINE="root=PARTUUID=${partuuid} rw"
+      fi
+  fi
+
+  # --- Update /etc/default/grub inside chroot ---
+  arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub"
+
+  # --- Enable GRUB cryptodisk if using LUKS ---
+  if [[ $LUKS -eq 1 ]]; then
+      arch_chroot "grep -q '^GRUB_ENABLE_CRYPTODISK' /etc/default/grub \
+          && sed -i 's/^#GRUB_ENABLE_CRYPTODISK=.*/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub \
+          || echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub"
+  fi
+
+  # --- Generate GRUB configuration ---
+  arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
+
+  print_success "GRUB2 installation and configuration complete."
   pause_function
 }
-#}}}
+# }}}
+
+# }}}
+
 #ROOT PASSWORD {{{
 root_password(){
   print_title "ROOT PASSWORD"
@@ -1069,10 +1171,35 @@ root_password(){
 setup_user(){
   print_title "CREATE NEW USER"
   echo
-  arch_chroot "/root/mvuser"
- # rm -f ${MNT}/root/mvuser &> /dev/null
-  arch_chroot "rm -f /root/mvuser"  
-pause_function
+  
+  # Check if mvuser script exists, if not create inline user setup
+  if [[ -f ${MNT}/root/mvuser ]]; then
+    arch_chroot "/root/mvuser"
+    arch_chroot "rm -f /root/mvuser"
+  else
+    # Inline user creation if mvuser doesn't exist
+    print_info "Creating new user account..."
+    
+    read -p "Enter username: " new_username
+    
+    arch_chroot "useradd -m -G wheel,storage,power,audio,video -s /bin/bash ${new_username}"
+    
+    print_info "Set password for ${new_username}"
+    arch_chroot "passwd ${new_username}"
+    
+    # Enable sudo for wheel group
+    arch_chroot "sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers"
+    
+    # Remove or rename live user if exists
+    if [[ -d ${MNT}/home/${LIVE_USER} ]]; then
+      read_input_text "Remove live user (${LIVE_USER}) home directory"
+      if [[ $OPTION == y ]]; then
+        arch_chroot "userdel -r ${LIVE_USER} 2>/dev/null || true"
+      fi
+    fi
+  fi
+  
+  pause_function
 }
 
 #}}}
@@ -1088,10 +1215,13 @@ finish(){
 }
 #}}}
 
-#print_title "ArchBang installer"
-#print_info "abinstall is an menu driven installer."
-#pause_function
+# Trap errors and cleanup
+trap 'echo "Error occurred. Cleaning up..."; umount_partitions 2>/dev/null; exit 1' ERR
+
+check_root
 check_boot_system
+detect_cpu
+check_trim
 
 while true
 do
@@ -1100,13 +1230,10 @@ do
   echo " 2) $(mainmenu_item "${checklist[2]}" "Install ArchBang")"
   echo " 3) $(mainmenu_item "${checklist[3]}" "Hostname")"
   echo " 4) $(mainmenu_item "${checklist[4]}" "Location")"
-  echo " 5) $(mainmenu_item "${checklist[5]}" "Hardware Clock")"
-  echo " 6) $(mainmenu_item "${checklist[6]}" "Locale")"
-  echo " 7) $(mainmenu_item "${checklist[7]}" "Desktop Keyboard Layout")"
-  echo " 8) $(mainmenu_item "${checklist[8]}" "Bootloader")"
-  echo " 9) $(mainmenu_item "${checklist[9]}" "Root Password")"
-  echo "10) $(mainmenu_item "${checklist[10]}" "Create User")"
-
+  echo " 5) $(mainmenu_item "${checklist[5]}" "Locale")"
+  echo " 6) $(mainmenu_item "${checklist[6]}" "Desktop Keyboard Layout")"
+  echo " 7) $(mainmenu_item "${checklist[7]}" "Bootloader")"
+  echo " 8) $(mainmenu_item "${checklist[8]}" "Root and USer Setup")"
   echo ""
   echo " d) Done"
   echo ""
@@ -1121,7 +1248,8 @@ do
         ;;
       2)
         install_archbang
-		configure_fstab
+        configure_fstab
+        configure_mkinitcpio
         checklist[2]=1
         ;;
       3)
@@ -1130,34 +1258,26 @@ do
         ;;
       4)
         configure_timezone
-		configure_mirrors
+        configure_hardwareclock
+        configure_mirrors
         checklist[4]=1
         ;;
       5)
-        configure_hardwareclock
+        configure_locale
         checklist[5]=1
         ;;
       6)
-        configure_locale
-		configure_mkinitcpio
+        select_xkeymap
         checklist[6]=1
         ;;
       7)
-		select_xkeymap
-		checklist[7]=1
-		;;
-      8)
-        install_bootloader
         configure_bootloader
-        checklist[8]=1
+        checklist[7]=1
         ;;
-      9)
+      8)
         root_password
-        checklist[9]=1
-        ;;
-      10)
         setup_user
-        checklist[10]=1
+        checklist[8]=1
         ;;
       "d")
         finish
@@ -1169,4 +1289,3 @@ do
   done
 done
 #}}}
-
