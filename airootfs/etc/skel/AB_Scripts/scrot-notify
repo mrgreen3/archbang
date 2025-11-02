@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Screenshot script for GreenBANG Project
+# code by CoPilot
+
+# Directory to save screenshots
+save_dir="$HOME/Pictures"
+mkdir -p "$save_dir"
+
+# Format for timestamp
+timestamp=$(date +"%d-%m-%Y-%H%M%S")
+
+# Function to take a screenshot
+take_screenshot() {
+    local type=$1
+    local filename="$2"
+    local options=$3
+
+    scrot "$filename" $options -e "mv \$f $save_dir"
+    notify-send "Screenshot Taken" "$type saved to $save_dir/$filename"
+}
+
+# Determine screenshot type
+case "$1" in
+    f)  # Fullscreen
+        take_screenshot "Fullscreen" "${timestamp}_full.png" ""
+        ;;
+    w)  # Active window
+        take_screenshot "Window" "${timestamp}_win.png" "-u"
+        ;;
+    a)  # Select area
+        take_screenshot "Selection" "${timestamp}_area.png" "-s"
+        ;;
+    *)
+        notify-send "Screenshot Error" "Usage: $0 {f|w|a}"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,129 @@
+# GreenBANG Project Guide
+
+Welcome to **ArchBANG Project**, a lightweight Arch-based live ISO.
+Visit: [www.archbang.org/Guide](http://www.archbang.org/Guide)
+
+> **Note:**
+> Please **do not** post issues or problems related to ArchBANG on the Arch Linux forums.
+> At best, your thread will be closed; at worst, it will be deleted.
+
+---
+
+## Pacman (Live Session)
+
+To use `pacman` or a browser in the live session, you need a working network connection.
+
+- **Wired (Ethernet)** connections work automatically.
+- **Wireless** connections can be configured via the network icon on the panel:
+  - Left-click the icon
+  - Select your network from the list
+  - Enter your Wi-Fi password
+
+---
+
+## Installation Tips and Tricks
+
+If your live session runs out of disk space, you can remount the live filesystem with more space:
+
+```
+sudo mount -o remount,size=8G /run/archiso/cowspace
+```
+
+## Intel Graphics on ArchBang
+
+ArchBang does **not** include the legacy `xf86-video-intel` driver by default.
+
+On most Intel systems (Sandy Bridge / 2011 and newer), Xorg will use the built-in *modesetting* driver (via Mesa), which is generally the best option.
+
+---
+
+### Quick fix (older Intel iGPUs)
+
+If you see poor performance, tearing in Xorg, or a black screen on very old Intel hardware, install the legacy driver and reboot:
+
+```bash
+sudo pacman -S xf86-video-intel
+```
+
+---
+
+## Installation
+
+To begin installation:
+
+1. Right-click on the desktop
+2. Select **Install** from the main menu
+
+The installer is menu-driven and easy to follow.
+
+> Need help with partitions?
+> Use **GParted**, available via the Openbox menu under **Settings**.
+
+---
+
+## Post-Install Steps
+
+### Microcode Notice
+
+ArchBANG includes **both** `intel-ucode` and `amd-ucode` microcode packages to support a wide range of CPUs.
+
+You only need **one**, depending on your processor.
+
+> **Important:**
+> If you remove a microcode package **after installation**, and your bootloader references it, your system **may fail to boot**.
+> Only remove the unused one if you are comfortable editing your bootloader entries.
+
+> After removal, update your bootloader configuration to reflect the change (e.g., regenerate GRUB or edit `loader.conf` if using systemd-boot).
+
+---
+
+### Ensure You Have a Network Connection
+
+Refer to the instructions in the **Pacman Live** section above if needed.
+
+### Initialize Pacman
+
+`pacman` will not work until keys are initialized. Run the following:
+
+```
+gb-pacman-keys
+```
+
+This will:
+
+- Create keys
+- Refresh the package cache
+- Update the `archlinux-keyring`
+
+---
+
+### Basic Package Usage
+
+Search for packages:
+
+```bash
+sudo pacman -Ss <package-name>
+```
+
+Install a package:
+
+```bash
+sudo pacman -S <package-name>
+```
+
+---
+
+## Need Help?
+
+Check out the Arch Wiki:
+👉 [https://wiki.archlinux.org](https://wiki.archlinux.org)
+
+---
+
+**ArchBANG is maintained by a single developer in their spare time.**
+If you find it useful and would like to support its continued development:
+☕ [Buy me a coffee](https://ko-fi.com/archbang)
+
+Thank you for using ArchBANG.
+
+© 2025 ArchBANG Project ISO

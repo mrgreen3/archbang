@@ -1,0 +1,21 @@
+# Dunst config
+# by Mr Green [mrgreen@archbang.org]
+# With help from Joe ;-)
+
+[global]
+  width = 150
+  origin = top-left
+  offset = (20,20)
+  font = Dejavu Sans 10
+  format = "%s"
+  frame_color = "#2266cc"
+  frame_width = 2
+  background = "#1a1a1a"
+  foreground = "#ffffff" 
+  padding = 5
+  horizontal_padding = 5
+  alignment = center
+  timeout = 5
+  icon_path = /usr/share/Arc/status/16@2x
+  show_indicators = no
+

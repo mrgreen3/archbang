@@ -1,0 +1,1172 @@
+#!/usr/bin/env bash
+
+# abinstall ArchBANG installer
+# Modified by Mr Green mrgreen(at)archbang(dot)org
+# based on lilo fifo...scripts
+
+#-------------------------------------------------------------------------------
+# Created by helmuthdu mailto: helmuthdu[at]gmail[dot]com
+# Contribution: flexiondotorg
+#-------------------------------------------------------------------------------
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#-------------------------------------------------------------------------------
+
+
+#GLOBAL VARIABLES {{{
+  checklist=( 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 )
+  # COLORS {{{
+    Bold=$(tput bold)
+    Underline=$(tput sgr 0 1)
+    Reset=$(tput sgr0)
+    # Regular Colors
+    Red=$(tput setaf 1)
+    Green=$(tput setaf 2)
+    Yellow=$(tput setaf 3)
+    Blue=$(tput setaf 4)
+    Purple=$(tput setaf 5)
+    Cyan=$(tput setaf 6)
+    White=$(tput setaf 7)
+    # Bold
+    BRed=${Bold}$(tput setaf 1)
+    BGreen=${Bold}$(tput setaf 2)
+    BYellow=${Bold}$(tput setaf 3)
+    BBlue=${Bold}$(tput setaf 4)
+    BPurple=${Bold}$(tput setaf 5)
+    BCyan=${Bold}$(tput setaf 6)
+    BWhite=${Bold}$(tput setaf 7)
+  #}}}
+  # PROMPT {{{
+    prompt1="Enter your option: "
+    prompt2="Enter n° of options (ex: 1 2 3 or 1-3): "
+    prompt3="You have to manually enter the following commands, then press ${BYellow}ctrl+d${Reset} or type ${BYellow}exit${Reset}:"
+  #}}}
+  # EDITOR {{{
+    AUTOMATIC_MODE=0
+    EDITOR="nano"
+  #}}}
+  # MOUNTPOINTS {{{
+    EFI_MOUNTPOINT="/boot/efi"
+    ROOT_MOUNTPOINT="/dev/sda1"
+    BOOT_MOUNTPOINT="/dev/sda"
+    MNT="/mnt"
+  # MIRRORLIST
+    MIRROR=${MNT}/etc/pacman.d/mirrorlist
+  #}}}
+  ARCHI=$(uname -m)
+  UEFI=0
+  LVM=0
+  LUKS=0
+  LUKS_DISK="sda2"
+  EXTERNAL=`echo -e "(${BYellow}external${Reset})"`
+  [[ $1 == -v || $1 == --verbose ]] && VERBOSE_MODE=1 || VERBOSE_MODE=0 # VERBOSE MODE
+  [[ -f $LOG ]] && rm -f $LOG
+  SPIN="/-\|" #SPINNER POSITION
+  AUTOMATIC_MODE=0
+  TRIM=0
+#}}}
+#COMMON FUNCTIONS {{{
+  error_msg() { #{{{
+    local _msg="${1}"
+    echo -e "${_msg}"
+    exit 1
+  } #}}}
+  cecho() { #{{{
+    echo -e "$1"
+    echo -e "$1" >>"$LOG"
+    tput sgr0;
+  } #}}}
+  ncecho() { #{{{
+    echo -ne "$1"
+    echo -ne "$1" >>"$LOG"
+    tput sgr0
+  } #}}}
+  spinny() { #{{{
+    echo -ne "\b${SPIN:i++%${#SPIN}:1}"
+  } #}}}
+  progress() { #{{{
+    ncecho "  ";
+    while true; do
+      kill -0 $pid &> /dev/null;
+      if [[ $? == 0 ]]; then
+        spinny
+        sleep 0.25
+      else
+        ncecho "\b\b";
+        wait $pid
+        retcode=$?
+        echo -ne "$pid's retcode: $retcode" >> $LOG
+        if [[ $retcode == 0 ]] || [[ $retcode == 255 ]]; then
+          cecho success
+        else
+          cecho failed
+          echo -e "$PKG" >> $PKG_FAIL
+          tail -n 15 $LOG
+        fi
+        break
+      fi
+    done
+  } #}}}
+  check_boot_system() { #{{{
+    if [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Inc.' ]] || [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Computer, Inc.' ]]; then
+      modprobe -r -q efivars || true  # if MAC
+    else
+      modprobe -q efivarfs            # all others
+    fi
+    if [[ -d "/sys/firmware/efi/" ]]; then
+      ## Mount efivarfs if it is not already mounted
+      if [[ -z $(mount | grep /sys/firmware/efi/efivars) ]]; then
+        mount -t efivarfs efivarfs /sys/firmware/efi/efivars
+      fi
+      UEFI=1
+      echo "UEFI Mode detected"
+    else
+      UEFI=0
+      echo "BIOS Mode detected"
+    fi
+  }
+  #}}}
+  check_trim() { #{{{
+    [[ -n $(hdparm -I /dev/sda | grep TRIM &> /dev/null) ]] && TRIM=1
+  }
+  #}}}
+  check_root() { #{{{
+    if [[ "$(id -u)" != "0" ]]; then
+      error_msg "ERROR! You must execute the script as the 'root' user."
+    fi
+  } #}}}
+  check_user() { #{{{
+    if [[ "$(id -u)" == "0" ]]; then
+      error_msg "ERROR! You must execute the script as a normal user."
+    fi
+  } #}}}
+  check_hostname() { #{{{
+    if [[ `echo ${HOSTNAME} | sed 's/ //g'` == "" ]]; then
+      error_msg "ERROR! Hostname is not configured."
+    fi
+  } #}}}
+  read_input() { #{{{
+    if [[ $AUTOMATIC_MODE -eq 1 ]]; then
+      OPTION=$1
+    else
+      read -p "$prompt1" OPTION
+    fi
+  } #}}}
+  read_input_text() { #{{{
+    if [[ $AUTOMATIC_MODE -eq 1 ]]; then
+      OPTION=$2
+    else
+      read -p "$1 [y/N]: " OPTION
+      echo ""
+    fi
+    OPTION=`echo "$OPTION" | tr '[:upper:]' '[:lower:]'`
+  } #}}}
+  read_input_options() { #{{{
+    local line
+    local packages
+    if [[ $AUTOMATIC_MODE -eq 1 ]]; then
+      array=("$1")
+    else
+      read -p "$prompt2" OPTION
+      array=("$OPTION")
+    fi
+    for line in ${array[@]/,/ }; do
+      if [[ ${line/-/} != $line ]]; then
+        for ((i=${line%-*}; i<=${line#*-}; i++)); do
+          packages+=($i);
+        done
+      else
+        packages+=($line)
+      fi
+    done
+    OPTIONS=("${packages[@]}")
+  } #}}}
+  print_line() { #{{{
+    printf "%$(tput cols)s\n"|tr ' ' '-'
+  } #}}}
+  print_title() { #{{{
+    clear
+    print_line
+    echo -e "# ${Bold}$1${Reset}"
+    print_line
+    echo ""
+  } #}}}
+  print_info() { #{{{
+    #Console width number
+    T_COLS=`tput cols`
+    echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
+  } #}}}
+  print_warning() { #{{{
+    T_COLS=`tput cols`
+    echo -e "${BYellow}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
+  } #}}}
+  print_danger() { #{{{
+    T_COLS=`tput cols`
+    echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
+  } #}}}
+  add_line() { #{{{
+    local _add_line=${1}
+    local _filepath=${2}
+
+    local _has_line=`grep -ci "${_add_line}" ${_filepath}`
+    [[ $_has_line -eq 0 ]] && echo "${_add_line}" >> ${_filepath}
+  } #}}}
+  replace_line() { #{{{
+    local _search=${1}
+    local _replace=${2}
+    local _filepath=${3}
+    local _filebase=`basename ${3}`
+
+    sed -e "s/${_search}/${_replace}/" ${_filepath} > /tmp/${_filebase} 2>"$LOG"
+    if [[ ${?} -eq 0 ]]; then
+      mv /tmp/${_filebase} ${_filepath}
+    else
+      cecho "failed: ${_search} - ${_filepath}"
+    fi
+  } #}}}
+  checkbox() { #{{{
+    #display [X] or [ ]
+    [[ "$1" -eq 1 ]] && echo -e "${BBlue}[${Reset}${Bold}X${BBlue}]${Reset}" || echo -e "${BBlue}[ ${BBlue}]${Reset}";
+  } #}}}
+  checkbox_package() { #{{{
+    #check if [X] or [ ]
+    is_package_installed "$1" && checkbox 1 || checkbox 0
+  } #}}}
+  contains_element() { #{{{
+    #check if an element exist in a string
+    for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
+  } #}}}
+  invalid_option() { #{{{
+    print_line
+    echo "Invalid option. Try another one."
+    pause_function
+  } #}}}
+  pause_function() { #{{{
+    print_line
+    if [[ $AUTOMATIC_MODE -eq 0 ]]; then
+      read -e -sn 1 -p "Press enter to continue..."
+    fi
+  } #}}}
+  menu_item() { #{{{
+    #check if the number of arguments is less then 2
+    [[ $# -lt 2 ]] && _package_name="$1" || _package_name="$2";
+    #list of chars to remove from the package name
+    local _chars=("Ttf-" "-bzr" "-hg" "-svn" "-git" "-stable" "-icon-theme" "Gnome-shell-theme-" "Gnome-shell-extension-");
+    #remove chars from package name
+    for char in ${_chars[@]}; do _package_name=`echo ${_package_name^} | sed 's/'$char'//'`; done
+    #display checkbox and package name
+    echo -e "$(checkbox_package "$1") ${Bold}${_package_name}${Reset}"
+  } #}}}
+  mainmenu_item() { #{{{
+    echo -e "$(checkbox "$1") ${Bold}$2${Reset}"
+  } #}}}
+  elihw() { #{{{
+    [[ $OPT == b || $OPT == d ]] && break;
+  } #}}}
+  arch_chroot() { #{{{
+    arch-chroot $MNT /bin/bash -c "${1}"
+  }
+  #}}}
+  getkeymap() { #{{{
+    local _keymaps=($(localectl list-keymaps))
+    PS3="(shift+pgup/pgdown) $prompt1"
+    echo "Select keymap:"
+    select KEYMAP in "${_keymaps[@]}"; do
+      if contains_element "$KEYMAP" "${_keymaps[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+    done
+  }
+  #}}}
+
+ getxkeymap() { #{{{
+    local _xkeymaps=($(localectl list-x11-keymap-layouts))
+    PS3="(shift+pgup/pgdown) $prompt1"
+    echo "Select keymap:"
+    select XKEYMAP in "${_xkeymaps[@]}"; do
+      if contains_element "$XKEYMAP" "${_xkeymaps[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+    done
+  }
+
+getmirror() {
+  declare -a location
+  input="${MIRROR}"
+  while IFS= read -r line
+  do
+   # do stuff
+   [[ $line =~ ^##.* ]] && location+=("${line//##}")
+
+  done < "$input"
+
+  PS3="(shift+pgup/pgdown) $prompt1"
+  echo "Select location:"
+  select LOCATION in "${location[@]}"; do
+  if contains_element "$LOCATION" "${location[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+  done
+  }
+
+configure_mirrors() {
+  # Create a mirrorlist based on location, may not be fastest servers but nearest..
+  # Backup list
+  #  cp ${MIRROR} ${MNT}/etc/pacman.d/mirrorlist.backup
+
+  # Remove everything before Albania
+  sed -i '1,/^## Albania/{/^## Albania/!d}' ${MIRROR} 
+
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    getmirror
+    echo ""
+    read_input_text "Confirm Location: $LOCATION"
+  done
+
+  # magic happens here....
+  sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
+
+  }
+
+  setlocale() { #{{{
+    local _locale_list=(`cat /etc/locale.gen | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
+    PS3="$prompt1"
+    echo "Select locale:"
+    select LOCALE in "${_locale_list[@]}"; do
+      if contains_element "$LOCALE" "${_locale_list[@]}"; then
+        LOCALE_UTF8="${LOCALE}.UTF-8"
+        break
+      else
+        invalid_option
+      fi
+    done
+  }
+  #}}}
+  settimezone() { #{{{
+    local _zones=($(timedatectl list-timezones | sed 's/\/.*$//' | uniq))
+    PS3="$prompt1"
+    echo "Select zone:"
+    select ZONE in "${_zones[@]}"; do
+      if contains_element "$ZONE" "${_zones[@]}"; then
+        local _subzones=($(timedatectl list-timezones | grep ${ZONE} | sed 's/^.*\///'))
+        PS3="$prompt1"
+        echo "Select subzone:"
+        select SUBZONE in "${_subzones[@]}"; do
+          if contains_element "$SUBZONE" "${_subzones[@]}"; then
+            break
+          else
+            invalid_option
+          fi
+        done
+        break
+      else
+        invalid_option
+      fi
+    done
+  } #}}}
+#}}}
+
+LOG_ERR=/tmp/error_log
+touch $LOG_ERR
+WIKI="https://wiki.archlinux.org/index.php"
+
+#ARCHLINUX INSTALL SCRIPTS MODE {{{
+#SELECT KEYMAP {{{
+select_xkeymap(){
+  print_title "XORG DESKTOP KEYBOARD LAYOUT"
+  print_info "."
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    getxkeymap
+    read_input_text "Confirm keymap: $XKEYMAP"
+  done
+# Desktop keymap
+# change in openbox/autostart... modify
+  sed -i "s/\"us\"/\"${XKEYMAP}\"/g" $MNT/home/ablive/.config/openbox/autostart
+# Global setting
+#  sed -i "s/us/${XKEYMAP}/g" $MNT/etc/X11/xorg.conf.d/01-keyboard-layout.conf
+}
+#}}}
+
+#UMOUNT PARTITIONS {{{
+umount_partitions(){
+  mounted_partitions=(`lsblk | grep ${MNT} | awk '{print $7}' | sort -r`)
+  swapoff -a
+  for i in ${mounted_partitions[@]}; do
+    umount $i
+  done
+}
+#}}}
+#SELECT DEVICE {{{
+select_device(){
+  devices_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'mmc\|nvme\|sd\|hd\|vd'`);
+  PS3="$prompt1"
+  echo -e "Select partition:\n"
+  select device in "${devices_list[@]}"; do
+    if contains_element "${device}" "${devices_list[@]}"; then
+      break
+    else
+      invalid_option
+    fi
+  done
+  BOOT_MNT=$device
+}
+#}}}
+#CREATE PARTITION SCHEME {{{
+create_partition_scheme(){
+  LUKS=0
+  LVM=0
+  print_title "PARTITION DRIVE - ${WIKI}/Partitioning"
+  print_info "Partitioning a hard drive allows one to logically divide the available space into sections that can be accessed independently of one another."
+  print_warning "Maintain Current does not work with LUKS"
+  partition_layout=("Default" "LVM" "LVM+LUKS" "Maintain Current")
+  PS3="$prompt1"
+  echo -e "Select partition scheme:"
+  select OPT in "${partition_layout[@]}"; do
+    case "$REPLY" in
+      1)
+        create_partition
+        ;;
+      2)
+        create_partition
+        setup_lvm
+        ;;
+      3)
+        create_partition
+        setup_luks
+        setup_lvm
+        ;;
+      4)
+        modprobe dm-mod
+        vgscan &> /dev/null
+        vgchange -ay &> /dev/null
+        ;;
+      *)
+        invalid_option
+        ;;
+    esac
+    [[ -n $OPT ]] && break
+  done
+}
+#}}}
+#SETUP PARTITION{{{
+create_partition(){
+  apps_list=("gparted" "cfdisk" "cgdisk" "fdisk" "gdisk" "parted");
+  PS3="$prompt1"
+  echo -e "Select partition program:"
+  select OPT in "${apps_list[@]}"; do
+    if contains_element "$OPT" "${apps_list[@]}"; then
+      select_device
+      case $OPT in
+        parted)
+          parted -a opt ${device}
+          ;;
+        *)
+          $OPT ${device}
+          ;;
+      esac
+      break
+    else
+      invalid_option
+    fi
+  done
+}
+#}}}
+#SETUP LUKS {{{
+setup_luks(){
+  print_title "LUKS - ${WIKI}/LUKS"
+  print_info "The Linux Unified Key Setup or LUKS is a disk-encryption specification created by Clemens Fruhwirth and originally intended for Linux."
+  print_danger "\tDo not use this for boot partitions"
+  block_list=(`lsblk | grep 'part' | awk '{print "/dev/" substr($1,3)}'`)
+  PS3="$prompt1"
+  echo -e "Select partition:"
+  select OPT in "${block_list[@]}"; do
+    if contains_element "$OPT" "${block_list[@]}"; then
+      cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 --iter-time 5000 --use-random --verify-passphrase luksFormat $OPT
+      cryptsetup open --type luks $([[ $TRIM -eq 1 ]] && echo "--allow-discards") $OPT crypt
+      LUKS=1
+      LUKS_DISK=`echo ${OPT} | sed 's/\/dev\///'`
+      break
+    elif [[ $OPT == "Cancel" ]]; then
+      break
+    else
+      invalid_option
+    fi
+  done
+}
+#}}}
+#SETUP LVM {{{
+setup_lvm(){
+  print_title "LVM - ${WIKI}/LVM"
+  print_info "LVM is a logical volume manager for the Linux kernel; it manages disk drives and similar mass-storage devices. "
+  print_warning "Last partition will take 100% of free space left"
+  if [[ $LUKS -eq 1 ]]; then
+    pvcreate /dev/mapper/crypt
+    vgcreate lvm /dev/mapper/crypt
+  else
+    block_list=(`lsblk | grep 'part' | awk '{print "/dev/" substr($1,3)}'`)
+    PS3="$prompt1"
+    echo -e "Select partition:"
+    select OPT in "${block_list[@]}"; do
+      if contains_element "$OPT" "${block_list[@]}"; then
+        pvcreate $OPT
+        vgcreate lvm $OPT
+        break
+      else
+        invalid_option
+      fi
+    done
+  fi
+  read -p "Enter number of partitions [ex: 2]: " number_partitions
+  i=1
+  while [[ $i -le $number_partitions ]]; do
+    read -p "Enter $iª partition name [ex: home]: " partition_name
+    if [[ $i -eq $number_partitions ]]; then
+      lvcreate -l 100%FREE lvm -n ${partition_name}
+    else
+      read -p "Enter $iª partition size [ex: 25G, 200M]: " partition_size
+      lvcreate -L ${partition_size} lvm -n ${partition_name}
+    fi
+    i=$(( i + 1 ))
+  done
+  LVM=1
+}
+#}}}
+#SELECT|FORMAT PARTITIONS {{{
+format_partitions(){
+  print_title "FILESYSTEMS - ${WIK}/File_Systems"
+  print_info "This step will select and format the selected partiton where the archlinux will be installed"
+  print_danger "\tAll data on the ROOT and SWAP partition will be LOST."
+  i=0
+
+  block_list=(`lsblk | grep 'part\|lvm' | awk '{print substr($1,3)}'`)
+
+  # check if there is no partition
+  if [[ ${#block_list[@]} -eq 0 ]]; then
+    echo "No partition found"
+    exit 0
+  fi
+
+  partitions_list=()
+  for OPT in ${block_list[@]}; do
+    check_lvm=`echo $OPT | grep lvm`
+    if [[ -z $check_lvm ]]; then
+      partitions_list+=("/dev/$OPT")
+    else
+      partitions_list+=("/dev/mapper/$OPT")
+    fi
+  done
+
+  # partitions based on boot system
+  if [[ $UEFI -eq 1 ]]; then
+    partition_name=("root" "EFI" "swap" "another")
+  else
+    partition_name=("root" "swap" "another")
+  fi
+
+  select_filesystem(){
+    filesystems_list=( "btrfs" "ext2" "ext3" "ext4" "f2fs" "jfs" "nilfs2" "ntfs" "vfat" "xfs");
+    PS3="$prompt1"
+    echo -e "Select filesystem:\n"
+    select filesystem in "${filesystems_list[@]}"; do
+      if contains_element "${filesystem}" "${filesystems_list[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+    done
+  }
+
+  disable_partition(){
+    #remove the selected partition from list
+    unset partitions_list[${partition_number}]
+    partitions_list=(${partitions_list[@]})
+    #increase i
+    [[ ${partition_name[i]} != another ]] && i=$(( i + 1 ))
+  }
+
+  format_partition(){
+    read_input_text "Confirm format $1 partition"
+    if [[ $OPTION == y ]]; then
+      [[ -z $3 ]] && select_filesystem || filesystem=$3
+      mkfs.${filesystem} $1 \
+        $([[ ${filesystem} == xfs || ${filesystem} == btrfs ]] && echo "-f") \
+        $([[ ${filesystem} == vfat ]] && echo "-F32") \
+        $([[ $TRIM -eq 1 && ${filesystem} == ext4 ]] && echo "-E discard") \
+        $([[ $TRIM -eq 1 && ${filesystem} == btrfs ]] && echo "-O discard")
+      fsck $1
+      mkdir -p $2
+      mount -t ${filesystem} $1 $2
+      disable_partition
+    fi
+  }
+
+  format_swap_partition(){
+    read_input_text "Confirm format $1 partition"
+    if [[ $OPTION == y ]]; then
+      mkswap $1
+      swapon $1
+      disable_partition
+    fi
+  }
+
+  create_swap(){
+    swap_options=("partition" "file" "skip");
+    PS3="$prompt1"
+    echo -e "Select ${BYellow}${partition_name[i]}${Reset} filesystem:\n"
+    select OPT in "${swap_options[@]}"; do
+      case "$REPLY" in
+        1)
+          select partition in "${partitions_list[@]}"; do
+            #get the selected number - 1
+            partition_number=$(( $REPLY - 1 ))
+            if contains_element "${partition}" "${partitions_list[@]}"; then
+              format_swap_partition "${partition}"
+            fi
+            break
+          done
+          break
+          ;;
+        2)
+          total_memory=`grep MemTotal /proc/meminfo | awk '{print $2/1024}' | sed 's/\..*//'`
+          fallocate -l ${total_memory}M ${MNT}/swapfile
+          chmod 600 ${MNT}/swapfile
+          mkswap ${MNT}/swapfile
+          swapon ${MNT}/swapfile
+          i=$(( i + 1 ))
+          break
+          ;;
+        3)
+          i=$(( i + 1 ))
+          break
+          ;;
+        *)
+          invalid_option
+          ;;
+      esac
+    done
+  }
+
+  check_mountpoint(){
+    if mount | grep $2; then
+      echo "Successfully mounted"
+      disable_partition "$1"
+    else
+      echo "WARNING: Not Successfully mounted"
+    fi
+  }
+
+  set_efi_partition(){
+    efi_options=("/boot/efi" "/boot")
+    PS3="$prompt1"
+    echo -e "Select EFI mountpoint:\n"
+    select EFI_MNT in "${efi_options[@]}"; do
+      if contains_element "${EFI_MNT}" "${efi_options[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+    done
+  }
+
+  while true; do
+    PS3="$prompt1"
+    if [[ ${partition_name[i]} == swap ]]; then
+      create_swap
+    else
+      echo -e "Select ${BYellow}${partition_name[i]}${Reset} partition:\n"
+      select partition in "${partitions_list[@]}"; do
+        #get the selected number - 1
+        partition_number=$(( $REPLY - 1 ))
+        if contains_element "${partition}" "${partitions_list[@]}"; then
+          case ${partition_name[i]} in
+            root)
+              ROOT_PART=`echo ${partition} | sed 's/\/dev\/mapper\///' | sed 's/\/dev\///'`
+              ROOT_MNT=${partition}
+              format_partition "${partition}" "${MNT}"
+              ;;
+            EFI)
+              set_efi_partition
+              read_input_text "Format ${partition} partition"
+              if [[ $OPTION == y ]]; then
+                format_partition "${partition}" "${MNT}${EFI_MNT}" vfat
+              else
+                mkdir -p "${MNT}${EFI_MNT}"
+                mount -t vfat "${partition}" "${MNT}${EFI_MNT}"
+                check_mountpoint "${partition}" "${MNT}${EFI_MNT}"
+              fi
+              ;;
+            another)
+              read -p "Mountpoint [ex: /home]:" directory
+              [[ $directory == "/boot" ]] && BOOT_MNT=`echo ${partition} | sed 's/[0-9]//'`
+              select_filesystem
+              read_input_text "Format ${partition} partition"
+              if [[ $OPTION == y ]]; then
+                format_partition "${partition}" "${MNT}${directory}" "${filesystem}"
+              else
+                read_input_text "Confirm fs="${filesystem}" part="${partition}" dir="${directory}""
+                if [[ $OPTION == y ]]; then
+                  mkdir -p ${MNT}${directory}
+                  mount -t ${filesystem} ${partition} ${MNT}${directory}
+                  check_mountpoint "${partition}" "${MNT}${directory}"
+                fi
+              fi
+              ;;
+          esac
+          break
+        else
+          invalid_option
+        fi
+      done
+    fi
+    #check if there is no partitions left
+    if [[ ${#partitions_list[@]} -eq 0 && ${partition_name[i]} != swap ]]; then
+      break
+    elif [[ ${partition_name[i]} == another ]]; then
+      read_input_text "Configure more partitions"
+      [[ $OPTION != y ]] && break
+    fi
+  done
+  pause_function
+}
+
+# Function: copy with progress bar
+copy_progress() {
+    local SRC_DIR="$1"
+    local DEST_DIR="$2"
+    local BAR_WIDTH=40
+    [[ -d "$SRC_DIR" ]] || { echo "Error: Source '$SRC_DIR' missing"; return 1; }
+    local TOTAL_SIZE=$(du -sb "$SRC_DIR" | awk '{print $1}')
+    echo "Total size: $(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)"
+	echo
+    #tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"
+	tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"
+    echo -e "\n✅ Copy Complete!"
+}
+
+#}}}
+#INSTALL ARCHBANG {{{
+install_archbang(){
+  print_title "INSTALL ArchBANG - www.archbang.org"
+  print_info "Installing please wait..."
+  
+  # copy source to new install, test copy over any changes made live to target drive
+  #rsync -a --info=progress2 /run/archiso/airootfs/ "${MNT}/" 
+  copy_progress /run/archiso/airootfs/ "${MNT}/"
+  # need to add arch_chroot path and test! for unique machine id
+  arch-chroot ${MNT} systemd-machine-id-setup
+
+  # put live driver into new install
+  cp /etc/X11/xorg.conf.d/20-gpudriver.conf ${MNT}/etc/X11/xorg.conf.d/20-gpudriver.conf &>/dev/null
+
+  # Remove abinstall from target device
+  rm -f ${MNT}/home/ablive/AB_Scripts/abinstall &> /dev/null
+
+  # Remove installer from root-menu   
+  sed -i '/<!-- abinstall 5 -->/,+5d' ${MNT}/home/ablive/.config/openbox/menu.xml
+
+  # Remove Gparted from root-menu
+  sed -i '/GParted/,+4d' ${MNT}/home/ablive/.config/openbox/menu.xml
+
+  # remove autologin from install
+  rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
+
+  # systemd
+  rm ${MNT}/etc/systemd/system/default.target &> /dev/null
+  # add variable and then mv file to auto-storage.conf?
+  sed -i 's/volatile/auto/g' /${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf
+  mv /${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf /${MNT}/etc/systemd/journald.conf.d/auto-storage.conf
+  
+  # remove pacman-init.service link and etc-gpg thing
+  unlink ${MNT}/etc/systemd/system/multi-user.target.wants/pacman-init.service
+  rm -f ${MNT}/etc/systemd/system/pacman-init.service
+
+  rm -f ${MNT}/etc/systemd/system/etc-pacman.d-gnupg.mount
+  
+  # clean out ablive overlay files from /etc/skel on new install
+  rm -r ${MNT}/etc/skel &>/dev/null
+
+}
+#}}}
+
+#CONFIGURE FSTAB {{{
+configure_fstab(){
+  genfstab -U "$MNT" >> "${MNT}/etc/fstab" 
+}
+#}}}
+
+#CONFIGURE HOSTNAME {{{
+configure_hostname(){
+  print_title "HOSTNAME - ${WIKI}/hostname"
+  print_info "A host name is a unique name created to identify a machine on a network. Length is restricted to 63 characters."
+  read -p "Hostname [ex: greenbang]: " host_name
+  echo "$host_name" > ${MNT}/etc/hostname
+  arch_chroot "sed -i '/127.0.0.1/s/$/ '${host_name}'/' /etc/hosts"
+  arch_chroot "sed -i '/::1/s/$/ '${host_name}'/' /etc/hosts"
+}
+#}}}
+#CONFIGURE TIMEZONE {{{
+configure_timezone(){
+  print_title "TIMEZONE - ${WIKI}/Timezone"
+  print_info "In an operating system the time (clock) is determined by four parts: Time value, Time standard, Time Zone, and DST (Daylight Saving Time if applicable)."
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    settimezone
+    read_input_text "Confirm timezone (${ZONE}/${SUBZONE})"
+  done
+  arch_chroot "ln -sf /usr/share/zoneinfo/${ZONE}/${SUBZONE} /etc/localtime"
+}
+#}}}
+#CONFIGURE HARDWARECLOCK {{{
+configure_hardwareclock(){
+  print_title "HARDWARE CLOCK TIME - ${WIKI}/Internationalization"
+  print_info "This is set in /etc/adjtime. (Warning can cause time drift correction to be miscalibrated)."
+  hwclock_list=('UTC' 'Localtime');
+  PS3="$prompt1"
+  select OPT in "${hwclock_list[@]}"; do
+    case "$REPLY" in
+      1) arch_chroot "hwclock --systohc --utc";
+        ;;
+      2) arch_chroot "hwclock --systohc --localtime";
+        ;;
+      *) invalid_option ;;
+    esac
+    [[ -n $OPT ]] && break
+  done
+}
+#}}}
+#CONFIGURE LOCALE {{{
+configure_locale(){
+  print_title "LOCALE - ${WIKI}/Locale"
+  print_info "Locales are used in Linux to define which language the user uses & character sets."
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    setlocale
+    read_input_text "Confirm locale ($LOCALE)"
+  done
+  echo 'LANG="'$LOCALE_UTF8'"' > ${MNT}/etc/locale.conf
+  #arch_chroot "echo ${LOCALE_UTF8} > /etc/locale.gen"
+  arch_chroot "sed -i '/en_US\.UTF-8/ s/^#*/#/'  /etc/locale.gen"
+  arch_chroot "sed -i '/'${LOCALE_UTF8}'/s/^#//' /etc/locale.gen"
+  arch_chroot "locale-gen"
+}
+#}}}
+#CONFIGURE MKINITCPIO {{{
+configure_mkinitcpio(){
+  print_title "MKINITCPIO - ${WIKI}/Mkinitcpio"
+  print_info "mkinitcpio is a Bash script used to create an initial ramdisk environment."
+  proc=$(grep -m1 vendor_id /proc/cpuinfo | awk '{print $3}')
+  if [ "${proc}" = "GenuineIntel" ]; then
+    cpu_id="intel"
+  else
+    cpu_id="amd"
+  fi
+  # comment out xz to allow zstd to be used as compression
+  sed '/xz/s/^/#/' ${MNT}/etc/mkinitcpio.conf
+  # delete whole hooks line, replace with installed version
+  sed -i '/^HOOKS/c\HOOKS=(base udev autodetect modconf block filesystems keyboard fsck)' "${MNT}/etc/mkinitcpio.conf"
+  
+  [[ $LUKS -eq 1 ]] && sed -i '/^HOOK/s/block/block keymap encrypt/' ${MNT}/etc/mkinitcpio.conf
+  [[ $LVM -eq 1 ]] && sed -i '/^HOOK/s/filesystems/lvm2 filesystems/' ${MNT}/etc/mkinitcpio.conf
+  arch_chroot "mkinitcpio -p linux"
+}
+#}}}
+#INSTALL BOOTLOADER {{{
+install_bootloader(){
+  print_title "BOOTLOADER - ${WIKI}/Bootloader"
+  print_info "The boot loader is responsible for loading the kernel and initial RAM disk before initiating the boot process."
+  print_warning "\tROOT Partition: ${ROOT_MNT}"
+  if [[ $UEFI -eq 1 ]]; then
+    print_warning "\tUEFI Mode Detected"
+    bootloaders_list=("Grub2" "Syslinux" "Systemd" "Skip")
+  else
+    print_warning "\tBIOS Mode Detected"
+    bootloaders_list=("Grub2" "Syslinux" "Skip")
+  fi
+  PS3="$prompt1"
+  echo -e "Select bootloader:\n"
+  select bootloader in "${bootloaders_list[@]}"; do
+    case "$REPLY" in
+      1)
+        echo "Grub2"
+        break
+        ;;
+      2)
+        echo "Syslinux"
+        break
+        ;;
+      3)
+        break
+        ;;
+      4)
+        [[ $UEFI -eq 1 ]] && break || invalid_option
+        ;;
+      *)
+        invalid_option
+        ;;
+    esac
+  done
+}
+#}}}
+#CONFIGURE BOOTLOADER {{{
+configure_bootloader(){
+  case $bootloader in
+    Grub2)
+      print_title "GRUB2 - ${WIKI}/GRUB2"
+      print_info "GRUB2 is the next generation of the GRand Unified Bootloader (GRUB).\nIn brief, the bootloader is the first software program that runs when a computer starts. It is responsible for loading and transferring control to the Linux kernel."
+      grub_install_mode=("Automatic" "Manual")
+      PS3="$prompt1"
+      echo -e "Grub Install:\n"
+      select OPT in "${grub_install_mode[@]}"; do
+        case "$REPLY" in
+          1)
+            if [[ $LUKS -eq 1 ]]; then
+              sed -i -e 's/GRUB_CMDLINE_LINUX="\(.\+\)"/GRUB_CMDLINE_LINUX="\1 cryptdevice=\/dev\/'"${LUKS_DISK}"':crypt"/g' -e 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="cryptdevice=\/dev\/'"${LUKS_DISK}"':crypt"/g' ${MNT}/etc/default/grub
+            fi
+            print_info "Testing GRUB install outside chroot..."
+            if [[ $UEFI -eq 1 ]]; then
+              grub-install --target=x86_64-efi \
+                --efi-directory=${EFI_MNT} \
+                --bootloader-id=arch_grub \
+                --boot-directory=${MNT}/boot \
+                --recheck \
+                2>&1 | tee -a /var/log/abinstall.log
+            else
+              grub-install --target=i386-pc \
+                --boot-directory=${MNT}/boot \
+                --recheck --force "${BOOT_MNT}" \
+                2>&1 | tee -a /var/log/abinstall.log
+            fi
+
+            if [[ $? -ne 0 ]]; then
+              print_warning "GRUB install (via external method) FAILED — check /var/log/abinstall.log"
+            else
+              print_info "GRUB install (via external method) completed successfully."
+            fi
+
+            break
+            ;;
+
+          2)
+            arch-chroot ${MNT}
+            break
+            ;;
+          *)
+            invalid_option
+            ;;
+        esac
+      done
+      arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
+      ;;
+    Syslinux)
+      print_title "SYSLINUX - ${WIKI}/Syslinux"
+      print_info "Syslinux is a collection of boot loaders capable of booting from hard drives, CDs, and over the network via PXE. It supports the fat, ext2, ext3, ext4, and btrfs file systems."
+      syslinux_install_mode=("[MBR] Automatic" "[PARTITION] Automatic" "Manual")
+      PS3="$prompt1"
+      echo -e "Syslinux Install:\n"
+      select OPT in "${syslinux_install_mode[@]}"; do
+        case "$REPLY" in
+          1)
+            arch_chroot "syslinux-install_update -iam"
+            if [[ $LUKS -eq 1 ]]; then
+              sed -i "s/APPEND root=.*/APPEND root=\/dev\/mapper\/${ROOT_PART} cryptdevice=\/dev\/${LUKS_DISK}:crypt ro/g" ${MNT}/boot/syslinux/syslinux.cfg
+            elif [[ $LVM -eq 1 ]]; then
+              sed -i "s/sda[0-9]/\/dev\/mapper\/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
+            else
+              sed -i "s/sda[0-9]/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
+            fi
+            print_warning "The partition in question needs to be whatever you have as / (root), not /boot."
+            pause_function
+            break
+            ;;
+          2)
+            arch_chroot "syslinux-install_update -i"
+            if [[ $LUKS -eq 1 ]]; then
+              sed -i "s/APPEND root=.*/APPEND root=\/dev\/mapper\/${ROOT_PART} cryptdevice=\/dev\/${LUKS_DISK}:crypt ro/g" ${MNT}/boot/syslinux/syslinux.cfg
+            elif [[ $LVM -eq 1 ]]; then
+              sed -i "s/sda[0-9]/\/dev\/mapper\/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
+            else
+              sed -i "s/sda[0-9]/${ROOT_PART}/g" ${MNT}/boot/syslinux/syslinux.cfg
+            fi
+            print_warning "The partition in question needs to be whatever you have as / (root), not /boot."
+            pause_function
+            break
+            ;;
+          *)
+            invalid_option
+            ;;
+        esac
+      done
+    # add sed for intel/amd ucode here..
+      sed -i "s/..\/initramfs-linux.img/..\/${cpu_id}-ucode.img,..\/initramfs-linux.img/" ${MNT}/boot/syslinux/syslinux.cfg
+      ;;
+    Systemd)
+      print_title "SYSTEMD-BOOT - ${WIKI}/Systemd-boot"
+      print_info "systemd-boot (previously called gummiboot), is a simple UEFI boot manager which executes configured EFI images."
+      print_warning "\tSystemd-boot heavily suggests that /boot is mounted to the EFI partition, not /boot/efi, in order to simplify updating and configuration."
+      gummiboot_install_mode=("Automatic" "Manual")
+      PS3="$prompt1"
+      echo -e "Gummiboot install:\n"
+      select OPT in "${gummiboot_install_mode[@]}"; do
+        case "$REPLY" in
+          1)
+            arch_chroot "bootctl --path=${EFI_MNT} install"
+            print_warning "Please check your .conf file"
+            partuuid=`blkid -s PARTUUID ${ROOT_MNT} | awk '{print $2}' | sed 's/"//g' | sed 's/^.*=//'`
+            if [[ $LUKS -eq 1 ]]; then
+              echo -e "title\tArch Linux\nlinux\t/vmlinuz-linux\ninitrd\t/initramfs-linux.img\noptions\tcryptdevice=\/dev\/${LUKS_DISK}:luks root=\/dev\/mapper\/${ROOT_PART} rw" > ${MNT}/boot/loader/entries/arch.conf
+            elif [[ $LVM -eq 1 ]]; then
+              echo -e "title\tArch Linux\nlinux\t/vmlinuz-linux\ninitrd\t/initramfs-linux.img\noptions\troot=\/dev\/mapper\/${ROOT_PART} rw" > ${MNT}/boot/loader/entries/arch.conf
+            else
+              echo -e "title\tArch Linux\nlinux\t/vmlinuz-linux\ninitrd\t/${cpu_id}-ucode.img\ninitrd\t/initramfs-linux.img\noptions\troot=PARTUUID=${partuuid} rw" > ${MNT}/boot/loader/entries/arch.conf
+			  echo -e "title\tArch Linux Fallback\nlinux\t/vmlinuz-linux\ninitrd\t/${cpu_id}-ucode.img\ninitrd\t/initramfs-linux-fallback.img\noptions\troot=PARTUUID=${partuuid} rw" > ${MNT}/boot/loader/entries/arch-fallback.conf
+            fi
+            echo -e "default  arch.conf\ntimeout  5" > ${MNT}/boot/loader/loader.conf
+            pause_function
+            break
+            ;;
+          2)
+            arch-chroot ${MNT}
+            break
+            ;;
+          *)
+            invalid_option
+            ;;
+        esac
+      done
+      ;;
+  esac
+  pause_function
+}
+#}}}
+#ROOT PASSWORD {{{
+root_password(){
+  print_title "ROOT PASSWORD"
+  print_warning "Enter your new root password"
+  arch_chroot "passwd"
+  pause_function
+}
+
+# SETUP NEW USER {{{
+setup_user(){
+  print_title "CREATE NEW USER"
+  echo
+  arch_chroot "/root/mvuser"
+ # rm -f ${MNT}/root/mvuser &> /dev/null
+  arch_chroot "rm -f /root/mvuser"  
+pause_function
+}
+
+#}}}
+#FINISH {{{
+finish(){
+  print_title "ARCHBANG INSTALL COMPLETED..."
+  read_input_text "Reboot system"
+  if [[ $OPTION == y ]]; then
+    umount_partitions
+    reboot
+  fi
+  exit 0
+}
+#}}}
+
+#print_title "ArchBang installer"
+#print_info "abinstall is an menu driven installer."
+#pause_function
+check_boot_system
+
+while true
+do
+  print_title "ArchBang installer - www.archbang.org"
+  echo " 1) $(mainmenu_item "${checklist[1]}" "Partition Scheme")"
+  echo " 2) $(mainmenu_item "${checklist[2]}" "Install GreenBang")"
+  echo " 3) $(mainmenu_item "${checklist[3]}" "Hostname")"
+  echo " 4) $(mainmenu_item "${checklist[4]}" "Location")"
+  echo " 5) $(mainmenu_item "${checklist[5]}" "Hardware Clock")"
+  echo " 6) $(mainmenu_item "${checklist[6]}" "Locale")"
+  echo " 7) $(mainmenu_item "${checklist[7]}" "Desktop Keyboard Layout")"
+  echo " 8) $(mainmenu_item "${checklist[8]}" "Bootloader")"
+  echo " 9) $(mainmenu_item "${checklist[9]}" "Root Password")"
+  echo "10) $(mainmenu_item "${checklist[10]}" "Create User")"
+
+  echo ""
+  echo " d) Done"
+  echo ""
+  read_input_options
+  for OPT in ${OPTIONS[@]}; do
+    case "$OPT" in
+      1)
+        umount_partitions
+        create_partition_scheme
+        format_partitions
+        checklist[1]=1
+        ;;
+      2)
+        install_archbang
+		configure_fstab
+        checklist[2]=1
+        ;;
+      3)
+        configure_hostname
+        checklist[3]=1
+        ;;
+      4)
+        configure_timezone
+		configure_mirrors
+        checklist[4]=1
+        ;;
+      5)
+        configure_hardwareclock
+        checklist[5]=1
+        ;;
+      6)
+        configure_locale
+		configure_mkinitcpio
+        checklist[6]=1
+        ;;
+      7)
+		select_xkeymap
+		checklist[7]=1
+		;;
+      8)
+        install_bootloader
+        configure_bootloader
+        checklist[8]=1
+        ;;
+      9)
+        root_password
+        checklist[9]=1
+        ;;
+      10)
+        setup_user
+        checklist[10]=1
+        ;;
+      "d")
+        finish
+        ;;
+      *)
+        invalid_option
+        ;;
+    esac
+  done
+done
+#}}}
+

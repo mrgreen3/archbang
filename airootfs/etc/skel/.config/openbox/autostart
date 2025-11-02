@@ -1,0 +1,29 @@
+#
+# These things are run when an Openbox X Session is started.
+# You may place a similar script in $HOME/.config/openbox/autostart
+# to run user-specific things.
+#
+
+# Set screen size more for own use in VB..
+#xrandr -s 1920x1080 &
+
+# Apply background image..
+feh --bg-scale ~/Backgrounds/stars.jpg &
+
+# Battery/AC applet
+cbatticon -n &
+
+# Network applet
+nm-applet &
+
+# Set keyboard layout..
+setxkbmap -layout "us" &
+
+# Start Panel
+(sleep 2 && startpanel) &
+
+# Start Dunst then show a welcome note!
+dunst &
+
+# Start conky
+(sleep 2 && conky) &

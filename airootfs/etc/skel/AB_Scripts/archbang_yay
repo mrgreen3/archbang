@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# greenyay - simple yay installer for live ISO
+# modifed by MrGreen [mrgreen@archbang.org]
+
+set -euo pipefail
+
+echo "==============================="
+echo "   ArchBANG yay installer"
+echo "==============================="
+
+# --- Ensure deps (base-devel + git) ---
+sudo pacman -Sy --needed --noconfirm base-devel git
+
+# --- Build yay from AUR ---
+tmpdir=$(mktemp -d)
+cd "$tmpdir"
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si --noconfirm
+
+# --- Cleanup ---
+cd ~
+rm -rf "$tmpdir"
+
+# --- Always remove go ---
+sudo pacman -Rns --noconfirm go || true
+
+# Clean up go-build in ~/.cache
+rm -rf ~/.cache/go-build
+
+echo "✔ yay installed successfully"
+

@@ -1,0 +1,10 @@
+NAME="ArchBANG"
+PRETTY_NAME="ArchBANG Project"
+ID=archbang
+ID_LIKE=arch
+BUILD_ID=rolling
+
+ANSI_COLOR="0;32"
+HOME_URL="https://archbang.org/"
+DOCUMENTATION_URL="https://archbang.org/guides"
+SUPPORT_URL="https://archbang.org/contact"

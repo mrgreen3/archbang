@@ -1,0 +1,11 @@
+configuration {
+  modi: "drun";
+  show-icons: true;
+  icon-theme: "Arc";
+  disable-history: false;
+  sidebar-mode: false;
+  display-drun: "> ";
+}
+
+@theme "~/.config/rofi/archbang.rasi"
+
