@@ -27,3 +27,4 @@ dunst &
 
 # Start conky
 (sleep 2 && conky) &
+

@@ -19,6 +19,12 @@ sed -i 's/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: AL
 chown -c root:root /etc/sudoers
 chmod -c 0440 /etc/sudoers
 
+# Configure gparted to run with sudo for elevated permissions
+#sed -i 's|^Exec=/usr/bin/gparted|Exec=sudo /usr/bin/gparted|' /usr/share/applications/gparted.desktop
+
+# Hide gparted from Openbox menu and rofi
+sed -i '/^Categories=/a Hidden=true' /usr/share/applications/gparted.desktop
+
 # Hostname
 echo "archbang" > /etc/hostname
 

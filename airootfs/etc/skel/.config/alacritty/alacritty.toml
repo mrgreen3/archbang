@@ -3,7 +3,7 @@ general.import = ["~/.config/alacritty/themes/tokyo-night.toml",]
 general.ipc_socket = true
 
 [font]
-size = 7
+size = 9
 
 [font.bold]
 family = "Jetbrains Mono"

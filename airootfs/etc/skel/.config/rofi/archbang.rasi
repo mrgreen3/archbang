@@ -7,7 +7,7 @@
     font: "JetBrainsMono Nerd Font 12";
 
     bg:        #1a1a1a;   /* background */
-    fg:        #d0d0d0;   /* normal text */
+    fg:        #c2c3c0;   /* normal text */
     accent:    #2266cc;   /* accent color */
     sel-fg:    #000000;   /* black text on selection */
 }

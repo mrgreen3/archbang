@@ -547,15 +547,8 @@ create_partition() {
 
       case "$OPT" in
         gparted)
-          if [[ "$XDG_SESSION_TYPE" == "wayland" ]]; then
-            echo "Launching GParted under Wayland..."
-            sudo --preserve-env=WAYLAND_DISPLAY,XDG_RUNTIME_DIR \
-                 env WAYLAND_DISPLAY=$WAYLAND_DISPLAY \
-                     XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR \
-                 gparted
-          else
-            sudo gparted
-          fi
+          echo "Launching GParted..."
+          pkexec gparted
           ;;
         parted)
           parted -a opt "${device}"
@@ -958,6 +951,12 @@ EOF
 
   # clean out ablive overlay files from /etc/skel on new install
   rm -r ${MNT}/etc/skel &>/dev/null
+
+  # Revert gparted to stock version without sudo
+  #sed -i 's|^Exec=sudo /usr/bin/gparted|Exec=/usr/bin/gparted|' ${MNT}/usr/share/applications/gparted.desktop
+
+  # Restore gparted visibility in menus
+  sed -i '/^Hidden=true/d' ${MNT}/usr/share/applications/gparted.desktop
 
 }
 #}}}

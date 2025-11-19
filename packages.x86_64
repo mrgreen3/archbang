@@ -32,13 +32,11 @@ rofi
 dunst
 udisks2
 xdotool
-cbatticon
 laptop-detect
 xdg-user-dirs
 l3afpad
 gvfs
 bottom
-tealdeer
 
 # Gtk, Icons, Theme
 gnome-themes-extra
@@ -64,7 +62,6 @@ firefox
 #netsurf
 scrot
 pacman-contrib
-tlp
 
 # Network Tools
 tcl
@@ -73,7 +70,6 @@ wpa_supplicant
 libsecret
 polkit
 gnome-keyring
-wvdial
 networkmanager
 network-manager-applet
 broadcom-wl
@@ -154,7 +150,6 @@ pciutils
 perl
 procps-ng
 psmisc
-s-nail
 sed
 shadow
 sysfsutils

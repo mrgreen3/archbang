@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# ArchBang GParted launcher with warning notification
+# Provides safe privilege escalation for disk partitioning tool
+
+set -euo pipefail
+
+# Show warning notification
+notify-send "GParted" "Running as root"
+
+# Launch GParted with privilege escalation
+exec pkexec gparted

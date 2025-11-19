@@ -41,7 +41,7 @@
   </item>
   <item label="GParted">
     <action name="Execute">
-		<command>sudo gparted</command>
+		<command>~/AB_Scripts/ab-gparted</command>
     </action>
   </item>
 <item label="System">

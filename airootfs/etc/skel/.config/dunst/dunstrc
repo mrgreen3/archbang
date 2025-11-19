@@ -11,7 +11,7 @@
   frame_color = "#2266cc"
   frame_width = 2
   background = "#1a1a1a"
-  foreground = "#ffffff" 
+  foreground = "#c2c3c0" 
   padding = 5
   horizontal_padding = 5
   alignment = center
