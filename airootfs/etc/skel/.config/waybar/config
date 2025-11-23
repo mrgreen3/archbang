@@ -1,0 +1,68 @@
+{
+  "layer": "top",
+  "position": "bottom",
+  "height": 28,
+  "spacing": 6,
+  "modules-left": [
+    "custom/mainmenu",
+    "sway/workspaces"
+  ],
+  "modules-center": ["sway/window"],
+  "modules-right": [
+    "battery",
+    "tray",
+    "network",
+    "clock"
+  ],
+  "sway/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "warp-on-scroll": false,
+    "format": "{name}"
+  },
+  "sway/window": {
+    "max-length": 80,
+    "separate-outputs": false
+  },
+  "battery": {
+  "states": {
+    "warning": 30,
+    "critical": 15
+  },
+  "format": "{icon} {capacity}%",
+  "format-charging": "󰂄 {capacity}%",
+  "format-plugged": "󰚥 {capacity}%",
+  "format-full": "󱟢 {capacity}%",
+  "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+  "tooltip-format": "{timeTo}\n{capacity}% - {power}W"
+  },
+  "tray": {
+    "spacing": 10
+  },
+   "clock": {
+    "format": "{:%H:%M}",
+    "tooltip-format": "<big>{:%A %d}</big>\n<tt>{calendar}</tt>",
+    "calendar": {
+        "mode": "month",
+        "weeks-pos": "right",
+        "on-scroll": 1
+    },
+    "interval": 60
+},
+  "custom/mainmenu": {
+    "format": "󱓞",
+    "tooltip": "Left Click Menu | Right Click Applications",
+    "on-click": "~/.config/waybar/scripts/ab-menu",
+    "on-click-right": "rofi -show drun",
+    "interval": 0
+  },
+    "network": {
+    "format-wifi": "󰖩",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰖪",
+    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}",
+    "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
+    "on-click": "nm-connection-editor"
+    }
+
+  }

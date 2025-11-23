@@ -548,7 +548,11 @@ create_partition() {
       case "$OPT" in
         gparted)
           echo "Launching GParted..."
-          pkexec gparted
+          if [[ -n "${WAYLAND_DISPLAY}" ]]; then
+            sudo -EH gparted & disown
+          else
+            pkexec gparted
+          fi
           ;;
         parted)
           parted -a opt "${device}"
@@ -1154,6 +1158,12 @@ configure_bootloader(){
       else
           CMDLINE="root=PARTUUID=${partuuid} rw"
       fi
+  fi
+
+  # --- Check for sway=1 cheat code and add to kernel options ---
+  if grep -q "sway=1" /proc/cmdline; then
+      print_info "sway=1 cheat code detected, adding to kernel options"
+      CMDLINE="${CMDLINE} sway=1"
   fi
 
   # --- Update /etc/default/grub inside chroot ---

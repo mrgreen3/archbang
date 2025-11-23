@@ -1,0 +1,125 @@
+/* ---------- SwayBang Palette (matching Rofi) ---------- */
+@define-color bg #1a1a1a;        /* background */
+@define-color fg #d0d0d0;        /* normal text */
+@define-color accent #2266cc;    /* accent color */
+@define-color sel-fg #000000;    /* black text on selection */
+
+/* ---------- Base styling ---------- */
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 12px;
+    font-weight: normal;
+    border-radius: 0;
+}
+
+window#waybar {
+    background-color: @bg;
+    color: @fg;
+    border: none;
+}
+
+/* ---------- Workspaces ---------- */
+#workspaces button {
+    padding: 2px 8px 0;
+    margin-bottom: 1px;
+    color: @fg;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+}
+
+#workspaces button.focused {
+    color: @sel-fg;
+    background-color: @accent;
+}
+
+#workspaces button.urgent {
+    color: @sel-fg;
+    background-color: #ff5555;
+}
+
+#workspaces button:hover {
+    background: rgba(34, 102, 204, 0.8);
+    color: #ffffff;
+}
+
+/* ---------- Window title ---------- */
+#window {
+    color: @fg;
+    padding: 0 10px;
+}
+
+/* ---------- Modules ---------- */
+#clock,
+#custom-sep,
+#battery,
+#cpu,
+#memory,
+#disk,
+#network,
+#tray,
+
+/* ---------- Main menu launcher ---------- */
+
+#custom-mainmenu {
+    color: #000000;              /* dark text */
+    background-color: #2266cc;   /* blue background */
+    font-size: 14px;
+    padding: 0 10px;
+}
+
+#custom-mainmenu:hover {
+    background: rgba(34, 102, 204, 0.8);  /* slightly transparent on hover */
+    color: #ffffff;                        /* white text on hover */
+}
+
+/* ---------- Clock ---------- */
+#clock {
+    color: #000000;              /* dark text */
+    background-color: #2266cc;   /* blue background */
+    font-weight: normal;
+    padding: 0 10px;
+}
+
+#clock:hover {
+    color: #ffffff;              /* white text on hover */
+}
+
+/* ---------- System tray ---------- */
+#tray {
+    background-color: transparent;
+    padding: 0 8px;
+}
+
+/* ---------- Battery ---------- */
+#battery {
+    color: @accent;
+}
+
+#battery.warning {
+    color: #ffb86c;
+}
+
+#battery.critical {
+    color: #ff5555;
+}
+
+#battery.charging {
+    color: #50fa7b;
+}
+
+/* ---------- Network ---------- */
+#network {
+    color: #ffffff;              /* white icon */
+    background-color: #1a1a1a;   /* dark background */
+    padding: 0 10px;
+}
+
+#network:hover {
+    background: rgba(26, 26, 26, 0.8);  /* slightly transparent on hover */
+}
+
+#network.disconnected {
+    color: #ff5555;              /* red icon when disconnected */
+    background-color: #1a1a1a;   /* keep dark background */
+}

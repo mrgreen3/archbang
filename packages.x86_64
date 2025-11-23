@@ -16,7 +16,7 @@ pipewire
 pipewire-pulse
 vim
 
-# Window Manager Stuff
+# Window Manager Stuff (X11)
 exo
 garcon
 thunar
@@ -38,9 +38,25 @@ l3afpad
 gvfs
 bottom
 
+# Wayland Terminal
+foot
+
+# Wayland (Sway) Stack
+sway
+swaybg
+swaylock
+waybar
+xorg-xwayland
+grim
+brightnessctl
+autotiling
+mako
+wlr-randr
+
 # Gtk, Icons, Theme
 gnome-themes-extra
 awesome-terminal-fonts
+ttf-nerd-fonts-symbols-mono
 
 # extra tools
 gparted
