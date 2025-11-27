@@ -23,17 +23,34 @@ BROWSER="firefox"
 GUIDE_PATH="$HOME/Documents/Guide"
 KEYBINDS_PATH="$HOME/Documents/keybinds.txt"
 
-# --- System submenu ---
-system_menu() {
-    local items=("  Reload Sway" "  Restart Waybar")
-    have abinstall && items+=("  Install ArchBANG")
-    have gparted && items+=("  GParted")
-    [ -f "$GUIDE_PATH" ]    && items+=("  Guide")
-    [ -f "$KEYBINDS_PATH" ] && items+=("  Keybinds")
-  sel="$(printf "%s\n" "${items[@]}" | DM "System" "${#items[@]}")" || exit 0
+# --- Confirm function ---
+confirm() { choice=$(printf "No\nYes" | DM "$1" 2) || exit 0; [ "$choice" = "Yes" ]; }
+
+# --- Main unified menu ---
+main_menu() {
+  local menu_items=(
+    "  Reload Sway"
+    "  Restart Waybar"
+    "  Lock"
+    "  Suspend"
+    "  Reboot"
+    "  Shutdown"
+    "  Logout"
+  )
+  have abinstall && menu_items+=("  Install ArchBANG")
+  have gparted && menu_items+=("  GParted")
+  [ -f "$GUIDE_PATH" ]    && menu_items+=("  Guide")
+  [ -f "$KEYBINDS_PATH" ] && menu_items+=("  Keybinds")
+
+  sel=$(printf "%s\n" "${menu_items[@]}" | DM ">" "${#menu_items[@]}") || exit 0
   case "$sel" in
     *Reload\ Sway*)        exec swaymsg reload ;;
     *Restart\ Waybar*)     pkill -x waybar; waybar & disown ;;
+    *Lock*)                have swaylock && exec swaylock ;;
+    *Suspend*)             confirm "Suspend?"   && exec systemctl suspend ;;
+    *Reboot*)              confirm "Reboot?"    && exec systemctl reboot ;;
+    *Shutdown*)            confirm "Power off?" && exec systemctl poweroff ;;
+    *Logout*)              confirm "Exit Sway?" && pkill -x sway ;;
     *Install\ ArchBANG*)   exec foot -e sudo -E "$HOME/AB_Scripts/abinstall" ;;
     *GParted*)
       notify-send "GParted" "Running GParted as root" --icon=gparted
@@ -41,41 +58,6 @@ system_menu() {
       ;;
     *Guide*)               exec "$BROWSER" "$GUIDE_PATH" ;;
     *Keybinds*)            exec l3afpad "$KEYBINDS_PATH" ;;
-  esac
-}
-
-
-# --- Power submenu (with confirm) ---
-confirm() { choice=$(printf "No\nYes" | DM "$1" 2) || exit 0; [ "$choice" = "Yes" ]; }
-
-power_menu() {
-    local items=("  Lock" "  Suspend" "  Reboot" "  Shutdown" "  Logout")
-  sel=$(printf "%s\n" "${items[@]}" | DM "Power" "${#items[@]}") || exit 0
-  case "$sel" in
-    *Lock*)     have swaylock && exec swaylock ;;
-    *Suspend*)  confirm "Suspend?"   && exec systemctl suspend ;;
-    *Reboot*)   confirm "Reboot?"    && exec systemctl reboot ;;
-    *Shutdown*) confirm "Power off?" && exec systemctl poweroff ;;
-    *Logout*)   confirm "Exit Sway?" && pkill -x sway ;;
-  esac
-}
-
-# --- Main unified menu ---
-main_menu() {
-  local menu_items=(
-  "  Terminal"
-  "  Files"
-  "  Browser"
-  "  System"
-  "  Power"
-  )
-  sel=$(printf "%s\n" "${menu_items[@]}" | DM "Menu" "${#menu_items[@]}") || exit 0
-  case "$sel" in
-    *Terminal*)     exec "$TERM" ;;
-    *Files*)        exec "$FILEMGR" ;;
-    *Browser*)      exec "$BROWSER" ;;
-    *System*)       system_menu ;;
-    *Power*)        power_menu ;;
   esac
 }
 

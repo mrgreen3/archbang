@@ -7,19 +7,21 @@
     font: "JetBrainsMono Nerd Font 12";
 
     bg:        #1a1a1a;   /* background */
-    fg:        #c2c3c0;   /* normal text */
-    accent:    #2266cc;   /* accent color */
+    fg:        #ffffff;   /* normal text */
+    accent:    #b4befe;   /* accent color */
     sel-fg:    #000000;   /* black text on selection */
 }
 
 /* Window Base */
 window {
-    background-color: @bg;
+    background-color: @bg; 
     border: 2px;
     border-color: @accent;
     padding: 10px;
     width: 30%;
     location: center;
+    transparency : "real";
+    opacity: 0.2;
 }
 
 /* Main layout box */
@@ -51,7 +53,7 @@ listview {
     background-color: @bg;
     spacing: 6px;
     scrollbar: false;
-    lines: 6;
+    lines: 12;
 }
 
 /* Entry styling - normal state */
@@ -73,11 +75,13 @@ element-icon {
 
 /* Selected entry */
 element selected {
-    background-color: @accent;
-    text-color: @sel-fg;
+    background-color: #1a1a1a;
+    text-color: @accent;
+    font: "JetBrainsMono Nerd Font Bold 12";
 }
 
 element selected.normal {
-    background-color: @accent;
-    text-color: @sel-fg;
+    background-color: #1a1a1a;
+    text-color: @accent;
+    font: "JetBrainsMono Nerd Font Bold 12";
 }
