@@ -26,7 +26,7 @@ floating_modifier $mod
 ### Output configuration
 #
 # Default wallpaper
-output * bg /home/ablive/Backgrounds/stars.jpg fill
+output * bg /home/ablive/Backgrounds/flower-field-2.png fill
 #
 # Example configuration:
 #
@@ -233,14 +233,36 @@ gaps outer 5
 
 font pango:JetBrains Mono 10
 
-# Colors - ArchBANG Blue theme
-#                       border    back      text      indi      child_border
-client.focused          #2266cc   #2266cc   #000000   #2266cc   #2266cc
-client.unfocused        #00000000 #00000000 #888888   #00000000 #00000000
-client.focused_inactive #00000000 #00000000 #888888   #00000000 #00000000
-client.urgent           #ff5555   #ff5555   #ffffff   #ff5555   #ff5555
-client.placeholder      #000000   #0c0c0c   #ffffff   #000000   #000000
-client.background       #1a1a1a
+# Catppuccin Mocha Color Palette
+set $background #1e1e2e
+set $surface0 #313244
+set $surface1 #45475a
+set $surface2 #585b70
+set $overlay0 #6c7086
+set $overlay1 #7f849c
+set $overlay2 #9399b2
+set $text_color #cdd6f4
+set $subtext1 #bac2de
+set $subtext0 #a6adc8
+set $red #f38ba8
+set $green #a6e3a1
+set $yellow #f9e2af
+set $blue #89b4fa
+set $magenta #f5c2e7
+set $cyan #94e2d5
+set $mauve #b4befe
+
+# Colors - Catppuccin Mocha theme
+#                       border           back           text         indi             child_border
+client.focused          $mauve           $surface1      $text_color  $mauve           $mauve
+client.unfocused        #00000000        #00000000      $subtext0    #00000000        #00000000
+client.focused_inactive #00000000        #00000000      $subtext0    #00000000        #00000000
+client.urgent           $red             $red           $text_color  $red             $red
+client.placeholder      #000000          #0c0c0c        $text_color  #000000          #000000
+client.background       $background
+
+# Window opacity settings (uncomment to enable)
+ for_window [app_id="thunar"] opacity 0.8
 
 # Autostart
 exec mako

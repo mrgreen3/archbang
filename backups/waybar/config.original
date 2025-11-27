@@ -90,7 +90,7 @@
     },
     "custom/launcher-rofi": {
       "format": "󱓞",
-      "on-click": "$HOME/.config/waybar/scripts/ab-menu",
+      "on-click": "rofi -show drun",
       "tooltip": false
     },
     "custom/launcher-l3afpad": {
