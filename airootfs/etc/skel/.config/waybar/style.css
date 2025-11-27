@@ -91,6 +91,19 @@ window#waybar {
     padding: 0 5px;
 }
 
+/* ---------- Pulseaudio ---------- */
+#pulseaudio {
+    color: @cyan;
+    background-color: transparent;
+    margin: 0;
+    padding: 0 5px;
+    font-size: 22px;
+}
+
+#pulseaudio.muted {
+    color: @red;
+}
+
 /* ---------- Battery ---------- */
 #battery {
     color: @accent;

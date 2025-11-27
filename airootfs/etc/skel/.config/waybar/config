@@ -14,7 +14,8 @@
     "custom/launcher-l3afpad"
   ],
   "modules-right": [
-    "mpris",
+    "pulseaudio",
+    "battery",
     "network",
     "tray",
     "clock"
@@ -28,6 +29,21 @@
   "sway/window": {
     "max-length": 80,
     "separate-outputs": false
+  },
+  "pulseaudio": {
+    "format": "{icon}",
+    "format-muted": "󰖁",
+    "format-icons": {
+      "headphone": "󰋋",
+      "hands-free": "󰂑",
+      "headset": "󰂑",
+      "phone": "󱒂",
+      "portable": "󱒂",
+      "car": "󰄋",
+      "default": ["󰕿", "󰖀", "󰕾"]
+    },
+    "on-click": "pavucontrol",
+    "scroll-step": 5
   },
   "battery": {
   "states": {
@@ -61,17 +77,6 @@
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}",
     "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
     "on-click": "nm-connection-editor"
-    },
-    "mpris": {
-      "format": "{player_icon} {dynamic}",
-      "format-paused": "{player_icon}",
-      "player-icons": {
-        "default": "▶",
-        "deathfm": "🎵"
-      },
-      "player": "deathfm",
-      "dynamic-order": ["title", "artist"],
-      "max-length": 40
     },
     "custom/launcher-terminal": {
       "format": "󰆍",
