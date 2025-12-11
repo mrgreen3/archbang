@@ -4,3 +4,4 @@ text-color=#cdd6f4
 border-color=#b4befe
 border-size=2
 default-timeout=5000
+anchor=top-left

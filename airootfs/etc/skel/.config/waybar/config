@@ -4,7 +4,7 @@
   "height": 30,
   "spacing": 4,
   "modules-left": [
-    "sway/workspaces"
+    "ext/workspaces"
   ],
   "modules-center": [
     "custom/launcher-firefox",
@@ -14,53 +14,20 @@
     "custom/launcher-l3afpad"
   ],
   "modules-right": [
-    "pulseaudio",
-    "battery",
     "network",
     "tray",
     "clock"
   ],
-  "sway/workspaces": {
-    "disable-scroll": true,
-    "all-outputs": true,
-    "warp-on-scroll": false,
-    "format": "{name}"
-  },
-  "sway/window": {
-    "max-length": 80,
-    "separate-outputs": false
-  },
-  "pulseaudio": {
-    "format": "{icon}",
-    "format-muted": "󰖁",
-    "format-icons": {
-      "headphone": "󰋋",
-      "hands-free": "󰂑",
-      "headset": "󰂑",
-      "phone": "󱒂",
-      "portable": "󱒂",
-      "car": "󰄋",
-      "default": ["󰕿", "󰖀", "󰕾"]
-    },
-    "on-click": "pavucontrol",
-    "scroll-step": 5
-  },
-  "battery": {
-  "states": {
-    "warning": 30,
-    "critical": 15
-  },
-  "format": "{icon} {capacity}%",
-  "format-charging": "󰂄 {capacity}%",
-  "format-plugged": "󰚥 {capacity}%",
-  "format-full": "󱟢 {capacity}%",
-  "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
-  "tooltip-format": "{timeTo}\n{capacity}% - {power}W"
+  "ext/workspaces": {
+    "format": "{id}",
+    "on-click": "activate",
+    "sort-by-id": true,
+    "all-outputs": true
   },
   "tray": {
     "spacing": 10
   },
-   "clock": {
+  "clock": {
     "format": "{:%H:%M}",
     "tooltip-format": "<big>{:%A %d}</big>\n<tt>{calendar}</tt>",
     "calendar": {
@@ -69,38 +36,38 @@
         "on-scroll": 1
     },
     "interval": 60
-},
-    "network": {
+  },
+  "network": {
     "format-wifi": "󰖩",
     "format-ethernet": "󰈀",
     "format-disconnected": "󰖪",
     "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}",
     "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
     "on-click": "nm-connection-editor"
-    },
-    "custom/launcher-terminal": {
-      "format": "󰆍",
-      "on-click": "foot",
-      "tooltip": false
-    },
-    "custom/launcher-firefox": {
-      "format": "󰈹",
-      "on-click": "firefox",
-      "tooltip": false
-    },
-    "custom/launcher-thunar": {
-      "format": "󰉋",
-      "on-click": "thunar",
-      "tooltip": false
-    },
-    "custom/launcher-rofi": {
-      "format": "󱓞",
-      "on-click": "$HOME/.config/waybar/scripts/ab-menu",
-      "tooltip": false
-    },
-    "custom/launcher-l3afpad": {
-      "format": "󰈙",
-      "on-click": "l3afpad",
-      "tooltip": false
-    }
+  },
+  "custom/launcher-terminal": {
+    "format": "󰆍",
+    "on-click": "foot",
+    "tooltip": false
+  },
+  "custom/launcher-firefox": {
+    "format": "󰈹",
+    "on-click": "firefox",
+    "tooltip": false
+  },
+  "custom/launcher-thunar": {
+    "format": "󰉋",
+    "on-click": "thunar",
+    "tooltip": false
+  },
+  "custom/launcher-rofi": {
+    "format": "󱓞",
+    "on-click": "rofi -show drun",
+    "tooltip": false
+  },
+  "custom/launcher-l3afpad": {
+    "format": "󰈙",
+    "on-click": "l3afpad",
+    "tooltip": false
+  }
 }

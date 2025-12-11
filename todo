@@ -1,34 +1,12 @@
-ArchBANG rises from the ashes
+WayBANG you know it makes sense
 
-This is a todo list for ArchBANG
+This is a wayland version of Openbox based on LabWC
 
-build and test, set up git for archbang
+Wip
 
-add aliases for building archbang and changing directories
 
-Blog done
-Source forge done
-KoFi done
-buy me a coffee?
+main points
 
-Change Guide on blog to reflect one shipped
+test --- menu fixed need to add seperator?
 
-ArchBANG is done for now
-
-added sway ... need icon set, add ab-menu [waybar] to profile
-
-check if ab-menu works, workspace in waybar.
-
-mako
-
-start working on Mocha version!
-
-https://github.com/orangci/walls-catppuccin-mocha?tab=readme-ov-file
-
-test check rofi and ab-menu
-
-rest should be good to go.
-
-mako, rofi, ab-menu
-
-check bar for volume and battery
+ test --- gparted will not run from installer?

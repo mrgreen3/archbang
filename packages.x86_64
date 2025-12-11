@@ -4,34 +4,24 @@ unzip
 p7zip
 xz
 
-# Xorg
-xorg-server
-xorg-xinit
+# Fonts
 ttf-dejavu
 ttf-jetbrains-mono
-xorg-xrdb
 
 # Sound
 pipewire
 pipewire-pulse
 vim
 
-# Window Manager Stuff (X11)
+# Window Manager Stuff
 exo
 garcon
 thunar
 thunar-volman
-alacritty
 archlinux-xdg-menu
-openbox
-polybar
 conky
-lxappearance-obconf
-lxrandr
 rofi
-dunst
 udisks2
-xdotool
 laptop-detect
 xdg-user-dirs
 l3afpad
@@ -41,15 +31,15 @@ bottom
 # Wayland Terminal
 foot
 
-# Wayland (Sway) Stack
-sway
+# Wayland (labwc) Stack
+labwc
 swaybg
 swaylock
 waybar
 xorg-xwayland
 grim
+wl-clipboard
 brightnessctl
-autotiling
 mako
 wlr-randr
 
@@ -57,18 +47,18 @@ wlr-randr
 gnome-themes-extra
 awesome-terminal-fonts
 ttf-nerd-fonts-symbols-mono
+ttf-jetbrains-mono-nerd
 
 # extra tools
 gparted
 expac
 testdisk
 
-# Xorg Extras
+# System Extras
 fontconfig
 kbd
 
 # Extra Apps
-feh
 openssh
 pkgfile
 ncdu
@@ -76,11 +66,10 @@ arch-install-scripts
 curl
 firefox
 #netsurf
-scrot
 pacman-contrib
+bat
 
 # Network Tools
-tcl
 usb_modeswitch
 wpa_supplicant
 libsecret
@@ -89,7 +78,6 @@ gnome-keyring
 networkmanager
 network-manager-applet
 broadcom-wl
-rp-pppoe
 
 # Develop Tools
 dialog
@@ -103,7 +91,6 @@ btrfs-progs
 parted
 gptfdisk
 ddrescue
-dmraid
 
 # microcode
 intel-ucode
@@ -116,18 +103,8 @@ lsb-release
 syslinux
 efibootmgr
 
-# Video drivers
-xf86-input-evdev
-xf86-input-synaptics
-xf86-input-void
-xf86-video-ati
-xf86-video-fbdev
-#xf86-video-intel
-xf86-video-nouveau
-xf86-video-vesa
-xf86-video-voodoo
-xf86-video-amdgpu
-xf86-video-qxl
+# Video drivers (Wayland uses kernel drivers)
+# xf86-* drivers removed for Wayland-only system
 
 # old base packages
 bash
@@ -149,7 +126,6 @@ gzip
 inetutils
 iproute2
 iputils
-jfsutils
 less
 licenses
 linux
@@ -158,7 +134,6 @@ logrotate
 lvm2
 man-db
 man-pages
-mdadm
 nano
 vi
 pacman
@@ -174,17 +149,10 @@ tar
 texinfo
 usbutils
 util-linux
-ntp
 which
-xfsprogs
-intel-ucode
-amd-ucode
 memtest86+
 memtest86+-efi
 mkinitcpio
 mkinitcpio-archiso
-mkinitcpio-nfs-utils
-nbd
-edk2-shell
 archlinux-keyring
 

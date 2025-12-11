@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# GParted launcher with notification warning
+# Mirrors the ab-menu function for Openbox
+
+notify-send "GParted" "Running GParted as root" --icon=gparted 2>/dev/null || true
+
+# Handle Wayland vs X11 display
+if [[ -n "${WAYLAND_DISPLAY}" ]]; then
+  # For Wayland, explicitly pass display variables to sudo
+  sudo WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" gparted & disown
+else
+  # For X11, use pkexec
+  pkexec gparted & disown
+fi
