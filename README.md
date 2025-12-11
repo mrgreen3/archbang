@@ -1,33 +1,35 @@
-# ArchBANG Project
+# WayBang Project
 
-ArchBANG is a minimal Arch Linux-based distribution featuring the Openbox window manager. It provides a lightweight, fast desktop environment while including all the essential tools needed to get the job done.
+WayBang is a minimal Arch Linux-based distribution featuring the labwc Wayland compositor. It provides a lightweight, fast desktop environment while including all the essential tools needed to get the job done.
 
 ## About
 
 - **Minimal Design**: Lightweight and fast, without unnecessary bloat
 - **Arch Linux Based**: Built on the stable and powerful Arch Linux foundation
-- **Openbox Window Manager**: A highly configurable, standards-compliant window manager
+- **labwc Wayland Compositor**: A lightweight Wayland window-stacking compositor inspired by Openbox
 - **Complete Toolset**: Includes development tools, system utilities, and productivity applications
 
 ## Features
 
 - Streamlined system with only essential packages
-- X11/Wayland support with multiple boot modes (BIOS/UEFI)
+- Pure Wayland environment with labwc compositor
 - Pre-configured with common development and system administration tools
 - Network tools and wireless connectivity support
 - Live/Rescue ISO for installation and troubleshooting
+- Catppuccin Mocha theme
+- Waybar panel with workspace indicators
+- Mako notification daemon
+- Foot terminal emulator
 
 ## Building
 
-See the `build` script and `profiledef.sh` for building your own ArchBANG ISO.
+See the `build` script and `profiledef.sh` for building your own WayBang ISO.
 
 ## Links
 
-- [ArchBANG Website](https://www.archbang.org)
+- [ArchBang Website](https://www.archbang.org)
 - [Donations](https://archbang.org/donations/)
 
 ---
 
-*ArchBANG is not affiliated with Arch Linux.*
-
-
+*WayBang is based on ArchBang and is not affiliated with Arch Linux.*
