@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<labwc_config>
+
+  <!-- Theme -->
+  <theme>
+    <name>Waybang-Mocha</name>
+    <cornerRadius>0</cornerRadius>
+    <font place="ActiveWindow">
+      <name>JetBrains Mono</name>
+      <size>10</size>
+      <slant>normal</slant>
+      <weight>medium</weight>
+    </font>
+
+  </theme>
+
+  <!-- Margins -->
+  <margin top="5" bottom="45" left="5" right="5" output="" />
+
+  <!-- Keyboard -->
+  <keyboard>
+    <numlock>on</numlock>
+    <repeatRate>25</repeatRate>
+    <repeatDelay>300</repeatDelay>
+
+    <!-- Window Management -->
+    <keybind key="W-Left">
+      <action name="MoveToEdge" direction="left"/>
+    </keybind>
+    <keybind key="W-Right">
+      <action name="MoveToEdge" direction="right"/>
+    </keybind>
+    <keybind key="W-Up">
+      <action name="MoveToEdge" direction="up"/>
+    </keybind>
+    <keybind key="W-Down">
+      <action name="MoveToEdge" direction="down"/>
+    </keybind>
+
+    <!-- Move windows -->
+    <keybind key="W-S-Left">
+      <action name="Move"/>
+    </keybind>
+    <keybind key="W-S-Right">
+      <action name="Move"/>
+    </keybind>
+    <keybind key="W-S-Up">
+      <action name="Move"/>
+    </keybind>
+    <keybind key="W-S-Down">
+      <action name="Move"/>
+    </keybind>
+
+    <!-- Workspaces -->
+    <keybind key="W-1">
+      <action name="GoToDesktop" to="1"/>
+    </keybind>
+    <keybind key="W-2">
+      <action name="GoToDesktop" to="2"/>
+    </keybind>
+    <keybind key="W-3">
+      <action name="GoToDesktop" to="3"/>
+    </keybind>
+    <keybind key="W-4">
+      <action name="GoToDesktop" to="4"/>
+    </keybind>
+    <keybind key="W-5">
+      <action name="GoToDesktop" to="5"/>
+    </keybind>
+    <keybind key="W-6">
+      <action name="GoToDesktop" to="6"/>
+    </keybind>
+    <keybind key="W-7">
+      <action name="GoToDesktop" to="7"/>
+    </keybind>
+    <keybind key="W-8">
+      <action name="GoToDesktop" to="8"/>
+    </keybind>
+    <keybind key="W-9">
+      <action name="GoToDesktop" to="9"/>
+    </keybind>
+    <keybind key="W-0">
+      <action name="GoToDesktop" to="10"/>
+    </keybind>
+
+    <!-- Send to workspace -->
+    <keybind key="W-S-1">
+      <action name="SendToDesktop" to="1"/>
+    </keybind>
+    <keybind key="W-S-2">
+      <action name="SendToDesktop" to="2"/>
+    </keybind>
+    <keybind key="W-S-3">
+      <action name="SendToDesktop" to="3"/>
+    </keybind>
+    <keybind key="W-S-4">
+      <action name="SendToDesktop" to="4"/>
+    </keybind>
+    <keybind key="W-S-5">
+      <action name="SendToDesktop" to="5"/>
+    </keybind>
+    <keybind key="W-S-6">
+      <action name="SendToDesktop" to="6"/>
+    </keybind>
+    <keybind key="W-S-7">
+      <action name="SendToDesktop" to="7"/>
+    </keybind>
+    <keybind key="W-S-8">
+      <action name="SendToDesktop" to="8"/>
+    </keybind>
+    <keybind key="W-S-9">
+      <action name="SendToDesktop" to="9"/>
+    </keybind>
+    <keybind key="W-S-0">
+      <action name="SendToDesktop" to="10"/>
+    </keybind>
+
+    <!-- Window actions -->
+    <keybind key="W-q">
+      <action name="Close"/>
+    </keybind>
+    <keybind key="W-m">
+      <action name="ToggleFullscreen"/>
+    </keybind>
+    <keybind key="W-S-space">
+      <action name="ToggleDecorations"/>
+    </keybind>
+
+    <!-- Window switching (Alt-Tab) -->
+    <keybind key="A-Tab">
+      <action name="NextWindow"/>
+    </keybind>
+    <keybind key="A-S-Tab">
+      <action name="PreviousWindow"/>
+    </keybind>
+
+    <!-- Applications -->
+    <keybind key="W-t">
+      <action name="Execute" command="foot"/>
+    </keybind>
+    <keybind key="W-w">
+      <action name="Execute" command="firefox"/>
+    </keybind>
+    <keybind key="W-space">
+      <action name="Execute" command="rofi -show drun"/>
+    </keybind>
+    <keybind key="W-f">
+      <action name="Execute" command="thunar"/>
+    </keybind>
+
+    <!-- Right-click menu -->
+    <keybind key="A-space">
+      <action name="ShowMenu" menu="root-menu"/>
+    </keybind>
+     <keybind key="A-S-space">
+      <action name="ShowMenu" menu="client-menu"/>
+    </keybind>
+
+    <!-- Reconfigure -->
+    <keybind key="W-S-c">
+      <action name="Reconfigure"/>
+    </keybind>
+  </keyboard>
+
+  <!-- Mouse -->
+  <mouse>
+    <default/>
+    <context name="Frame">
+      <mousebind button="A-Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
+      <mousebind button="A-Right" action="Drag">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="Top">
+      <mousebind button="Left" action="Drag">
+        <action name="Move"/>
+      </mousebind>
+      <mousebind button="Left" action="DoubleClick">
+        <action name="ToggleMaximize"/>
+      </mousebind>
+    </context>
+    <context name="TLCorner">
+      <mousebind button="Left" action="Drag">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="TRCorner">
+      <mousebind button="Left" action="Drag">
+        <action name="Resize"/>
+      </mousebind>
+    </context>
+    <context name="Root">
+      <mousebind button="Right" action="Press">
+        <action name="ShowMenu" menu="root-menu"/>
+      </mousebind>
+    </context>
+  </mouse>
+
+  <!-- Desktops -->
+  <desktops number="10"/>
+
+  <!-- Window rules -->
+  <windowRules>
+    <windowRule identifier="firefox">
+      <action name="MoveTo" x="0" y="0"/>
+      <skipTaskbar>no</skipTaskbar>
+    </windowRule>
+  </windowRules>
+
+  <!-- Resize edges -->
+  <resize>
+    <popupShow>Always</popupShow>
+  </resize>
+
+  <!-- Focus -->
+  <focus>
+    <followMouse>yes</followMouse>
+    <followMouseRequiresMovement>yes</followMouseRequiresMovement>
+    <raiseOnFocus>no</raiseOnFocus>
+  </focus>
+
+</labwc_config>

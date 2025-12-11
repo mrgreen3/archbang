@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<openbox_menu>
+
+<menu id="root-menu" label="WayBang">
+
+  <item label="Terminal">
+    <action name="Execute" command="foot"/>
+  </item>
+
+  <item label="Browser">
+    <action name="Execute" command="firefox https://archbang.org/"/>
+  </item>
+
+  <item label="File Manager">
+    <action name="Execute" command="thunar"/>
+  </item>
+
+  <item label="Editor">
+    <action name="Execute" command="l3afpad"/>
+  </item>
+
+  <!-- abinstall 5 -->
+  <item label="Install">
+    <action name="Execute" command="foot --title ArchBang-Installer -e sudo -EH ~/AB_Scripts/abinstall"/>
+  </item>
+
+  <separator/>
+
+  <menu id="applications" label="Applications" execute="xdg_menu --format openbox3-pipe --root-menu /etc/xdg/menus/arch-applications.menu" />
+
+  <separator/>
+
+  <menu id="settings_menu" label="Settings">
+    <item label="Appearance">
+      <action name="Execute" command="lxappearance"/>
+    </item>
+    <item label="GParted">
+      <action name="Execute" command="~/AB_Scripts/gparted-launcher"/>
+    </item>
+    <item label="System">
+      <action name="Execute" command="foot --title System-Information -e btm"/>
+    </item>
+    <item label="Panel">
+      <action name="Execute" command="l3afpad ~/.config/waybar/config"/>
+    </item>
+    <item label="Reconfigure">
+      <action name="Reconfigure"/>
+    </item>
+  </menu>
+
+  <menu id="exit_menu" label="Exit">
+    <item label="Lock">
+      <action name="Execute" command="swaylock -f"/>
+    </item>
+    <item label="Log Out">
+      <action name="Exit"/>
+    </item>
+    <item label="Reboot">
+      <action name="Execute" command="systemctl reboot"/>
+    </item>
+    <item label="Poweroff">
+      <action name="Execute" command="systemctl poweroff"/>
+    </item>
+  </menu>
+
+</menu>
+
+</openbox_menu>

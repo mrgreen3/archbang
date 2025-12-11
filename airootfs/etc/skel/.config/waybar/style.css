@@ -22,7 +22,7 @@
 }
 
 window#waybar {
-    background-color: rgba(30, 30, 46, 0.7);
+    background-color: rgba(30, 30, 46, 0.9);
     color: @fg;
     border: none;
 }
@@ -43,10 +43,11 @@ window#waybar {
 }
 
 #workspaces button.focused {
-    color: #ffffff;
+    color: #f8f8f8;
     background: transparent;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 18px;
+    border-bottom: 3px solid #f8f8f8;
 }
 
 #workspaces button.urgent {
@@ -107,6 +108,7 @@ window#waybar {
 /* ---------- Battery ---------- */
 #battery {
     color: @accent;
+    font-size: 22px;
 }
 
 #battery.warning {
@@ -168,7 +170,7 @@ window#waybar {
 }
 
 #custom-launcher-rofi {
-    color: #f5c2e7;   /* magenta */
+    color: #b4befe;   /* mauve */
     padding: 0 5px;
     margin: 0 4px;
     font-size: 22px;
