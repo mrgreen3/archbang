@@ -4,7 +4,7 @@
   <!-- Theme -->
   <theme>
     <name>Waybang-Mocha</name>
-    <cornerRadius>0</cornerRadius>
+    <cornerRadius>6</cornerRadius>
     <font place="ActiveWindow">
       <name>JetBrains Mono</name>
       <size>10</size>
@@ -160,6 +160,11 @@
     <keybind key="W-S-c">
       <action name="Reconfigure"/>
     </keybind>
+
+    <!-- Screenshot -->
+    <keybind key="Print">
+      <action name="Execute" command="screenshot"/>
+    </keybind>
   </keyboard>
 
   <!-- Mouse -->
@@ -199,15 +204,15 @@
   </mouse>
 
   <!-- Desktops -->
-  <desktops number="10"/>
+  <desktops number="4"/>
 
   <!-- Window rules -->
-  <windowRules>
+  <!-- <windowRules>
     <windowRule identifier="firefox">
       <action name="MoveTo" x="0" y="0"/>
       <skipTaskbar>no</skipTaskbar>
     </windowRule>
-  </windowRules>
+  </windowRules> -->
 
   <!-- Resize edges -->
   <resize>

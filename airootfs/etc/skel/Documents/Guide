@@ -1,9 +1,9 @@
-ArchBANG Guide
+WayBang Guide
 
-Welcome to ArchBANG , a lightweight Arch-based live ISO.
+Welcome to WayBang, a lightweight Arch-based Wayland live ISO.
 Visit: www.archbang.org/Guide
 
-Note: Please do not post issues or problems related to ArchBANG on the Arch Linux forums.
+Note: Please do not post issues or problems related to WayBang on the Arch Linux forums.
 At best, your thread will be closed; at worst, it will be deleted.
 
 ---
@@ -30,7 +30,7 @@ To begin installation:
 The installer is menu-driven and easy to follow.
 
 Need help with partitions?
-Use GParted, available in Openbox menu under Settings or Sway using Waybar launcher menu.
+Use GParted, available in the labwc menu under Settings or via the Waybar launcher.
 
 ---
 
@@ -39,7 +39,7 @@ POST-INSTALL STEPS
 
 MICROCODE NOTICE
 
-ArchBANG includes both intel-ucode and amd-ucode microcode packages to support a wide range of CPUs.
+WayBang includes both intel-ucode and amd-ucode microcode packages to support a wide range of CPUs.
 
 You only need one, depending on your processor.
 
@@ -86,17 +86,13 @@ If your live session runs out of disk space, you can remount the live filesystem
 
 sudo mount -o remount,size=8G /run/archiso/cowspace
 
-INTEL GRAPHICS ON ARCHBANG
+INTEL GRAPHICS ON WAYBANG
 
-ArchBang does not include the legacy xf86-video-intel driver by default.
+WayBang uses Wayland with labwc, which relies on kernel modesetting drivers (via Mesa).
 
-On most Intel systems (Sandy Bridge / 2011 and newer), Xorg will use the built-in modesetting driver (via Mesa), which is generally the best option.
+No additional Intel graphics drivers are needed for Wayland - the built-in kernel drivers handle graphics acceleration directly.
 
-QUICK FIX (OLDER INTEL IGPUs)
-
-If you see poor performance, tearing in Xorg, or a black screen on very old Intel hardware, install the legacy driver and reboot:
-
-sudo pacman -S xf86-video-intel
+This provides better performance and eliminates tearing issues common with older Xorg drivers.
 
 ---
 
@@ -107,10 +103,10 @@ https://wiki.archlinux.org
 
 ---
 
-ArchBANG is maintained by a single developer in their spare time.
+WayBang is maintained by a single developer in their spare time.
 If you find it useful and would like to support its continued development:
 Buy me a coffee: https://ko-fi.com/archbang
 
-Thank you for using ArchBANG.
+Thank you for using WayBang.
 
-Copyright 2025 ArchBANG ISO
+Copyright 2025 WayBang ISO

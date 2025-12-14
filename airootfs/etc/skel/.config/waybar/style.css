@@ -42,12 +42,15 @@ window#waybar {
     border-bottom: 3px solid transparent;
 }
 
-#workspaces button.focused {
-    color: #f8f8f8;
-    background: transparent;
+#workspaces button.active {
+    color: #1e1e2e;
+    background-color: #b4befe;
     font-weight: bold;
     font-size: 18px;
-    border-bottom: 3px solid #f8f8f8;
+    border-bottom: 3px solid #b4befe;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 0 4px;
 }
 
 #workspaces button.urgent {
@@ -62,22 +65,14 @@ window#waybar {
     padding: 0 10px;
 }
 
-/* ---------- Modules ---------- */
-#clock,
-#custom-sep,
-#battery,
-#cpu,
-#memory,
-#disk,
-#network,
-#tray,
-
 /* ---------- Clock ---------- */
 #clock {
-    color: #b4befe;
-    background: transparent;
+    color: @sel-fg;
+    background-color: @accent;
     font-weight: normal;
-    padding: 0 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    margin: 0 4px;
 }
 
 #clock:hover {
@@ -188,5 +183,24 @@ window#waybar {
 }
 
 #custom-launcher-l3afpad:hover {
+    opacity: 0.8;
+}
+
+/* ---------- Taskbar ---------- */
+#taskbar button {
+    padding: 0 8px;
+    margin: 0 4px;
+    color: #9399b2;
+    background: transparent;
+    border: none;
+}
+
+#taskbar button.active {
+    color: @accent;
+    background: transparent;
+    font-weight: bold;
+}
+
+#taskbar button:hover {
     opacity: 0.8;
 }

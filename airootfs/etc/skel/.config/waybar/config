@@ -4,14 +4,13 @@
   "height": 30,
   "spacing": 4,
   "modules-left": [
-    "ext/workspaces"
-  ],
-  "modules-center": [
+    "ext/workspaces",
     "custom/launcher-firefox",
     "custom/launcher-terminal",
-    "custom/launcher-rofi",
-    "custom/launcher-thunar",
-    "custom/launcher-l3afpad"
+    "custom/launcher-thunar"
+  ],
+  "modules-center": [
+    "wlr/taskbar"
   ],
   "modules-right": [
     "network",
@@ -22,6 +21,15 @@
     "format": "{id}",
     "on-click": "activate",
     "sort-by-id": true,
+    "all-outputs": true
+  },
+  "wlr/taskbar": {
+    "format": "{icon} {title}",
+    "icon-size": 18,
+    "tooltip-format": "{title}",
+    "on-click": "activate",
+    "on-click-middle": "close",
+    "ignore-list": [],
     "all-outputs": true
   },
   "tray": {

@@ -6,7 +6,6 @@ xz
 
 # Fonts
 ttf-dejavu
-ttf-jetbrains-mono
 
 # Sound
 pipewire
@@ -14,10 +13,7 @@ pipewire-pulse
 vim
 
 # Window Manager Stuff
-exo
-garcon
-thunar
-thunar-volman
+nemo
 archlinux-xdg-menu
 conky
 rofi
@@ -26,7 +22,7 @@ laptop-detect
 xdg-user-dirs
 l3afpad
 gvfs
-bottom
+btop
 
 # Wayland Terminal
 foot
@@ -34,7 +30,6 @@ foot
 # Wayland (labwc) Stack
 labwc
 swaybg
-swaylock
 waybar
 xorg-xwayland
 grim
@@ -45,9 +40,9 @@ wlr-randr
 
 # Gtk, Icons, Theme
 gnome-themes-extra
-awesome-terminal-fonts
 ttf-nerd-fonts-symbols-mono
 ttf-jetbrains-mono-nerd
+nwg-look
 
 # extra tools
 gparted
@@ -61,13 +56,11 @@ kbd
 # Extra Apps
 openssh
 pkgfile
-ncdu
 arch-install-scripts
 curl
 firefox
 #netsurf
 pacman-contrib
-bat
 
 # Network Tools
 usb_modeswitch

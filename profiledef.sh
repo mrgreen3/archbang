@@ -3,7 +3,7 @@
 # Profile modified for WayBang
 # by Mr Green [mrgreen@archbang.org]
 
-iso_name="waybang-rc"
+iso_name="waybang-beta"
 iso_label="WAYBANG_$(date +%d%m)"
 iso_publisher="WayBANG <https://www.archbang.org>"
 iso_application="WayBang Live/Rescue Iso (Beta)"
