@@ -12,7 +12,7 @@
   </item>
 
   <item label="File Manager">
-    <action name="Execute" command="thunar"/>
+    <action name="Execute" command="nemo"/>
   </item>
 
   <item label="Editor">
@@ -31,14 +31,11 @@
   <separator/>
 
   <menu id="settings_menu" label="Settings">
-    <item label="Appearance">
-      <action name="Execute" command="lxappearance"/>
-    </item>
     <item label="GParted">
       <action name="Execute" command="~/AB_Scripts/gparted-launcher"/>
     </item>
     <item label="System">
-      <action name="Execute" command="foot --title System-Information -e btm"/>
+      <action name="Execute" command="foot --title System-Information -e btop"/>
     </item>
     <item label="Panel">
       <action name="Execute" command="l3afpad ~/.config/waybar/config"/>
@@ -49,9 +46,6 @@
   </menu>
 
   <menu id="exit_menu" label="Exit">
-    <item label="Lock">
-      <action name="Execute" command="swaylock -f"/>
-    </item>
     <item label="Log Out">
       <action name="Exit"/>
     </item>
