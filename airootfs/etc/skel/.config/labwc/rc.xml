@@ -119,6 +119,9 @@
     <keybind key="W-f">
       <action name="Execute" command="thunar"/>
     </keybind>
+    <keybind key="W-e">
+      <action name="Execute" command="l3afpad"/>
+    </keybind>
 
     <!-- Right-click menu -->
     <keybind key="A-space">
