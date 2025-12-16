@@ -27,8 +27,8 @@ See the `build` script and `profiledef.sh` for building your own WayBang ISO.
 
 ## Links
 
-- [ArchBang Website](https://www.archbang.org)
-- [Donations](https://archbang.org/donations/)
+- [WayBang GitHub](https://github.com/mrgreen3/waybang)
+- [Report Issues](https://github.com/mrgreen3/waybang/issues)
 
 ---
 

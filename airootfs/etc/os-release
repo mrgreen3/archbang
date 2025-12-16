@@ -1,10 +1,10 @@
 NAME="WayBANG"
 PRETTY_NAME="WayBANG"
-ID=archbang
+ID=waybang
 ID_LIKE=arch
 BUILD_ID=rolling
 
 ANSI_COLOR="0;32"
-HOME_URL="https://archbang.org/"
-DOCUMENTATION_URL="https://archbang.org/guides"
-SUPPORT_URL="https://archbang.org/contact"
+HOME_URL="https://github.com/mrgreen3/waybang"
+DOCUMENTATION_URL="https://github.com/mrgreen3/waybang/wiki"
+SUPPORT_URL="https://github.com/mrgreen3/waybang/issues"

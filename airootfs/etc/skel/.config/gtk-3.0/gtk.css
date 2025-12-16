@@ -1,0 +1,93 @@
+@import 'colors.css';
+
+/* Catppuccin Mocha GTK3 Theme Override */
+
+/* Main colors */
+@define-color catppuccin_bg #1e1e2e;
+@define-color catppuccin_fg #cdd6f4;
+@define-color catppuccin_surface0 #313244;
+@define-color catppuccin_surface1 #45475a;
+@define-color catppuccin_accent #89b4fa;
+
+/* Base window and background */
+window {
+    background-color: @catppuccin_bg;
+    color: @catppuccin_fg;
+}
+
+/* GTK standard widgets */
+entry,
+textview {
+    background-color: @catppuccin_surface0;
+    color: @catppuccin_fg;
+    border: 1px solid @catppuccin_surface1;
+}
+
+button {
+    background-color: @catppuccin_surface0;
+    color: @catppuccin_fg;
+    border: 1px solid @catppuccin_surface1;
+}
+
+button:hover {
+    background-color: @catppuccin_surface1;
+}
+
+button:active {
+    background-color: @catppuccin_accent;
+    color: @catppuccin_bg;
+}
+
+/* Menus and popups */
+.popup,
+menu {
+    background-color: @catppuccin_bg;
+    color: @catppuccin_fg;
+}
+
+menuitem {
+    background-color: @catppuccin_bg;
+    color: @catppuccin_fg;
+}
+
+menuitem:hover {
+    background-color: @catppuccin_surface0;
+}
+
+/* Scrollbars */
+scrollbar {
+    background-color: @catppuccin_bg;
+}
+
+scrollbar slider {
+    background-color: @catppuccin_surface1;
+}
+
+scrollbar slider:hover {
+    background-color: #585b70;
+}
+
+/* Notebook/Tabs */
+notebook {
+    background-color: @catppuccin_bg;
+}
+
+notebook > header {
+    background-color: @catppuccin_surface0;
+}
+
+notebook > header tab {
+    background-color: @catppuccin_bg;
+    color: @catppuccin_fg;
+}
+
+notebook > header tab:active {
+    background-color: @catppuccin_bg;
+    border-bottom: 3px solid @catppuccin_accent;
+}
+
+/* Toolbar */
+toolbar {
+    background-color: @catppuccin_surface0;
+    border-bottom: 1px solid @catppuccin_surface1;
+}

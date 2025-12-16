@@ -1,5 +1,5 @@
-" Basic Vim config for GreenBANG Project 
-" Added by MrGreen [mrgreen@archbang.org]
+" Basic Vim config for WayBANG Project
+" Added by MrGreen
 syntax on
 set number
 set showmode

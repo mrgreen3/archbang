@@ -5,12 +5,9 @@
   "spacing": 4,
   "modules-left": [
     "ext/workspaces",
-    "custom/launcher-firefox",
-    "custom/launcher-terminal",
-    "custom/launcher-thunar"
+    "wlr/taskbar"
   ],
   "modules-center": [
-    "wlr/taskbar"
   ],
   "modules-right": [
     "network",
@@ -53,29 +50,4 @@
     "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
     "on-click": "nm-connection-editor"
   },
-  "custom/launcher-terminal": {
-    "format": "󰆍",
-    "on-click": "foot",
-    "tooltip": false
-  },
-  "custom/launcher-firefox": {
-    "format": "󰈹",
-    "on-click": "firefox",
-    "tooltip": false
-  },
-  "custom/launcher-thunar": {
-    "format": "󰉋",
-    "on-click": "thunar",
-    "tooltip": false
-  },
-  "custom/launcher-rofi": {
-    "format": "󱓞",
-    "on-click": "rofi -show drun",
-    "tooltip": false
-  },
-  "custom/launcher-l3afpad": {
-    "format": "󰈙",
-    "on-click": "l3afpad",
-    "tooltip": false
-  }
 }

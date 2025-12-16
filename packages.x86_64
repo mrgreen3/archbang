@@ -13,7 +13,10 @@ pipewire-pulse
 vim
 
 # Window Manager Stuff
-nemo
+exo
+garcon
+thunar
+thunar-volman
 archlinux-xdg-menu
 conky
 rofi
@@ -42,7 +45,6 @@ wlr-randr
 gnome-themes-extra
 ttf-nerd-fonts-symbols-mono
 ttf-jetbrains-mono-nerd
-nwg-look
 
 # extra tools
 gparted

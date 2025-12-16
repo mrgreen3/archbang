@@ -9,7 +9,7 @@ sed -i 's/#\(en_US\.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
 
 # Allow Parallel Downloads in pacman
-sed -i "s/^#Parallel/Parallel/g" /etc/pacman.conf 
+sed -i "s/^#Parallel/Parallel/" /etc/pacman.conf 
 
 # Un-comment mirrorlist to allow pacman to work live....
 sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
@@ -22,7 +22,7 @@ chmod -c 0440 /etc/sudoers
 # Configure gparted to run with sudo for elevated permissions
 #sed -i 's|^Exec=/usr/bin/gparted|Exec=sudo /usr/bin/gparted|' /usr/share/applications/gparted.desktop
 
-# Hide gparted from Openbox menu and rofi
+# Hide gparted from application menu
 sed -i '/^Categories=/a Hidden=true' /usr/share/applications/gparted.desktop
 
 # Hostname

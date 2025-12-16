@@ -4,10 +4,10 @@
 @define-color surface1 #45475a;  /* surface1 */
 @define-color fg #cdd6f4;        /* text (foreground) */
 @define-color subtext1 #bac2de;  /* subtext1 */
-@define-color accent #b4befe;    /* mauve (accent color) */
+@define-color accent #89b4fa;    /* blue (accent color) */
 @define-color sel-fg #1e1e2e;    /* base text on selection */
 @define-color red #f38ba8;       /* red */
-@define-color green #a6e3a1;     /* green */
+@define-color green #89b4fa;     /* blue */
 @define-color yellow #f9e2af;    /* yellow */
 @define-color blue #89b4fa;      /* blue */
 @define-color magenta #f5c2e7;   /* magenta */
@@ -44,11 +44,10 @@ window#waybar {
 
 #workspaces button.active {
     color: #1e1e2e;
-    background-color: #b4befe;
+    background-color: #89b4fa;
     font-weight: bold;
     font-size: 18px;
-    border-bottom: 3px solid #b4befe;
-    border-radius: 4px;
+    border-bottom: 3px solid #89b4fa;
     padding: 2px 8px;
     margin: 0 4px;
 }
@@ -71,7 +70,6 @@ window#waybar {
     background-color: @accent;
     font-weight: normal;
     padding: 4px 10px;
-    border-radius: 4px;
     margin: 0 4px;
 }
 
@@ -119,7 +117,7 @@ window#waybar {
 }
 
 #network {
-    color: #b4befe;
+    color: #94e2d5;
     background-color: transparent;
     margin:0;
     padding: 0 5px;
@@ -128,62 +126,6 @@ window#waybar {
 
 #network.disconnected {
     color: @red;
-}
-
-/* ---------- Launchers ---------- */
-#custom-launcher-terminal {
-    color: #89b4fa;   /* blue */
-    padding: 0 5px;
-    margin: 0 4px;
-    font-size: 22px;
-}
-
-#custom-launcher-terminal:hover {
-    opacity: 0.8;
-}
-
-#custom-launcher-firefox {
-    color: #f38ba8;   /* red */
-    padding: 0 5px;
-    margin: 0 4px;
-    font-size: 22px;
-}
-
-#custom-launcher-firefox:hover {
-    opacity: 0.8;
-}
-
-#custom-launcher-thunar {
-    color: #a6e3a1;   /* green */
-    padding: 0 5px;
-    margin: 0 4px;
-    font-size: 22px;
-}
-
-#custom-launcher-thunar:hover {
-    opacity: 0.8;
-}
-
-#custom-launcher-rofi {
-    color: #b4befe;   /* mauve */
-    padding: 0 5px;
-    margin: 0 4px;
-    font-size: 22px;
-}
-
-#custom-launcher-rofi:hover {
-    opacity: 0.8;
-}
-
-#custom-launcher-l3afpad {
-    color: #f9e2af;   /* yellow */
-    padding: 0 5px;
-    margin: 0 4px;
-    font-size: 22px;
-}
-
-#custom-launcher-l3afpad:hover {
-    opacity: 0.8;
 }
 
 /* ---------- Taskbar ---------- */
@@ -196,9 +138,11 @@ window#waybar {
 }
 
 #taskbar button.active {
-    color: @accent;
-    background: transparent;
+    color: @sel-fg;
+    background-color: @accent;
     font-weight: bold;
+    padding: 2px 8px;
+    margin: 0 4px;
 }
 
 #taskbar button:hover {
