@@ -905,6 +905,13 @@ install_waybang(){
     error_msg "ERROR: Failed to copy system files"
   fi
 
+  # Sync changes made during live session
+  UPPERDIR=$(find /run/archiso/cowspace -type d -path "*/persistent_*/x86_64/upperdir" 2>/dev/null | head -1)
+  if [[ -n "$UPPERDIR" && -d "$UPPERDIR" ]]; then
+    print_info "Syncing live session changes..."
+    rsync -av "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1
+  fi
+
   # Generate unique machine id
   arch-chroot ${MNT} systemd-machine-id-setup
 

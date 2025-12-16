@@ -1,10 +1,15 @@
 <?xml version="1.0"?>
 <labwc_config>
 
+  <!-- Placement -->
+  <placement>
+    <policy>cursor</policy>
+  </placement>
+
   <!-- Theme -->
   <theme>
     <name>Waybang-Mocha</name>
-    <cornerRadius>6</cornerRadius>
+    <cornerRadius>0</cornerRadius>
     <font place="ActiveWindow">
       <name>JetBrains Mono</name>
       <size>10</size>
@@ -64,24 +69,6 @@
     <keybind key="W-4">
       <action name="GoToDesktop" to="4"/>
     </keybind>
-    <keybind key="W-5">
-      <action name="GoToDesktop" to="5"/>
-    </keybind>
-    <keybind key="W-6">
-      <action name="GoToDesktop" to="6"/>
-    </keybind>
-    <keybind key="W-7">
-      <action name="GoToDesktop" to="7"/>
-    </keybind>
-    <keybind key="W-8">
-      <action name="GoToDesktop" to="8"/>
-    </keybind>
-    <keybind key="W-9">
-      <action name="GoToDesktop" to="9"/>
-    </keybind>
-    <keybind key="W-0">
-      <action name="GoToDesktop" to="10"/>
-    </keybind>
 
     <!-- Send to workspace -->
     <keybind key="W-S-1">
@@ -95,24 +82,6 @@
     </keybind>
     <keybind key="W-S-4">
       <action name="SendToDesktop" to="4"/>
-    </keybind>
-    <keybind key="W-S-5">
-      <action name="SendToDesktop" to="5"/>
-    </keybind>
-    <keybind key="W-S-6">
-      <action name="SendToDesktop" to="6"/>
-    </keybind>
-    <keybind key="W-S-7">
-      <action name="SendToDesktop" to="7"/>
-    </keybind>
-    <keybind key="W-S-8">
-      <action name="SendToDesktop" to="8"/>
-    </keybind>
-    <keybind key="W-S-9">
-      <action name="SendToDesktop" to="9"/>
-    </keybind>
-    <keybind key="W-S-0">
-      <action name="SendToDesktop" to="10"/>
     </keybind>
 
     <!-- Window actions -->
@@ -136,6 +105,9 @@
 
     <!-- Applications -->
     <keybind key="W-t">
+      <action name="Execute" command="foot"/>
+    </keybind>
+    <keybind key="W-Return">
       <action name="Execute" command="foot"/>
     </keybind>
     <keybind key="W-w">
@@ -164,6 +136,11 @@
     <!-- Screenshot -->
     <keybind key="Print">
       <action name="Execute" command="screenshot"/>
+    </keybind>
+
+    <!-- Display configuration -->
+    <keybind key="W-C-F12">
+      <action name="Execute" command="wlr-randr --output Virtual-1 --mode 1920x1080"/>
     </keybind>
   </keyboard>
 
