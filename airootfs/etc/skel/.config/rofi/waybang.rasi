@@ -4,12 +4,12 @@
  */
 
 * {
-    font: "JetBrainsMono Nerd Font 12";
+    font: "InconsolataGo Nerd Font Mono 14";
 
-    bg:        #1a1a1a;   /* background */
-    fg:        #ffffff;   /* normal text */
-    accent:    #89b4fa;   /* accent color */
-    sel-fg:    #000000;   /* black text on selection */
+    bg:        #1e1e2e;   /* base (background) */
+    fg:        #cdd6f4;   /* text (foreground) */
+    accent:    #89b4fa;   /* blue (accent color) */
+    sel-fg:    #1e1e2e;   /* base text on selection */
 }
 
 /* Window Base */
@@ -77,11 +77,11 @@ element-icon {
 element selected {
     background-color: #1a1a1a;
     text-color: @accent;
-    font: "JetBrainsMono Nerd Font Bold 12";
+    font: "InconsolataGo Nerd Font Mono Bold 14";
 }
 
 element selected.normal {
     background-color: #1a1a1a;
     text-color: @accent;
-    font: "JetBrainsMono Nerd Font Bold 12";
+    font: "InconsolataGo Nerd Font Mono Bold 14";
 }

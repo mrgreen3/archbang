@@ -18,7 +18,6 @@ garcon
 thunar
 thunar-volman
 archlinux-xdg-menu
-conky
 rofi
 udisks2
 laptop-detect
@@ -44,7 +43,7 @@ wlr-randr
 # Gtk, Icons, Theme
 gnome-themes-extra
 ttf-nerd-fonts-symbols-mono
-ttf-jetbrains-mono-nerd
+ttf-inconsolata-go-nerd
 
 # extra tools
 gparted

@@ -10,13 +10,6 @@
   <theme>
     <name>Waybang-Mocha</name>
     <cornerRadius>0</cornerRadius>
-    <font place="ActiveWindow">
-      <name>JetBrains Mono</name>
-      <size>10</size>
-      <slant>normal</slant>
-      <weight>medium</weight>
-    </font>
-
   </theme>
 
   <!-- Margins -->

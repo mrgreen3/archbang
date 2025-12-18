@@ -15,9 +15,6 @@
 
 /* ---------- Base styling ---------- */
 * {
-    font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 14px;
-    font-weight: normal;
     border-radius: 0;
 }
 
@@ -46,7 +43,6 @@ window#waybar {
     color: #1e1e2e;
     background-color: #89b4fa;
     font-weight: bold;
-    font-size: 18px;
     border-bottom: 3px solid #89b4fa;
     padding: 2px 8px;
     margin: 0 4px;
@@ -120,7 +116,7 @@ window#waybar {
     color: #94e2d5;
     background-color: transparent;
     margin:0;
-    padding: 0 5px;
+    padding: 0 10px;
     font-size: 22px;
 }
 

@@ -38,4 +38,13 @@
     <borderColor>#89b4fa</borderColor>
     <borderWidth>2</borderWidth>
   </osd>
+
+  <!-- Workspace switcher -->
+  <workspace>
+    <backgroundColor>#1e1e2e</backgroundColor>
+    <textColor>#cdd6f4</textColor>
+    <borderColor>#89b4fa</borderColor>
+    <activeBackgroundColor>#89b4fa</activeBackgroundColor>
+    <activeTextColor>#11111b</activeTextColor>
+  </workspace>
 </theme>
