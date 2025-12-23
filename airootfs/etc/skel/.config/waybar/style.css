@@ -136,7 +136,6 @@ window#waybar {
 #taskbar button.active {
     color: @sel-fg;
     background-color: @accent;
-    font-weight: bold;
     padding: 2px 8px;
     margin: 0 4px;
 }

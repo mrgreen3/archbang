@@ -935,6 +935,9 @@ EOF
   # Remove abinstall from target device
   rm -f ${MNT}/home/${LIVE_USER}/AB_Scripts/abinstall &> /dev/null
 
+  # Remove gparted-launcher script
+  rm -f ${MNT}/home/${LIVE_USER}/AB_Scripts/gparted-launcher &> /dev/null
+
   # Remove installer from root-menu
   sed -i '/<!-- abinstall 5 -->/,+3d' ${MNT}/home/${LIVE_USER}/.config/labwc/menu.xml
 

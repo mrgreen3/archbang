@@ -15,6 +15,3 @@ waybar &
 # Notification daemon
 mako &
 
-# Conky system monitor
-conky &
-

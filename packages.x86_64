@@ -4,9 +4,6 @@ unzip
 p7zip
 xz
 
-# Fonts
-ttf-dejavu
-
 # Sound
 pipewire
 pipewire-pulse
@@ -43,7 +40,7 @@ wlr-randr
 # Gtk, Icons, Theme
 gnome-themes-extra
 ttf-nerd-fonts-symbols-mono
-ttf-inconsolata-go-nerd
+ttf-dejavu
 
 # extra tools
 gparted

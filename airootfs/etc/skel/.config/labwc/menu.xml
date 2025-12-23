@@ -40,6 +40,9 @@
     <item label="Panel">
       <action name="Execute" command="l3afpad ~/.config/waybar/config"/>
     </item>
+    <item label="Keybindings">
+      <action name="Execute" command="l3afpad ~/Documents/Keybindings"/>
+    </item>
     <item label="Reconfigure">
       <action name="Reconfigure"/>
     </item>

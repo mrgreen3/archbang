@@ -1,0 +1,30 @@
+WAYBANG KEYBINDINGS
+===================
+
+APPLICATION SHORTCUTS
+━━━━━━━━━━━━━━━━━━━━
+
+Super + t         Terminal
+Super + w         Web Browser
+Super + f         File Manager
+Super + e         Editor
+Super + Space     Launcher
+Alt + Space       Menu
+
+
+WINDOW CONTROLS
+━━━━━━━━━━━━━━━━━━━━
+
+Super + q              Close Window
+Super + m              Toggle Fullscreen
+Alt + Tab              Switch Windows
+Super + [1-4]          Switch Workspace
+Super + Shift + [1-4]  Send Active Window to Workspace
+Super + Arrows         Snap to Edge
+Super + Shift + Space  Toggle Decorations
+
+OTHER
+━━━━━━━━━━━━━━━━━━━━
+
+Print                  Screenshot
+Super + Shift + c      Reconfigure
