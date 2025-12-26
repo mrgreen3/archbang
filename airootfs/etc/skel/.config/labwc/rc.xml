@@ -12,8 +12,8 @@
     <cornerRadius>0</cornerRadius>
   </theme>
 
-  <!-- Margins -->
-  <margin top="5" bottom="45" left="5" right="5" output="" />
+  <!-- Margins  add optional output="<MONITOR>" -->
+  <margin top="5" bottom="3" left="5" right="5" />
 
   <!-- Keyboard -->
   <keyboard>
@@ -23,30 +23,69 @@
 
     <!-- Window Management -->
     <keybind key="W-Left">
-      <action name="MoveToEdge" direction="left"/>
+      <action name="SnapToEdge" direction="left"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
     <keybind key="W-Right">
-      <action name="MoveToEdge" direction="right"/>
+      <action name="SnapToEdge" direction="right"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
     <keybind key="W-Up">
-      <action name="MoveToEdge" direction="up"/>
+      <action name="SnapToEdge" direction="up"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
     <keybind key="W-Down">
-      <action name="MoveToEdge" direction="down"/>
+      <action name="SnapToEdge" direction="down"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
 
-    <!-- Move windows -->
+    <!-- Snap to quarters -->
     <keybind key="W-S-Left">
-      <action name="Move"/>
+      <action name="SnapToEdge" direction="up-left"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
     <keybind key="W-S-Right">
-      <action name="Move"/>
+      <action name="SnapToEdge" direction="up-right"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
     <keybind key="W-S-Up">
-      <action name="Move"/>
+      <action name="SnapToEdge" direction="down-right"/>
+      <action name="SetDecorations" decorations="none"/>
     </keybind>
     <keybind key="W-S-Down">
-      <action name="Move"/>
+      <action name="SnapToEdge" direction="down-left"/>
+      <action name="SetDecorations" decorations="none"/>
+    </keybind>
+
+    <!-- Snap to edge with border-only decorations -->
+    <!-- Centre 80% -->
+    <keybind key="W-C-c">
+      <action name="SetDecorations" decorations="border"/>
+      <action name="SnapToRegion" region="center-80"/>
+    </keybind>
+
+    <keybind key="W-C-Left">
+      <action name="SetDecorations" decorations="border"/>
+      <action name="SnapToEdge" direction="left" combine="yes"/>
+    </keybind>
+    <keybind key="W-C-Right">
+      <action name="SetDecorations" decorations="border"/>
+      <action name="SnapToEdge" direction="right" combine="yes"/>
+    </keybind>
+    <keybind key="W-C-Up">
+      <action name="SetDecorations" decorations="border"/>
+      <action name="SnapToEdge" direction="up" combine="yes"/>
+    </keybind>
+    <keybind key="W-C-Down">
+      <action name="SetDecorations" decorations="border"/>
+      <action name="SnapToEdge" direction="down" combine="yes"/>
+    </keybind>
+
+    <keybind key="W-C-d">
+      <action name="SetDecorations" decorations="full"/>
+    </keybind>
+    <keybind key="W-C-b">
+      <action name="SetDecorations" decorations="border"/>
     </keybind>
 
     <!-- Workspaces -->
@@ -84,7 +123,7 @@
     <keybind key="W-m">
       <action name="ToggleFullscreen"/>
     </keybind>
-    <keybind key="W-S-space">
+    <keybind key="W-u">
       <action name="ToggleDecorations"/>
     </keybind>
 
@@ -178,6 +217,11 @@
 
   <!-- Desktops -->
   <desktops number="4"/>
+
+  <!-- Snap Regions -->
+  <regions>
+    <region name="center-80" x="10%" y="10%" width="80%" height="80%" />
+  </regions>
 
   <!-- Window rules -->
   <!-- <windowRules>

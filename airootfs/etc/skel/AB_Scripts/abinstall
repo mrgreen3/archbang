@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Abinstall WayBang installer
+# Abinstall ArchBang installer
 # Modified by Mr Green mrgreen(at)archbang(dot)org
 # based on lilo fifo...scripts
 
@@ -102,7 +102,7 @@ done
   LUKS_NAME="cryptroot"
   VG_NAME="lvm"
   LV_ROOT="root"
-  LIVE_USER="wblive"
+  LIVE_USER="ablive"
   [[ $1 == -v || $1 == --verbose ]] && VERBOSE_MODE=1 || VERBOSE_MODE=0 # VERBOSE MODE
   [[ -f $LOG ]] && rm -f $LOG
   SPIN="/-\|" #SPINNER POSITION
@@ -218,7 +218,7 @@ done
   } #}}}
   check_archiso() { #{{{
     if [[ ! -d "/run/archiso/airootfs" ]]; then
-      error_msg "ERROR! Not running from WayBang live environment"
+      error_msg "ERROR! Not running from ArchBang live environment"
     fi
   } #}}}
   read_input() { #{{{
@@ -892,9 +892,9 @@ copy_progress() {
 }
 
 #}}}
-#INSTALL WAYBANG {{{
-install_waybang(){
-  print_title "INSTALL WAYBANG - www.archbang.org"
+#INSTALL ARCHBANG {{{
+install_archbang(){
+  print_title "INSTALL ARCHBANG - www.archbang.org"
   print_info "Installing please wait..."
 
   # Check if running from live environment
@@ -928,9 +928,6 @@ default_image="/boot/initramfs-linux.img"
 fallback_image="/boot/initramfs-linux-fallback.img"
 fallback_options="-S autodetect"
 EOF
-
-  # put live driver into new install
-  cp /etc/X11/xorg.conf.d/20-gpudriver.conf ${MNT}/etc/X11/xorg.conf.d/20-gpudriver.conf &>/dev/null
 
   # Remove abinstall from target device
   rm -f ${MNT}/home/${LIVE_USER}/AB_Scripts/abinstall &> /dev/null
@@ -985,7 +982,7 @@ configure_hostname() {
     read -p "Hostname [ex: arch]: " host_name
   fi
 
-  host_name="${host_name:-waybang}"
+  host_name="${host_name:-archbang}"
 
   print_info "Using hostname: ${host_name}"
   echo "${host_name}" > "${MNT}/etc/hostname"
@@ -1251,9 +1248,9 @@ check_trim
 
 while true
 do
-  print_title "WayBang installer - www.archbang.org"
+  print_title "ArchBang installer - www.archbang.org"
   echo " 1) $(mainmenu_item "${checklist[1]}" "Partition Scheme")"
-  echo " 2) $(mainmenu_item "${checklist[2]}" "Install WayBang")"
+  echo " 2) $(mainmenu_item "${checklist[2]}" "Install ArchBang")"
   echo " 3) $(mainmenu_item "${checklist[3]}" "Hostname")"
   echo " 4) $(mainmenu_item "${checklist[4]}" "Location")"
   echo " 5) $(mainmenu_item "${checklist[5]}" "Locale")"
@@ -1273,7 +1270,7 @@ do
         checklist[1]=1
         ;;
       2)
-        install_waybang
+        install_archbang
         configure_fstab
         configure_mkinitcpio
         checklist[2]=1

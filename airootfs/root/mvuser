@@ -1,8 +1,8 @@
 #!/bin/sh
 
-# Detect which live user exists (wblive for waybang)
+# Detect which live user exists (ablive for archbang)
 LIVE_USER=""
-[ -e /home/wblive ] && LIVE_USER="wblive"
+[ -e /home/ablive ] && LIVE_USER="ablive"
 
 if [ -z "$LIVE_USER" ]; then
   echo "The user has already been renamed !"

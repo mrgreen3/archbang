@@ -1,4 +1,4 @@
-# WayBANG login shell configuration
+# ArchBANG login shell configuration
 # Starts labwc (Wayland compositor)
 
 . $HOME/.bashrc
