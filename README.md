@@ -1,6 +1,6 @@
-# WayBang Project
+# ArchBang Project
 
-WayBang is a minimal Arch Linux-based distribution featuring the labwc Wayland compositor. It provides a lightweight, fast desktop environment while including all the essential tools needed to get the job done.
+ArchBang is a minimal Arch Linux-based distribution featuring the labwc Wayland compositor. It provides a lightweight, fast desktop environment while including all the essential tools needed to get the job done.
 
 ## About
 
@@ -23,13 +23,13 @@ WayBang is a minimal Arch Linux-based distribution featuring the labwc Wayland c
 
 ## Building
 
-See the `build` script and `profiledef.sh` for building your own WayBang ISO.
+See the `build` script and `profiledef.sh` for building your own ArchBang ISO.
 
 ## Links
 
-- [WayBang GitHub](https://github.com/mrgreen3/waybang)
-- [Report Issues](https://github.com/mrgreen3/waybang/issues)
+- [ArchBang Website](https://archbang.org/)
+- [Report Issues](https://archbang.org/contact)
 
 ---
 
-*WayBang is based on ArchBang and is not affiliated with Arch Linux.*
+*ArchBang Project is not affiliated with Arch Linux.*

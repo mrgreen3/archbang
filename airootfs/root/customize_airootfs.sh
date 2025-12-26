@@ -26,7 +26,7 @@ chmod -c 0440 /etc/sudoers
 sed -i '/^Categories=/a Hidden=true' /usr/share/applications/gparted.desktop
 
 # Hostname
-echo "waybang" > /etc/hostname
+echo "archbang" > /etc/hostname
 
 # Vconsole
 echo "KEYMAP=us" > /etc/vconsole.conf
@@ -64,8 +64,8 @@ for service in "${SERVICES[@]}"; do
 done
 
 # Add live user
-useradd -m -p "" -G "wheel" -s /bin/bash -g users wblive 
-chown wblive /home/wblive
+useradd -m -p "" -G "wheel" -s /bin/bash -g users ablive
+chown ablive /home/ablive
 
 # Start required systemd services
 systemctl enable {pacman-init,NetworkManager}.service -f

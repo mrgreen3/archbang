@@ -7,5 +7,5 @@ configuration {
   display-drun: "> ";
 }
 
-@theme "~/.config/rofi/waybang.rasi"
+@theme "~/.config/rofi/archbang.rasi"
 

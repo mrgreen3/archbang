@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Profile modified for WayBang
+# Profile modified for ArchBang
 # by Mr Green [mrgreen@archbang.org]
 
-iso_name="waybang-rc"
-iso_label="WAYBANG_$(date +%d%m)"
-iso_publisher="WayBANG <https://www.archbang.org>"
-iso_application="WayBang Live/Rescue Iso (Beta)"
+iso_name="archbang-rc"
+iso_label="ARCHBANG_$(date +%d%m)"
+iso_publisher="ArchBANG Project <https://www.archbang.org>"
+iso_application="ArchBang Live/Rescue Iso (Beta)"
 iso_version="$(date +%d%m)"
 install_dir="arch"
 buildmodes=("iso")
