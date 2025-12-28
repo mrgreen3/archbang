@@ -53,7 +53,7 @@ listview {
     background-color: @bg;
     spacing: 6px;
     scrollbar: false;
-    lines: 12;
+    lines: 6;
 }
 
 /* Entry styling - normal state */

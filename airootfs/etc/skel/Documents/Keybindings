@@ -1,30 +1,37 @@
-WAYBANG KEYBINDINGS
-===================
+ArchBANG KEYBINDINGS
+═══════════════════
+
+NOTE: Super = Windows Key
+
 
 APPLICATION SHORTCUTS
-━━━━━━━━━━━━━━━━━━━━
+───────────────────────
 
-Super + t         Terminal
-Super + w         Web Browser
-Super + f         File Manager
-Super + e         Editor
-Super + Space     Launcher
-Alt + Space       Menu
+Super + Return       Terminal
+Super + w            Web Browser
+Super + f            File Manager
+Super + e            Editor
+Super + Space        Launcher
+Alt + Space          Menu
+Alt + Shift + Space  Client Menu
 
 
 WINDOW CONTROLS
-━━━━━━━━━━━━━━━━━━━━
+───────────────────────
 
-Super + q              Close Window
-Super + m              Toggle Fullscreen
-Alt + Tab              Switch Windows
-Super + [1-4]          Switch Workspace
-Super + Shift + [1-4]  Send Active Window to Workspace
-Super + Arrows         Snap to Edge
-Super + Shift + Space  Toggle Decorations
+Super + q                  Close Window
+Alt + Tab                  Switch Windows
+Super + [1-4]              Switch Workspace
+Super + Shift + [1-4]      Send Window to Workspace
+Super + Control + ←/↑/→/↓  Snap to Edge
+Super + Control + c        Centre 80%
+Super + Control + m        Toggle Maximize
+Super + Control + d        Decorations
+Super + Control + b        Border
 
 OTHER
-━━━━━━━━━━━━━━━━━━━━
+───────────────────────
 
-Print                  Screenshot
-Super + Shift + c      Reconfigure
+Print                    Screenshot
+Super + Shift + c        Reconfigure
+Super + Control + F12    Display Configuration
