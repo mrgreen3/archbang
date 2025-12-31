@@ -1,4 +1,4 @@
-# ArchBang Project
+# ArchBang 
 
 ArchBang is a minimal Arch Linux-based distribution featuring the labwc Wayland compositor. It provides a lightweight, fast desktop environment while including all the essential tools needed to get the job done.
 
@@ -32,4 +32,4 @@ See the `build` script and `profiledef.sh` for building your own ArchBang ISO.
 
 ---
 
-*ArchBang Project is not affiliated with Arch Linux.*
+*ArchBang is not affiliated with Arch Linux.*

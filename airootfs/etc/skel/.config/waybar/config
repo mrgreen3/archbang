@@ -10,7 +10,6 @@
   "modules-center": [
   ],
   "modules-right": [
-    "network",
     "tray",
     "clock"
   ],
@@ -41,13 +40,5 @@
         "on-scroll": 1
     },
     "interval": 60
-  },
-  "network": {
-    "format-wifi": "󰖩",
-    "format-ethernet": "󰈀",
-    "format-disconnected": "󰖪",
-    "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}",
-    "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
-    "on-click": "nm-connection-editor"
   },
 }

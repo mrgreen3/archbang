@@ -5,7 +5,7 @@
 
 iso_name="archbang-rc"
 iso_label="ARCHBANG_$(date +%d%m)"
-iso_publisher="ArchBANG Project <https://www.archbang.org>"
+iso_publisher="ArchBANG <https://www.archbang.org>"
 iso_application="ArchBang Live/Rescue Iso (Beta)"
 iso_version="$(date +%d%m)"
 install_dir="arch"
@@ -22,7 +22,6 @@ file_permissions=(
   ["/root"]="0:0:750"
   ["/root/.gnupg"]="0:0:700"
   ["/etc/skel/AB_Scripts/"]="0:0:755"
-  ["/etc/skel/.config/waybar/scripts/"]="0:0:755"
   ["/root/mvuser"]="0:0:755"
 )
 #bootstrap_tarball_compression=(gzip -cn9)

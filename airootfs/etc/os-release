@@ -1,5 +1,5 @@
 NAME="ArchBANG"
-PRETTY_NAME="ArchBANG Project"
+PRETTY_NAME="ArchBANG"
 ID=archbang
 ID_LIKE=arch
 BUILD_ID=rolling

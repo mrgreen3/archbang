@@ -113,18 +113,6 @@ window#waybar {
     color: @green;
 }
 
-#network {
-    color: #94e2d5;
-    background-color: transparent;
-    margin:0;
-    padding: 0 10px;
-    font-size: 22px;
-}
-
-#network.disconnected {
-    color: @red;
-}
-
 /* ---------- Taskbar ---------- */
 #taskbar button {
     padding: 0 8px;
