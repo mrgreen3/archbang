@@ -1,0 +1,183 @@
+# ArchBang Sway Configuration
+# Based on stock sway config with Catppuccin Mocha colors
+
+### Variables
+#
+# Logo key. Use Mod1 for Alt.
+set $mod Mod4
+
+# Your preferred applications
+set $term foot
+set $files thunar
+set $browser firefox
+set $menu rofi -show drun
+
+### Output configuration
+#
+# ArchBang background
+output * bg $HOME/Backgrounds/blue-landscape.png fill
+
+### Autostart
+#
+exec mako
+exec /usr/lib/polkit-kde-authentication-agent-1
+exec nm-applet --indicator
+
+### Idle configuration
+#
+# Example configuration:
+#
+# exec swayidle -w \
+#          timeout 300 'swaylock -f -c 000000' \
+#          timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
+#          before-sleep 'swaylock -f -c 000000'
+
+### Input configuration
+#
+input type:keyboard {
+    xkb_layout "us"
+}
+
+# Touchpad example (uncomment to use):
+#
+# input type:touchpad {
+#     dwt enabled
+#     tap enabled
+#     natural_scroll enabled
+#     middle_emulation enabled
+# }
+
+### Key bindings
+#
+# Basics:
+#
+    # Start a terminal
+    bindsym $mod+Return exec $term
+
+    # Kill focused window
+    bindsym $mod+Shift+q kill
+
+    # Start your launcher
+    bindsym $mod+d exec $menu
+
+    # Open file manager
+    bindsym $mod+f exec $files
+
+    # Open web browser
+    bindsym $mod+w exec $browser
+
+    # Drag floating windows by holding down $mod and left mouse button.
+    # Resize them with right mouse button + $mod.
+    floating_modifier $mod normal
+
+    # Reload the configuration file
+    bindsym $mod+Shift+c reload
+
+    # Exit sway
+    bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit sway?' -B 'Yes' 'swaymsg exit'
+
+#
+# Moving around:
+#
+    # Move your focus around
+    bindsym $mod+Left focus left
+    bindsym $mod+Down focus down
+    bindsym $mod+Up focus up
+    bindsym $mod+Right focus right
+
+    # Move the focused window
+    bindsym $mod+Shift+Left move left
+    bindsym $mod+Shift+Down move down
+    bindsym $mod+Shift+Up move up
+    bindsym $mod+Shift+Right move right
+
+#
+# Workspaces:
+#
+    bindsym $mod+1 workspace number 1
+    bindsym $mod+2 workspace number 2
+    bindsym $mod+3 workspace number 3
+    bindsym $mod+4 workspace number 4
+    bindsym $mod+5 workspace number 5
+    bindsym $mod+6 workspace number 6
+    bindsym $mod+7 workspace number 7
+    bindsym $mod+8 workspace number 8
+    bindsym $mod+9 workspace number 9
+    bindsym $mod+0 workspace number 10
+
+    bindsym $mod+Shift+1 move container to workspace number 1
+    bindsym $mod+Shift+2 move container to workspace number 2
+    bindsym $mod+Shift+3 move container to workspace number 3
+    bindsym $mod+Shift+4 move container to workspace number 4
+    bindsym $mod+Shift+5 move container to workspace number 5
+    bindsym $mod+Shift+6 move container to workspace number 6
+    bindsym $mod+Shift+7 move container to workspace number 7
+    bindsym $mod+Shift+8 move container to workspace number 8
+    bindsym $mod+Shift+9 move container to workspace number 9
+    bindsym $mod+Shift+0 move container to workspace number 10
+
+#
+# Layout stuff:
+#
+    bindsym $mod+Shift+h splith
+    bindsym $mod+Shift+v splitv
+
+    bindsym $mod+s layout stacking
+    bindsym $mod+Shift+t layout tabbed
+    bindsym $mod+e layout toggle split
+
+    bindsym $mod+Shift+f fullscreen
+
+    bindsym $mod+Shift+space floating toggle
+    bindsym $mod+space focus mode_toggle
+
+    bindsym $mod+a focus parent
+
+#
+# Scratchpad:
+#
+    bindsym $mod+Shift+minus move scratchpad
+    bindsym $mod+minus scratchpad show
+
+
+#
+# Utilities:
+#
+    # Volume control
+    bindsym --locked XF86AudioMute exec pactl set-sink-mute @DEFAULT_SINK@ toggle
+    bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume @DEFAULT_SINK@ -5%
+    bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume @DEFAULT_SINK@ +5%
+    bindsym --locked XF86AudioMicMute exec pactl set-source-mute @DEFAULT_SOURCE@ toggle
+
+    # Brightness control
+    bindsym --locked XF86MonBrightnessDown exec brightnessctl set 5%-
+    bindsym --locked XF86MonBrightnessUp exec brightnessctl set 5%+
+
+    # Screenshot
+    bindsym Print exec grim
+
+#
+# Status Bar (Catppuccin Mocha colors)
+#
+bar {
+    position top
+    tray_output *
+    status_command while date +'%Y-%m-%d %X'; do sleep 1; done
+
+    colors {
+        statusline #cdd6f4
+        background #1e1e2e
+        inactive_workspace #313244 #313244 #bac2de
+        active_workspace #89b4fa #89b4fa #1e1e2e
+        focused_workspace #89b4fa #89b4fa #1e1e2e
+    }
+}
+
+# Window colors (Catppuccin Mocha)
+client.focused #89b4fa #89b4fa #1e1e2e #89b4fa #89b4fa
+client.focused_inactive #313244 #313244 #cdd6f4 #313244 #313244
+client.unfocused #313244 #313244 #bac2de #313244 #313244
+client.urgent #f38ba8 #f38ba8 #1e1e2e #f38ba8 #f38ba8
+client.placeholder #313244 #313244 #cdd6f4 #313244 #313244
+
+include /etc/sway/config.d/*

@@ -4,7 +4,7 @@
 # modified by MrGreen [mrgreen@archbang.org]
 
 echo "Checking network connectivity..."
-if ping -q -c 1 -W 2 archlinux.org >/dev/null; then
+if curl -s --connect-timeout 2 https://www.archlinux.org >/dev/null 2>&1; then
     echo "Network is up."
 else
     echo "No network connection detected, exiting."

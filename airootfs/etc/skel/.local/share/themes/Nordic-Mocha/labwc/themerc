@@ -1,0 +1,47 @@
+# Nordic-Mocha theme configuration for labwc
+
+# Border width
+border.width: 2
+
+# Window borders
+window.active.border.color: #89b4fa
+window.inactive.border.color: #1e1e2e
+
+# Window titlebar background
+window.active.title.bg.color: #89b4fa
+window.inactive.title.bg.color: #313244
+window.*.title.bg: Solid
+
+# Window titlebar text
+window.active.label.text.color: #11111b
+window.inactive.label.text.color: #6c7086
+window.label.text.justify: center
+
+# Window button sizing
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 0
+
+# Window buttons - matched to titlebar background
+window.active.button.unpressed.image.color: #313244
+window.inactive.button.unpressed.image.color: #313244
+
+# Window shadows
+window.active.shadow.size: 60
+window.inactive.shadow.size: 40
+window.active.shadow.color: #00000060
+window.inactive.shadow.color: #00000040
+
+# Menu styling
+menu.items.bg.color: #313244
+menu.items.text.color: #a6adc8
+menu.items.active.bg.color: #89b4fa
+menu.items.active.text.color: #11111b
+menu.border.color: #89b4fa
+menu.border.width: 2
+
+# On-screen display
+osd.bg.color: #313244
+osd.border.color: #89b4fa
+osd.border.width: 1
+osd.label.text.color: #89b4fa

@@ -1,4 +1,4 @@
-" Basic Vim config for WayBANG Project
+" Basic Vim config for ArchBANG
 " Added by MrGreen
 syntax on
 set number

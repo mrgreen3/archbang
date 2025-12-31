@@ -8,7 +8,7 @@
 
   <!-- Theme -->
   <theme>
-    <name>Waybang-Mocha</name>
+    <name>Nordic-Mocha</name>
     <cornerRadius>0</cornerRadius>
   </theme>
 
@@ -109,9 +109,6 @@
     <keybind key="W-w">
       <action name="Execute" command="firefox"/>
     </keybind>
-    <keybind key="W-space">
-      <action name="Execute" command="rofi -show drun"/>
-    </keybind>
     <keybind key="W-f">
       <action name="Execute" command="thunar"/>
     </keybind>
@@ -120,15 +117,15 @@
     </keybind>
 
     <!-- Right-click menu -->
-    <keybind key="A-space">
+    <keybind key="W-space">
       <action name="ShowMenu" menu="root-menu"/>
     </keybind>
-     <keybind key="A-S-space">
+    <keybind key="W-S-space">
       <action name="ShowMenu" menu="client-menu"/>
     </keybind>
 
     <!-- Reconfigure -->
-    <keybind key="W-S-c">
+    <keybind key="W-S-r">
       <action name="Reconfigure"/>
     </keybind>
 

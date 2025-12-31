@@ -15,7 +15,6 @@ garcon
 thunar
 thunar-volman
 archlinux-xdg-menu
-rofi
 udisks2
 laptop-detect
 xdg-user-dirs
@@ -28,6 +27,7 @@ foot
 
 # Wayland (labwc) Stack
 labwc
+sway
 swaybg
 waybar
 xorg-xwayland
@@ -38,7 +38,8 @@ mako
 wlr-randr
 
 # Gtk, Icons, Theme
-gnome-themes-extra
+adw-gtk-theme
+adwaita-icon-theme
 ttf-nerd-fonts-symbols-mono
 ttf-dejavu
 

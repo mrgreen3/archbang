@@ -11,9 +11,8 @@ Super + Return       Terminal
 Super + w            Web Browser
 Super + f            File Manager
 Super + e            Editor
-Super + Space        Launcher
-Alt + Space          Menu
-Alt + Shift + Space  Client Menu
+Super + Space        Menu
+Super + Shift + Space  Client Menu
 
 
 WINDOW CONTROLS

@@ -21,7 +21,7 @@
 
   <!-- abinstall 5 -->
   <item label="Install">
-    <action name="Execute" command="foot --title ArchBang-Installer -e sudo -EH ~/AB_Scripts/abinstall"/>
+    <action name="Execute" command="foot -m --title ArchBang-Installer -e sudo -EH ~/AB_Scripts/abinstall"/>
   </item>
 
   <separator/>
