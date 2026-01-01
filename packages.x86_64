@@ -27,7 +27,6 @@ foot
 
 # Wayland (labwc) Stack
 labwc
-sway
 swaybg
 waybar
 xorg-xwayland
