@@ -115,6 +115,12 @@
     <keybind key="W-e">
       <action name="Execute" command="l3afpad"/>
     </keybind>
+    <keybind key="W-g">
+      <action name="Execute" command="gparted-launcher"/>
+    </keybind>
+    <keybind key="W-p">
+      <action name="Execute" command="~/AB_Scripts/wmenu-launcher"/>
+    </keybind>
 
     <!-- Right-click menu -->
     <keybind key="W-space">
@@ -133,10 +139,18 @@
     <keybind key="Print">
       <action name="Execute" command="screenshot"/>
     </keybind>
+    <keybind key="W-S-s">
+      <action name="Execute" command="screenshot"/>
+    </keybind>
 
     <!-- Display configuration -->
     <keybind key="W-C-F12">
       <action name="Execute" command="wlr-randr --output Virtual-1 --mode 1920x1080"/>
+    </keybind>
+
+    <!-- Exit -->
+    <keybind key="W-A-e">
+      <action name="Exit"/>
     </keybind>
   </keyboard>
 
@@ -185,12 +199,13 @@
   </regions>
 
   <!-- Window rules -->
-  <!-- <windowRules>
-    <windowRule identifier="firefox">
+  <windowRules>
+    <windowRule identifier="wmenu">
       <action name="MoveTo" x="0" y="0"/>
-      <skipTaskbar>no</skipTaskbar>
+      <action name="SetDecorations" decorations="none"/>
+      <skipTaskbar>yes</skipTaskbar>
     </windowRule>
-  </windowRules> -->
+  </windowRules>
 
   <!-- Resize edges -->
   <resize>
