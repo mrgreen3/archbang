@@ -1,3 +1,0 @@
-# ArchBANG
-
-Coming soon...
