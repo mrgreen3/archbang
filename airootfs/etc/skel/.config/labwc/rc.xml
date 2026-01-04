@@ -118,9 +118,6 @@
     <keybind key="W-g">
       <action name="Execute" command="gparted-launcher"/>
     </keybind>
-    <keybind key="W-p">
-      <action name="Execute" command="~/AB_Scripts/wmenu-launcher"/>
-    </keybind>
 
     <!-- Right-click menu -->
     <keybind key="W-space">
@@ -200,11 +197,6 @@
 
   <!-- Window rules -->
   <windowRules>
-    <windowRule identifier="wmenu">
-      <action name="MoveTo" x="0" y="0"/>
-      <action name="SetDecorations" decorations="none"/>
-      <skipTaskbar>yes</skipTaskbar>
-    </windowRule>
   </windowRules>
 
   <!-- Resize edges -->

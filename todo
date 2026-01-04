@@ -1,16 +1,9 @@
 ArchBang based on Labwc and Wayland
 
- ping of archlinux.org
+Updated theme, any additions?
 
- xwayland?
+check new conky colors and layout [increased font]
 
- installer window
+Maybe look at coloured headers? from mocha theme
 
- nm-applet
-
-sway configs? add sway and config add variable to .bash_profile [both!!!]
-
-At least then gives users the option....
-
-
-
+Added gparted keybind, will then need to remove it from rc.xml post install!!!!

@@ -938,8 +938,11 @@ EOF
   # Remove installer from root-menu
   sed -i '/<!-- abinstall 5 -->/,+3d' ${MNT}/home/${LIVE_USER}/.config/labwc/menu.xml
 
-  # Remove Gparted from root-menu (only the GParted item, not System)
-  sed -i '/GParted/,+2d' ${MNT}/home/${LIVE_USER}/.config/labwc/menu.xml
+  # Remove GParted keybind from rc.xml
+  sed -i '/<keybind key="W-g">/,/<\/keybind>/d' ${MNT}/home/${LIVE_USER}/.config/labwc/rc.xml
+
+  # Remove GParted keybind from conky.conf
+  sed -i '/Super + g.*GParted/d' ${MNT}/home/${LIVE_USER}/.config/conky/conky.conf
 
   # remove autologin from install
   rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
