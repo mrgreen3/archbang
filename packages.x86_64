@@ -20,7 +20,7 @@ laptop-detect
 xdg-user-dirs
 l3afpad
 gvfs
-btop
+htop
 
 # Wayland Terminal
 foot
@@ -34,6 +34,7 @@ grim
 wl-clipboard
 brightnessctl
 mako
+wmenu
 wlr-randr
 
 # Gtk, Icons, Theme
@@ -51,6 +52,9 @@ testdisk
 fontconfig
 kbd
 
+# System Monitoring
+conky
+
 # Extra Apps
 openssh
 pkgfile
@@ -59,6 +63,10 @@ curl
 firefox
 #netsurf
 pacman-contrib
+mpv
+imv
+fzf
+eza
 
 # Network Tools
 usb_modeswitch

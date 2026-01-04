@@ -1,0 +1,17 @@
+#!/bin/bash
+# wmenu launcher with Nordic-Mocha theme colors
+
+# Nordic-Mocha colors (from labwc theme)
+BG_NORMAL="#313244"      # menu.items.bg.color
+FG_NORMAL="#a6adc8"      # menu.items.text.color
+BG_SELECTED="#89b4fa"    # menu.items.active.bg.color
+FG_SELECTED="#11111b"    # menu.items.active.text.color
+
+# Launch wmenu with Mocha theme
+wmenu-run \
+	-N "$BG_NORMAL" \
+	-n "$FG_NORMAL" \
+	-M "$BG_SELECTED" \
+	-m "$FG_SELECTED" \
+	-p "» " \
+	"$@"
