@@ -15,5 +15,5 @@ wmenu-run \
 	-m "$FG_NORMAL" \
 	-S "$BG_SELECTED" \
 	-s "$FG_SELECTED" \
-	-p "> " \
+	-p " " \
 	"$@"
