@@ -99,6 +99,11 @@
       <action name="PreviousWindow"/>
     </keybind>
 
+    <!-- Applications Menu (Alt+F3) -->
+    <keybind key="A-F3">
+      <action name="Execute" command="~/AB_Scripts/wmenu-launcher"/>
+    </keybind>
+
     <!-- Applications -->
     <keybind key="W-t">
       <action name="Execute" command="foot"/>
