@@ -5,4 +5,5 @@ border-color=#89b4fa
 border-size=2
 default-timeout=5000
 anchor=top-left
+margin=10,10,auto,10
 font=DejaVu Sans Mono 14
