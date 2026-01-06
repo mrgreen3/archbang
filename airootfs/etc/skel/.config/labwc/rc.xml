@@ -121,7 +121,7 @@
       <action name="Execute" command="l3afpad"/>
     </keybind>
     <keybind key="W-g">
-      <action name="Execute" command="gparted-launcher"/>
+      <action name="Execute" command="~/AB_Scripts/gparted-launcher"/>
     </keybind>
 
     <!-- Right-click menu -->
