@@ -97,7 +97,10 @@ window#waybar {
 
 /* ---------- Battery ---------- */
 #battery {
-    color: @accent;
+    color: @fg;
+    background-color: transparent;
+    margin: 0;
+    padding: 0 5px;
     font-size: 22px;
 }
 

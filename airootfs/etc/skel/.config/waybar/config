@@ -10,6 +10,8 @@
   "modules-center": [
   ],
   "modules-right": [
+    // "pulseaudio",
+    "battery",
     "tray",
     "clock"
   ],
@@ -41,4 +43,15 @@
     },
     "interval": 60
   },
+  "pulseaudio": {
+    "format": "{volume}% {icon}",
+    "format-muted": "󰖁 {volume}%",
+    "format-icons": ["󰕿", "󰖀", "󰕾"],
+    "on-click": "pavucontrol"
+  },
+  "battery": {
+    "format": "{capacity}% {icon}",
+    "format-icons": ["󰁻", "󰁼", "󰁽", "󰁾", "󰁿"],
+    "tooltip-format": "{time} {power}W"
+  }
 }
