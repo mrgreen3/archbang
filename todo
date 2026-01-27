@@ -7,3 +7,11 @@ check new conky colors and layout [increased font]
 Maybe look at coloured headers? from mocha theme
 
 Added gparted keybind, will then need to remove it from rc.xml post install!!!!
+
+Installer simplification (target: late Feb):
+- Merge Hostname, Locale, and Keyboard Layout into single "System Configuration" step
+- Rename getxkeymap() to get_desktop_keymap() (remove X11 legacy naming)
+- Implement console keymap setup (currently getkeymap() is unused)
+- Set both console and desktop keyboard layouts in one step
+- Reduce installer from 8 steps to 5-6 steps
+- Consider auto-detect timezone option (if reliable network available)

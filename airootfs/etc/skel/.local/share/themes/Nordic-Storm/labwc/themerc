@@ -1,0 +1,59 @@
+# Nordic-Mocha-Waybar theme configuration for labwc
+# Based on Nordic-Mocha with Waybar-inspired color scheme
+
+# Border width
+border.width: 0
+
+# Window borders - using waybar color
+window.active.border.color: #A8B5C0
+window.inactive.border.color: #1e1e1e
+
+# Window titlebar background
+window.active.title.bg.color: #A8B5C0
+window.inactive.title.bg.color: #1e1e1e
+window.*.title.bg: Solid
+
+# Window titlebar text
+window.active.label.text.color: #1e1e2e
+window.inactive.label.text.color: #6c7086
+window.label.text.justify: center
+
+# Window button sizing
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 0
+
+# Window buttons - all dark to match titlebar text color
+window.active.button.iconify.unpressed.image.color: #1e1e2e
+window.active.button.iconify.pressed.image.color: #1e1e2e
+window.active.button.iconify.hover.image.color: #1e1e2e
+
+window.active.button.max.unpressed.image.color: #1e1e2e
+window.active.button.max.pressed.image.color: #1e1e2e
+window.active.button.max.hover.image.color: #1e1e2e
+
+window.active.button.close.unpressed.image.color: #1e1e2e
+window.active.button.close.pressed.image.color: #1e1e2e
+window.active.button.close.hover.image.color: #1e1e2e
+
+window.inactive.button.unpressed.image.color: #6c7086
+
+# Window shadows
+window.active.shadow.size: 80
+window.inactive.shadow.size: 50
+window.active.shadow.color: #000000ff
+window.inactive.shadow.color: #000000ff
+
+# Menu styling - waybar color theme
+menu.items.bg.color: #1e1e1e
+menu.items.text.color: #E5E2DC
+menu.items.active.bg.color: #A8B5C0
+menu.items.active.text.color: #1e1e1e
+menu.border.color: #A8B5C0
+menu.border.width: 0
+
+# On-screen display
+osd.bg.color: #313244
+osd.border.color: #cdd6f4
+osd.border.width: 1
+osd.label.text.color: #cdd6f4

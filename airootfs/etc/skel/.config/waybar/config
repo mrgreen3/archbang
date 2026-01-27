@@ -28,6 +28,9 @@
     "on-click": "activate",
     "on-click-middle": "close",
     "ignore-list": [],
+    "rewrite": {
+      "Mozilla Firefox": "Firefox"
+    },
     "all-outputs": true
   },
   "tray": {

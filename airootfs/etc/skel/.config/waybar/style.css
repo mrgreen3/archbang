@@ -1,15 +1,15 @@
-/* ---------- Catppuccin Mocha Palette ---------- */
-@define-color bg #1e1e2e;        /* base (background) */
-@define-color surface0 #313244;  /* surface0 */
-@define-color surface1 #45475a;  /* surface1 */
-@define-color fg #cdd6f4;        /* text (foreground) */
-@define-color subtext1 #bac2de;  /* subtext1 */
-@define-color accent #89b4fa;    /* blue (accent color) */
-@define-color sel-fg #1e1e2e;    /* base text on selection */
+/* ---------- Nordic-Mocha-Waybar Palette ---------- */
+@define-color bg #1e1e1e;        /* dark background */
+@define-color surface0 #313244;  /* osd background */
+@define-color surface1 #2a2a3a;  /* lighter dark */
+@define-color fg #E5E2DC;        /* light text */
+@define-color subtext1 #cdd6f4;  /* subtext */
+@define-color accent #A8B5C0;    /* waybar blue/gray */
+@define-color sel-fg #1e1e1e;    /* base text on selection */
 @define-color red #f38ba8;       /* red */
-@define-color green #89b4fa;     /* blue */
+@define-color green #a9dd9d;     /* green */
 @define-color yellow #f9e2af;    /* yellow */
-@define-color blue #89b4fa;      /* blue */
+@define-color blue #A8B5C0;      /* waybar blue */
 @define-color magenta #f5c2e7;   /* magenta */
 @define-color cyan #94e2d5;      /* cyan */
 
@@ -19,38 +19,35 @@
 }
 
 window#waybar {
-    background-color: rgba(30, 30, 46, 0.9);
+    background-color: rgba(49, 50, 68, 0.8);
     color: @fg;
     border: none;
-    border-top: 3px solid transparent;
+    padding: 5px 0;
 }
 
 /* ---------- Workspaces ---------- */
 #workspaces {
-    padding: 0;
     margin: 0;
 }
 
 #workspaces button {
     padding: 0 5px;
-    margin: 0 4px;
-    color: @accent;
+    margin: 0;
+    color: #E5E2DC;
     background: transparent;
     border: none;
-    border-bottom: 3px solid transparent;
 }
 
 #workspaces button.active {
-    color: #1e1e2e;
-    background-color: #89b4fa;
+    color: #1e1e1e;
+    background-color: rgba(168, 181, 192, 0.7);
+    padding: 0 5px;
+    margin: 0;
     font-weight: bold;
-    border-bottom: 3px solid #89b4fa;
-    padding: 2px 8px;
-    margin: 0 4px;
 }
 
 #workspaces button.urgent {
-    color: @sel-fg;
+    color: #E5E2DC;
     background-color: @red;
 }
 
@@ -63,31 +60,31 @@ window#waybar {
 
 /* ---------- Clock ---------- */
 #clock {
-    color: @sel-fg;
-    background-color: @accent;
+    color: #1e1e1e;
+    background-color: rgba(168, 181, 192, 0.7);
     font-weight: normal;
     padding: 4px 10px;
-    margin: 0 4px;
+    margin: 0;
 }
 
 #clock:hover {
     opacity: 0.8;
 }
 
-/* ---------- System tray ---------- */
-#tray {
-    background-color: transparent;
-    color: @fg;
+/* ---------- Common section styling ---------- */
+#tray, #pulseaudio, #battery {
     margin: 0;
     padding: 0 5px;
+}
+
+/* ---------- System tray ---------- */
+#tray {
+    color: @fg;
 }
 
 /* ---------- Pulseaudio ---------- */
 #pulseaudio {
     color: @cyan;
-    background-color: transparent;
-    margin: 0;
-    padding: 0 5px;
     font-size: 22px;
 }
 
@@ -98,9 +95,6 @@ window#waybar {
 /* ---------- Battery ---------- */
 #battery {
     color: @fg;
-    background-color: transparent;
-    margin: 0;
-    padding: 0 5px;
     font-size: 22px;
 }
 
@@ -117,19 +111,22 @@ window#waybar {
 }
 
 /* ---------- Taskbar ---------- */
+#taskbar {
+    margin: 0;
+    padding: 0 5px;
+}
+
 #taskbar button {
     padding: 0 8px;
-    margin: 0 4px;
-    color: #9399b2;
+    margin: 0;
+    color: #E5E2DC;
     background: transparent;
     border: none;
 }
 
 #taskbar button.active {
-    color: @sel-fg;
-    background-color: @accent;
-    padding: 2px 8px;
-    margin: 0 4px;
+    color: #1e1e1e;
+    background-color: rgba(168, 181, 192, 0.7);
 }
 
 #taskbar button:hover {

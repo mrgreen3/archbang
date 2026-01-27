@@ -8,7 +8,7 @@
 
   <!-- Theme -->
   <theme>
-    <name>Nordic-Mocha</name>
+    <name>Nordic-Storm</name>
     <cornerRadius>0</cornerRadius>
   </theme>
 
@@ -71,6 +71,9 @@
     <keybind key="W-4">
       <action name="GoToDesktop" to="4"/>
     </keybind>
+    <keybind key="W-5">
+      <action name="GoToDesktop" to="5"/>
+    </keybind>
 
     <!-- Send to workspace -->
     <keybind key="W-S-1">
@@ -84,6 +87,9 @@
     </keybind>
     <keybind key="W-S-4">
       <action name="SendToDesktop" to="4"/>
+    </keybind>
+    <keybind key="W-S-5">
+      <action name="SendToDesktop" to="5"/>
     </keybind>
 
     <!-- Window actions -->
@@ -99,8 +105,8 @@
       <action name="PreviousWindow"/>
     </keybind>
 
-    <!-- Applications Menu (Alt+F3) -->
-    <keybind key="A-F3">
+    <!-- Applications Menu (Super+d) -->
+    <keybind key="W-d">
       <action name="Execute" command="~/AB_Scripts/wmenu-launcher"/>
     </keybind>
 
@@ -193,7 +199,9 @@
   </mouse>
 
   <!-- Desktops -->
-  <desktops number="4"/>
+  <desktops number="5">
+    <prefix></prefix>
+  </desktops>
 
   <!-- Snap Regions -->
   <regions>
