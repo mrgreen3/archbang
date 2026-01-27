@@ -4,7 +4,7 @@
 #wlr-randr --output Virtual-1 --mode 1920x1080 &
 
 # Set wallpaper
-swaybg -i $HOME/Backgrounds/blue-landscape.png -m fill &
+swaybg -i $HOME/Backgrounds/storm.jpg -m fill &
 
 # Start waybar
 waybar &

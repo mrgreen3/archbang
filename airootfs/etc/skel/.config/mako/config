@@ -1,9 +1,8 @@
-# Catppuccin Mocha color scheme
-background-color=#1e1e2e
-text-color=#cdd6f4
-border-color=#89b4fa
-border-size=2
+# Waybar color scheme
+background-color=#1e1e1e
+text-color=#A8B5C0
+border-size=0
+border-radius=0
 default-timeout=5000
 anchor=top-left
-margin=10,10,auto,10
-font=DejaVu Sans Mono 14
+margin=3

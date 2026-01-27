@@ -1,13 +1,13 @@
 #!/bin/bash
-# wmenu launcher with Nordic-Mocha theme colors
+# wmenu launcher with Nordic-Storm theme colors
 
-# Nordic-Mocha colors (from labwc theme)
-BG_NORMAL="#313244"      # menu.items.bg.color
-FG_NORMAL="#a6adc8"      # menu.items.text.color
-BG_SELECTED="#89b4fa"    # menu.items.active.bg.color (blue)
-FG_SELECTED="#11111b"    # menu.items.active.text.color (dark)
+# Nordic-Storm colors (from labwc theme)
+BG_NORMAL="#1e1e1e"      # menu.items.bg.color
+FG_NORMAL="#E5E2DC"      # menu.items.text.color
+BG_SELECTED="#A8B5C0"    # menu.items.active.bg.color (light gray-blue)
+FG_SELECTED="#1e1e1e"    # menu.items.active.text.color (dark)
 
-# Launch wmenu with Mocha theme
+# Launch wmenu with Storm theme
 wmenu-run \
 	-N "$BG_NORMAL" \
 	-n "$FG_NORMAL" \
