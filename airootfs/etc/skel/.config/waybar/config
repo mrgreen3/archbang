@@ -53,8 +53,9 @@
     "on-click": "pavucontrol"
   },
   "battery": {
-    "format": "{capacity}% {icon}",
+    "format": "{icon}",
     "format-icons": ["󰁻", "󰁼", "󰁽", "󰁾", "󰁿"],
+    "icon-size": 18,
     "tooltip-format": "{time} {power}W"
   }
 }
