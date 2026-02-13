@@ -14,9 +14,9 @@ window.inactive.title.bg.color: #1e1e1e
 window.*.title.bg: Solid
 
 # Window titlebar text
-window.active.label.text.color: #1e1e2e
-window.inactive.label.text.color: #6c7086
-window.label.text.justify: center
+window.active.label.text.color: #1e1e1e
+window.inactive.label.text.color: #E5E2DC
+window.label.text.justify: left 
 
 # Window button sizing
 window.button.width: 26
@@ -51,6 +51,11 @@ menu.items.active.bg.color: #A8B5C0
 menu.items.active.text.color: #1e1e1e
 menu.border.color: #A8B5C0
 menu.border.width: 0
+
+# Submenu gap - distance between main menu and submenus
+# Negative values create a gap, positive values create overlap
+menu.overlap.x: -5
+menu.overlap.y: 0
 
 # On-screen display
 osd.bg.color: #313244

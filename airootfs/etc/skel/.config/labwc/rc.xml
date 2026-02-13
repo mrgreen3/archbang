@@ -35,19 +35,15 @@
 
     <!-- Snap binds double hit arrow keys to snap window to edge -->
     <keybind key="W-C-Left">
-      <action name="SetDecorations" decorations="border"/>
       <action name="SnapToEdge" direction="left" combine="yes"/>
     </keybind>
     <keybind key="W-C-Right">
-      <action name="SetDecorations" decorations="border"/>
       <action name="SnapToEdge" direction="right" combine="yes"/>
     </keybind>
     <keybind key="W-C-Up">
-      <action name="SetDecorations" decorations="border"/>
       <action name="SnapToEdge" direction="up" combine="yes"/>
     </keybind>
     <keybind key="W-C-Down">
-      <action name="SetDecorations" decorations="border"/>
       <action name="SnapToEdge" direction="down" combine="yes"/>
     </keybind>
 
