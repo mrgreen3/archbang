@@ -1,0 +1,64 @@
+# Seafront-Storm theme configuration for labwc
+# Ocean-inspired blue aesthetic with beach accent colors
+
+# Border width
+border.width: 0
+
+# Window borders - ocean blue accent
+window.active.border.color: #0066CC
+window.inactive.border.color: #1e1e1e
+
+# Window titlebar background
+window.active.title.bg.color: #0066CC
+window.inactive.title.bg.color: #1e1e1e
+window.*.title.bg: Solid
+
+# Window titlebar text
+window.active.label.text.color: #F0F0F0
+window.inactive.label.text.color: #E5E2DC
+window.label.text.justify: left 
+
+# Window button sizing
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 0
+
+# Window buttons - light text for visibility on ocean blue titlebar
+window.active.button.iconify.unpressed.image.color: #F0F0F0
+window.active.button.iconify.pressed.image.color: #F0F0F0
+window.active.button.iconify.hover.image.color: #F0F0F0
+
+window.active.button.max.unpressed.image.color: #F0F0F0
+window.active.button.max.pressed.image.color: #F0F0F0
+window.active.button.max.hover.image.color: #F0F0F0
+
+window.active.button.close.unpressed.image.color: #F0F0F0
+window.active.button.close.pressed.image.color: #F0F0F0
+window.active.button.close.hover.image.color: #F0F0F0
+
+window.inactive.button.unpressed.image.color: #6c7086
+
+# Window shadows
+window.active.shadow.size: 80
+window.inactive.shadow.size: 50
+window.active.shadow.color: #000000ff
+window.inactive.shadow.color: #000000ff
+
+# Menu styling - Seafront theme with 80% opacity
+menu.items.bg.color: #1e1e1eCC
+menu.items.text.color: #F0F0F0
+menu.items.active.bg.color: #6BB3E5CC
+menu.items.active.text.color: #0A0A0A
+menu.border.color: #0066CC
+menu.border.width: 0
+
+# Submenu gap - distance between main menu and submenus
+# Negative values create a gap, positive values create overlap
+menu.overlap.x: -5
+menu.overlap.y: 0
+
+# On-screen display
+osd.bg.color: #313244
+osd.border.color: #cdd6f4
+osd.border.width: 1
+osd.label.text.color: #cdd6f4

@@ -1,17 +1,17 @@
-/* ---------- Nordic-Mocha-Waybar Palette ---------- */
-@define-color bg #1e1e1e;        /* dark background */
-@define-color surface0 #313244;  /* osd background */
-@define-color surface1 #2a2a3a;  /* lighter dark */
-@define-color fg #E5E2DC;        /* light text */
-@define-color subtext1 #cdd6f4;  /* subtext */
-@define-color accent #A8B5C0;    /* waybar blue/gray */
-@define-color sel-fg #1e1e1e;    /* base text on selection */
-@define-color red #f38ba8;       /* red */
-@define-color green #a9dd9d;     /* green */
-@define-color yellow #f9e2af;    /* yellow */
-@define-color blue #A8B5C0;      /* waybar blue */
-@define-color magenta #f5c2e7;   /* magenta */
-@define-color cyan #94e2d5;      /* cyan */
+/* ---------- Seafront-Storm Palette ---------- */
+@define-color bg #0F1419;        /* dark background */
+@define-color surface0 #1a1a2a;  /* osd background */
+@define-color surface1 #2C3E50;  /* lighter dark */
+@define-color fg #F0F0F0;        /* light text */
+@define-color subtext1 #B0B0B0;  /* subtext */
+@define-color accent #6BB3E5;    /* sky blue accent */
+@define-color sel-fg #0A0A0A;    /* dark text on selection */
+@define-color red #E74C3C;       /* red */
+@define-color green #27AE60;     /* green */
+@define-color yellow #F39C12;    /* yellow */
+@define-color blue #6BB3E5;      /* sky blue */
+@define-color magenta #9B59B6;   /* magenta */
+@define-color cyan #16A085;      /* cyan */
 
 /* ---------- Base styling ---------- */
 * {
@@ -19,7 +19,7 @@
 }
 
 window#waybar {
-    background-color: rgba(49, 50, 68, 0.8);
+    background-color: rgba(15, 20, 25, 0.5);
     color: @fg;
     border: none;
     padding: 5px 0;
@@ -33,21 +33,21 @@ window#waybar {
 #workspaces button {
     padding: 0 5px;
     margin: 0;
-    color: #E5E2DC;
+    color: #F0F0F0;
     background: transparent;
     border: none;
 }
 
 #workspaces button.active {
-    color: #1e1e1e;
-    background-color: rgba(168, 181, 192, 0.7);
+    color: #0A0A0A;
+    background-color: rgba(107, 179, 229, 0.8);
     padding: 0 5px;
     margin: 0;
     font-weight: bold;
 }
 
 #workspaces button.urgent {
-    color: #E5E2DC;
+    color: #F0F0F0;
     background-color: @red;
 }
 
@@ -60,8 +60,8 @@ window#waybar {
 
 /* ---------- Clock ---------- */
 #clock {
-    color: #1e1e1e;
-    background-color: rgba(168, 181, 192, 0.7);
+    color: #0A0A0A;
+    background-color: rgba(107, 179, 229, 0.8);
     font-weight: normal;
     padding: 4px 10px;
     margin: 0;
@@ -119,14 +119,14 @@ window#waybar {
 #taskbar button {
     padding: 0 8px;
     margin: 0;
-    color: #E5E2DC;
+    color: #F0F0F0;
     background: transparent;
     border: none;
 }
 
 #taskbar button.active {
-    color: #1e1e1e;
-    background-color: rgba(168, 181, 192, 0.7);
+    color: #0A0A0A;
+    background-color: rgba(107, 179, 229, 0.8);
 }
 
 #taskbar button:hover {
