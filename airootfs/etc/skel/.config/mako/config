@@ -1,7 +1,8 @@
-# Waybar color scheme
-background-color=#1e1e1e
-text-color=#A8B5C0
-border-size=0
+# Seafront-Storm color scheme
+background-color=#1a1a2a
+text-color=#F0F0F0
+border-color=#0066CC
+border-size=2
 border-radius=0
 default-timeout=5000
 anchor=top-left
