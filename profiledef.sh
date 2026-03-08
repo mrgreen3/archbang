@@ -3,7 +3,7 @@
 # Profile modified for ArchBang
 # by Mr Green [mrgreen@archbang.org]
 
-iso_name="archbang-rc"
+iso_name="archbang"
 iso_label="ARCHBANG_$(date +%d%m)"
 iso_publisher="ArchBANG <https://www.archbang.org>"
 iso_application="ArchBang Live/Rescue Iso (Beta)"

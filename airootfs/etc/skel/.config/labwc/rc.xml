@@ -8,8 +8,8 @@
 
   <!-- Theme -->
   <theme>
-    <name>Seafront</name>
-    <cornerRadius>0</cornerRadius>
+    <name>Lightwave</name>
+    <cornerRadius>6</cornerRadius>
   </theme>
 
   <!-- Margins  add optional output="<MONITOR>" -->
@@ -25,7 +25,6 @@
 
     <!-- Centre 80% -->
     <keybind key="W-C-c">
-      <action name="SetDecorations" decorations="border"/>
       <action name="SnapToRegion" region="center-80"/>
     </keybind>
 
@@ -67,9 +66,6 @@
     <keybind key="W-4">
       <action name="GoToDesktop" to="4"/>
     </keybind>
-    <keybind key="W-5">
-      <action name="GoToDesktop" to="5"/>
-    </keybind>
 
     <!-- Send to workspace -->
     <keybind key="W-S-1">
@@ -83,9 +79,6 @@
     </keybind>
     <keybind key="W-S-4">
       <action name="SendToDesktop" to="4"/>
-    </keybind>
-    <keybind key="W-S-5">
-      <action name="SendToDesktop" to="5"/>
     </keybind>
 
     <!-- Window actions -->
@@ -195,7 +188,7 @@
   </mouse>
 
   <!-- Desktops -->
-  <desktops number="5">
+  <desktops number="4">
     <prefix></prefix>
   </desktops>
 
