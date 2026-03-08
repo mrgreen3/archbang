@@ -19,7 +19,7 @@
 }
 
 window#waybar {
-    background-color: rgba(80, 95, 130, 0.5);
+    background-color: rgba(219, 224, 233, 0.5);
     color: @fg;
     border: none;
     padding: 5px 0;
@@ -131,8 +131,4 @@ window#waybar {
 
 #taskbar button:hover {
     opacity: 0.8;
-}
-
-#taskbar button:not(.active) {
-    color: #FFFFFF;
 }

@@ -1,0 +1,63 @@
+# Lightwave theme configuration for labwc
+# Colors extracted from ~/Backgrounds/seafront.jpg
+
+# Border width
+border.width: 0
+
+# Window borders - accent blue from seafront
+window.active.border.color: #5CA0F0
+window.inactive.border.color: #ABCDFA
+
+# Window titlebar background - soft blue for active, light blue for inactive
+window.active.title.bg.color: #ABCDFA
+window.inactive.title.bg.color: #E8EDF5
+window.*.title.bg: Solid
+
+# Window titlebar text
+window.active.label.text.color: #1a1a1a
+window.inactive.label.text.color: #666666
+window.label.text.justify: left 
+
+# Window button sizing
+window.button.width: 26
+window.button.height: 26
+window.button.spacing: 0
+
+# Window buttons - dark text for visibility on light titlebar
+window.active.button.iconify.unpressed.image.color: #1a1a1a
+window.active.button.iconify.pressed.image.color: #1a1a1a
+window.active.button.iconify.hover.image.color: #5CA0F0
+
+window.active.button.max.unpressed.image.color: #1a1a1a
+window.active.button.max.pressed.image.color: #1a1a1a
+window.active.button.max.hover.image.color: #5CA0F0
+
+window.active.button.close.unpressed.image.color: #1a1a1a
+window.active.button.close.pressed.image.color: #FF6B6B
+window.active.button.close.hover.image.color: #FF8787
+
+window.inactive.button.unpressed.image.color: #999999
+
+# Window shadows
+window.active.shadow.size: 80
+window.inactive.shadow.size: 50
+window.active.shadow.color: #00000033
+window.inactive.shadow.color: #00000022
+
+# Menu styling - Colors from seafront
+menu.items.bg.color: #DBE0E9B3
+menu.items.text.color: #1a1a1a
+menu.items.active.bg.color: #ABCDFAB3
+menu.items.active.text.color: #1a1a1a
+menu.border.color: #5CA0F0
+menu.border.width: 0
+
+# Submenu gap - distance between main menu and submenus
+menu.overlap.x: -5
+menu.overlap.y: 0
+
+# On-screen display - very light blue background from seafront
+osd.bg.color: #DBE0E9
+osd.border.color: #5CA0F0
+osd.border.width: 1
+osd.label.text.color: #1a1a1a
