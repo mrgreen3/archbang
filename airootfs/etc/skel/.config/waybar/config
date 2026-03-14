@@ -10,7 +10,7 @@
   "modules-center": [
   ],
   "modules-right": [
-    // "pulseaudio",
+    // "pulseaudio",  // Disabled: pipewire-pulse handles audio (PipeWire-only system)
     "battery",
     "tray",
     "clock"
