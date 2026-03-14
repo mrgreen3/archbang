@@ -1,111 +1,110 @@
-## Archive Tools
+## === AUDIO ===
+pipewire
+pipewire-pulse
+
+## === ARCHIVE TOOLS ===
 zip
 unzip
 p7zip
 xz
 
-# Sound
-pipewire
-pipewire-pulse
-vim
-
-# Window Manager Stuff
-exo
-garcon
-thunar
-thunar-volman
-archlinux-xdg-menu
-udisks2
-laptop-detect
-xdg-user-dirs
-l3afpad
-gvfs
-htop
-
-# Wayland Terminal
+## === TERMINAL ===
 foot
 
-# Wayland (labwc) Stack
+## === WAYLAND DESKTOP ENVIRONMENT (labwc stack) ===
 labwc
 swaybg
 waybar
 xorg-xwayland
+wlr-randr
 grim
 wl-clipboard
 brightnessctl
 mako
 wmenu
-wlr-randr
 
-# Gtk, Icons, Theme
+## === FILE MANAGER & UTILITIES ===
+thunar
+thunar-volman
+gvfs
+udisks2
+archlinux-xdg-menu
+
+## === TEXT EDITORS ===
+vim
+l3afpad
+
+## === THEMES & FONTS ===
 adw-gtk-theme
 adwaita-icon-theme
 ttf-nerd-fonts-symbols-mono
 ttf-dejavu
 
-# extra tools
-gparted
-expac
-testdisk
+## === SYSTEM MONITORING ===
+htop
+conky
+laptop-detect
 
-# System Extras
+## === DISK & PARTITION TOOLS ===
+gparted
+parted
+gptfdisk
+ddrescue
+testdisk
+ntfs-3g
+
+## === NETWORK MANAGEMENT ===
+networkmanager
+network-manager-applet
+wpa_supplicant
+usb_modeswitch
+broadcom-wl
+
+## === DESKTOP UTILITIES ===
+polkit
+gnome-keyring
+libsecret
+xdg-user-dirs
+
+## === SYSTEM TOOLS ===
+dialog
+sudo
 fontconfig
 kbd
+expac
 
-# System Monitoring
-conky
-
-# Extra Apps
+## === COMMAND-LINE TOOLS ===
 openssh
 pkgfile
 arch-install-scripts
 curl
-firefox
-#netsurf
 pacman-contrib
-mpv
-imv
 fzf
 eza
 
-# Network Tools
-usb_modeswitch
-wpa_supplicant
-libsecret
-polkit
-gnome-keyring
-networkmanager
-network-manager-applet
-broadcom-wl
+## === MEDIA APPLICATIONS ===
+firefox
+mpv
+imv
 
-# Develop Tools
-dialog
-sudo
+## === BUILD & DEVELOPMENT TOOLS ===
 squashfs-tools
-ntfs-3g
 rsync
 pv
 dosfstools
 btrfs-progs
-parted
-gptfdisk
-ddrescue
 
-# microcode
-intel-ucode
-amd-ucode
-
-# Bootloader
+## === BOOTLOADER & FIRMWARE ===
 grub
 os-prober
 lsb-release
 syslinux
 efibootmgr
+intel-ucode
+amd-ucode
 
-# Video drivers (Wayland uses kernel drivers)
-# xf86-* drivers removed for Wayland-only system
-
-# old base packages
+## === CORE SYSTEM PACKAGES (Arch Linux base) ===
+## Essential packages required for system operation
 bash
 bzip2
 coreutils
