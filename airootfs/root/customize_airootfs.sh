@@ -5,14 +5,14 @@ set -e -u -x
 shopt -s extglob
 
 # Set locales
-sed -i 's/#\(en_US\.UTF-8\)/\1/' /etc/locale.gen
+[[ -f /etc/locale.gen ]] && sed -i 's/#\(en_US\.UTF-8\)/\1/' /etc/locale.gen
 locale-gen
 
 # Allow Parallel Downloads in pacman
-sed -i "s/^#Parallel/Parallel/" /etc/pacman.conf 
+[[ -f /etc/pacman.conf ]] && sed -i "s/^#Parallel/Parallel/" /etc/pacman.conf
 
 # Un-comment mirrorlist to allow pacman to work live....
-sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
+[[ -f /etc/pacman.d/mirrorlist ]] && sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
 
 # Sudo to allow no password
 sed -i 's/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/%wheel ALL=(ALL:ALL) NOPASSWD: ALL/g' /etc/sudoers
@@ -25,7 +25,7 @@ chmod -c 0440 /etc/sudoers
 # Hide gparted from application menu
 sed -i '/^Categories=/a Hidden=true' /usr/share/applications/gparted.desktop
 
-# Hostname
+# Hostname (hardcoded for live ISO; users can change after installation)
 echo "archbang" > /etc/hostname
 
 # Vconsole
