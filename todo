@@ -14,3 +14,25 @@ Installer simplification (target: late Feb):
 - Set both console and desktop keyboard layouts in one step
 - Reduce installer from 8 steps to 5-6 steps
 - Consider auto-detect timezone option (if reliable network available)
+
+Look at cleaning up UI partitioning
+
+===== COMPLETED (2026-03-14) =====
+
+Configuration & Documentation:
+✅ Reorganized packages.x86_64 with 14 clear section headers (Audio, Archive Tools, Terminal, Wayland Desktop, etc.)
+✅ Added edk2-shell for UEFI rescue/troubleshooting capabilities
+✅ Switched ISO version format from DDMM to DDMMYY for chronological sorting (e.g., 140326 = March 14, 2026)
+✅ Added file existence checks to customize_airootfs.sh sed commands (prevents silent failures)
+✅ Documented hardcoded hostname as intentional for live ISO in customize_airootfs.sh
+✅ Added clarifying comment: pulseaudio disabled for PipeWire-only system in waybar config
+
+Installer Menu:
+✅ Added wrench icon (🔧) to installer menu item in labwc menu.xml for better visual clarity
+
+Pacman Optimization:
+✅ Enabled ParallelDownloads = 5 in pacman.conf for faster package downloads
+
+All changes committed and pushed to GitHub (commits 7137c96-8a6ef34)
+
+
