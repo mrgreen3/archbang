@@ -1,13 +1,13 @@
 #!/bin/bash
-# wmenu launcher with Seafront-Storm theme colors
+# wmenu launcher with Summer theme colors
 
-# Seafront-Storm colors (from labwc theme)
-BG_NORMAL="#D8EEF8"      # main background
-FG_NORMAL="#1A3550"      # light text
+# Summer colors (from beach.jpg palette)
+BG_NORMAL="#D8EEF8"      # shallow water background
+FG_NORMAL="#1A3550"      # deep navy text
 BG_SELECTED="#87C8E8"    # sky blue selection
-FG_SELECTED="#1A3550"    # dark text on selection
+FG_SELECTED="#1A3550"    # deep navy text on selection
 
-# Launch wmenu with Storm theme
+# Launch wmenu with Summer theme
 wmenu-run \
 	-N "$BG_NORMAL" \
 	-n "$FG_NORMAL" \
