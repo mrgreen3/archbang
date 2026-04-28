@@ -2,10 +2,10 @@
 # wmenu launcher with Seafront-Storm theme colors
 
 # Seafront-Storm colors (from labwc theme)
-BG_NORMAL="#0F1419"      # main background
-FG_NORMAL="#F0F0F0"      # light text
-BG_SELECTED="#6BB3E5"    # sky blue selection
-FG_SELECTED="#0A0A0A"    # dark text on selection
+BG_NORMAL="#D8EEF8"      # main background
+FG_NORMAL="#1A3550"      # light text
+BG_SELECTED="#87C8E8"    # sky blue selection
+FG_SELECTED="#1A3550"    # dark text on selection
 
 # Launch wmenu with Storm theme
 wmenu-run \
