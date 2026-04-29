@@ -59,8 +59,13 @@ SERVICES=(
 mkdir -p "$TARGET_DIR"
 
 # Loop through the list and create symlinks for each service
+# Only symlink services that actually exist to prevent broken links
 for service in "${SERVICES[@]}"; do
-  ln -sf "$UNIT_SRC/$service" "$TARGET_DIR/$service"
+  if [[ -f "$UNIT_SRC/$service" ]]; then
+    ln -sf "$UNIT_SRC/$service" "$TARGET_DIR/$service"
+  else
+    echo "Warning: Service file not found: $UNIT_SRC/$service"
+  fi
 done
 
 # Add live user
@@ -69,6 +74,11 @@ chown ablive /home/ablive
 
 # Start required systemd services
 systemctl enable {pacman-init,NetworkManager}.service -f
+
+# Compile dconf database for system defaults
+if command -v dconf &>/dev/null; then
+  dconf update
+fi
 
 # Set graphical target
 systemctl set-default graphical.target

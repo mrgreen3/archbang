@@ -20,13 +20,28 @@
   </item>
 
   <!-- abinstall 5 -->
-  <item label="🔧  Install">
+  <item label="󰒓  Install">
     <action name="Execute" command="foot -m --title ArchBang-Installer -e sudo -EH ~/AB_Scripts/abinstall"/>
   </item>
 
+  <menu id="docs" label="󰈙 Handbook">
+    <item label="About ArchBang">
+      <action name="Execute" command="l3afpad ~/Documents/About"/>
+    </item>
+    <item label="Guide">
+      <action name="Execute" command="l3afpad ~/Documents/Guide"/>
+    </item>
+    <item label="Keybindings">
+      <action name="Execute" command="l3afpad ~/Documents/Keybindings"/>
+    </item>
+    <item label="Donations">
+      <action name="Execute" command="l3afpad ~/Documents/Donations"/>
+    </item>
+  </menu>
+
   <separator/>
 
-  <menu id="applications" label="Applications" execute="xdg_menu --format openbox3-pipe --root-menu /etc/xdg/menus/arch-applications.menu" />
+  <menu id="applications" label="󰏋 Applications" execute="xdg_menu --format openbox3-pipe --root-menu /etc/xdg/menus/arch-applications.menu" />
 
   <separator/>
  

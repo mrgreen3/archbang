@@ -1,9 +1,13 @@
-background-color=#1A2838
-text-color=#D8EEF8
-border-color=#87C8E8
-border-size=2
-border-radius=3
-default-timeout=5000
+# Mako notification daemon configuration
+
 anchor=top-right
-margin=8
-padding=10,14
+margin=10
+padding=8
+border-size=4
+border-radius=6
+default-timeout=4000
+font=monospace 10
+background-color=#dff0f8
+text-color=#1A3550
+border-color=#87C8E8
+max-visible=3

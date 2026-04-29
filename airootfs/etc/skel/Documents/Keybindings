@@ -28,6 +28,27 @@ Super + Control + m        Toggle Maximize
 Super + Control + d        Decorations
 Super + Control + b        Border
 
+AUDIO CONTROL
+───────────────────────
+
+Vol Up (F11)             Increase Volume
+Vol Down (F10)           Decrease Volume
+Mute (F12)               Toggle Mute
+
+
+BRIGHTNESS CONTROL
+───────────────────────
+
+Brightness Up            Increase Brightness
+Brightness Down          Decrease Brightness
+
+
+SCREEN LOCK
+───────────────────────
+
+Super + l                Lock Screen
+
+
 OTHER
 ───────────────────────
 

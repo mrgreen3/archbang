@@ -10,7 +10,7 @@
   "modules-center": [
   ],
   "modules-right": [
-    // "pulseaudio",  // Disabled: pipewire-pulse handles audio (PipeWire-only system)
+    // "pulseaudio",
     "battery",
     "tray",
     "clock"
@@ -29,9 +29,9 @@
     "on-click-middle": "close",
     "ignore-list": [],
     "rewrite": {
-      "Mozilla Firefox": "Firefox"
+      "Mozilla Firefox": "Browser"
     },
-    "all-outputs": true
+    "all-outputs": true 
   },
   "tray": {
     "spacing": 10
@@ -53,9 +53,8 @@
     "on-click": "pavucontrol"
   },
   "battery": {
-    "format": "{icon}",
+    "format": "{capacity}% {icon}",
     "format-icons": ["󰁻", "󰁼", "󰁽", "󰁾", "󰁿"],
-    "icon-size": 18,
     "tooltip-format": "{time} {power}W"
   }
 }

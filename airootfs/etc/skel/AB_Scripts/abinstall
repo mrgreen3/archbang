@@ -92,7 +92,8 @@ done
     BOOT_MOUNTPOINT="/dev/sda"
     MNT="/mnt"
   # MIRRORLIST
-    MIRROR=${MNT}/etc/pacman.d/mirrorlist
+    LOG="/tmp/abinstall.log"
+  MIRROR=${MNT}/etc/pacman.d/mirrorlist
   #}}}
   ARCHI=$(uname -m)
   UEFI=0
@@ -105,7 +106,6 @@ done
   LIVE_USER="ablive"
   [[ $1 == -v || $1 == --verbose ]] && VERBOSE_MODE=1 || VERBOSE_MODE=0 # VERBOSE MODE
   [[ -f $LOG ]] && rm -f $LOG
-  SPIN="/-\|" #SPINNER POSITION
   AUTOMATIC_MODE=0
   TRIM=0
   cpu_id=""
@@ -131,32 +131,6 @@ done
     echo -ne "$1"
     echo -ne "$1" >>"$LOG"
     tput sgr0
-  } #}}}
-  spinny() { #{{{
-    echo -ne "\b${SPIN:i++%${#SPIN}:1}"
-  } #}}}
-  progress() { #{{{
-    ncecho "  ";
-    while true; do
-      kill -0 $pid &> /dev/null;
-      if [[ $? == 0 ]]; then
-        spinny
-        sleep 0.25
-      else
-        ncecho "\b\b";
-        wait $pid
-        retcode=$?
-        echo -ne "$pid's retcode: $retcode" >> $LOG
-        if [[ $retcode == 0 ]] || [[ $retcode == 255 ]]; then
-          cecho success
-        else
-          cecho failed
-          echo -e "$PKG" >> $PKG_FAIL
-          tail -n 15 $LOG
-        fi
-        break
-      fi
-    done
   } #}}}
   check_boot_system() { #{{{
     if [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Inc.' ]] || [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Computer, Inc.' ]]; then
@@ -286,6 +260,10 @@ done
     T_COLS=`tput cols`
     echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
   } #}}}
+  print_error() { #{{{
+    T_COLS=`tput cols`
+    echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
+  } #}}}
   add_line() { #{{{
     local _add_line=${1}
     local _filepath=${2}
@@ -399,13 +377,18 @@ getmirror() {
 
 configure_mirrors() {
   # Create a mirrorlist based on location, may not be fastest servers but nearest..
-  # Backup list
-  #  cp ${MIRROR} ${MNT}/etc/pacman.d/mirrorlist.backup
-
   print_title "Configuring mirrors..."
   print_info "Select location"
+
+  # Backup the original mirrorlist on first run; restore it on subsequent runs
+  if [[ ! -f ${MIRROR}.backup ]]; then
+    cp ${MIRROR} ${MIRROR}.backup
+  else
+    cp ${MIRROR}.backup ${MIRROR}
+  fi
+
   # Remove everything before Albania
-  sed -i '1,/^## Albania/{/^## Albania/!d}' ${MIRROR} 
+  sed -i '1,/^## Albania/{/^## Albania/!d}' ${MIRROR}
 
   OPTION=n
   while [[ $OPTION != y ]]; do
@@ -416,8 +399,7 @@ configure_mirrors() {
 
   # magic happens here....
   sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
-
-  }
+}
 
   setlocale() { #{{{
     local _locale_list=(`cat /etc/locale.gen | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
@@ -504,6 +486,12 @@ create_partition_scheme(){
   LUKS=0
   LVM=0
   print_title "PARTITION DRIVE - ${WIKI}/Partitioning"
+  print_danger "WARNING: This step will partition your disk. All data on the selected device will be permanently lost. Make sure you have backed up anything important before continuing."
+  read_input_text "I understand my data will be lost. Continue"
+  if [[ $OPTION != y ]]; then
+    print_info "Partitioning cancelled."
+    return 1
+  fi
   print_info "Partitioning a hard drive allows one to logically divide the available space into sections that can be accessed independently of one another."
   print_warning "Maintain Current does not work with LUKS"
   partition_layout=("Default" "LVM" "LVM+LUKS" "Maintain Current")
@@ -538,6 +526,7 @@ create_partition_scheme(){
 #}}}
 #SETUP PARTITION{{{
 create_partition() {
+  print_title "SELECT PARTITION TOOL"
   apps_list=("gparted" "cfdisk" "cgdisk" "fdisk" "gdisk" "parted")
   PS3="$prompt1"
   echo -e "Select partition program:"
@@ -732,8 +721,7 @@ format_partitions(){
       mkfs.${filesystem} $1 \
         $([[ ${filesystem} == xfs || ${filesystem} == btrfs ]] && echo "-f") \
         $([[ ${filesystem} == vfat ]] && echo "-F32") \
-        $([[ $TRIM -eq 1 && ${filesystem} == ext4 ]] && echo "-E discard") \
-        $([[ $TRIM -eq 1 && ${filesystem} == btrfs ]] && echo "-O discard")
+        $([[ $TRIM -eq 1 && ${filesystem} == ext4 ]] && echo "-E discard")
       fsck $1
       mkdir -p $2
       mount -t ${filesystem} $1 $2
@@ -1198,32 +1186,42 @@ setup_user(){
   print_title "CREATE NEW USER"
   echo
   
-  # Check if mvuser script exists, if not create inline user setup
-  if [[ -f ${MNT}/root/mvuser ]]; then
-    arch_chroot "/root/mvuser"
-    arch_chroot "rm -f /root/mvuser"
-  else
-    # Inline user creation if mvuser doesn't exist
-    print_info "Creating new user account..."
-    
-    read -p "Enter username: " new_username
-    
-    arch_chroot "useradd -m -G wheel,storage,power,audio,video -s /bin/bash ${new_username}"
-    
-    print_info "Set password for ${new_username}"
-    arch_chroot "passwd ${new_username}"
-    
-    # Enable sudo for wheel group
-    arch_chroot "sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers"
-    
-    # Remove or rename live user if exists
-    if [[ -d ${MNT}/home/${LIVE_USER} ]]; then
-      read_input_text "Remove live user (${LIVE_USER}) home directory"
-      if [[ $OPTION == y ]]; then
-        arch_chroot "userdel -r ${LIVE_USER} 2>/dev/null || true"
-      fi
-    fi
+  # Guard: if live user home is already gone, rename was already done
+  if [[ ! -d ${MNT}/home/${LIVE_USER} ]]; then
+    print_info "Live user already renamed — skipping."
+    return 0
   fi
+
+  # Prompt for new username with validation
+  local new_username
+  while true; do
+    read -p "Enter the new username: " new_username
+    if [[ -n "$new_username" ]] && echo "$new_username" | grep -qE '^[a-z_][a-z0-9_-]*[$]?$'; then
+      break
+    fi
+    print_danger "Invalid username. Use lowercase letters, digits, - or _. Cannot start with a digit."
+  done
+
+  # Set password on the live user account (becomes the renamed user's password)
+  print_info "Set password for ${new_username}:"
+  while true; do
+    arch_chroot "passwd ${LIVE_USER}" && break
+  done
+
+  # Rewrite occurrences of old username inside config files
+  print_info "Updating config files..."
+  arch_chroot "find /home/${LIVE_USER} -type f -exec sed -i \"s/${LIVE_USER}/${new_username}/g\" {} +"
+
+  # Update system account files
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/group"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/gshadow"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/passwd"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/\"  /etc/shadow"
+
+  # Rename home directory and fix ownership
+  print_info "Renaming home directory..."
+  arch_chroot "mv /home/${LIVE_USER} /home/${new_username}"
+  arch_chroot "chown -R ${new_username}:users /home/${new_username}"
   
   pause_function
 }
@@ -1231,7 +1229,7 @@ setup_user(){
 #}}}
 #FINISH {{{
 finish(){
-  print_title "WAYBANG INSTALL COMPLETED..."
+  print_title "ARCHBANG INSTALL COMPLETED..."
   read_input_text "Reboot system"
   if [[ $OPTION == y ]]; then
     umount_partitions
@@ -1241,77 +1239,102 @@ finish(){
 }
 #}}}
 
-# Trap errors and cleanup
-trap 'echo "Error occurred. Cleaning up..."; umount_partitions 2>/dev/null; exit 1' ERR
+#WELCOME SCREEN {{{
+welcome_screen(){
+  print_title "Welcome to ArchBang!"
+
+  echo -e "${Bold}What is ArchBang?${Reset}"
+  echo -e "\tArch Linux with the Labwc Wayland compositor."
+  echo -e "\tA gentle introduction to Arch for new users.\n"
+
+  echo -e "${Bold}System Requirements:${Reset}"
+  echo -e "\t✓ 20GB+ free disk space"
+  echo -e "\t✓ 2GB+ RAM"
+  echo -e "\t✓ Booted from ArchBang live ISO\n"
+
+  echo -e "${Bold}Installation Steps (8 total):${Reset}"
+  echo -e "\t1. Partition your disk (Default, LVM, or LVM+LUKS)"
+  echo -e "\t2. Install ArchBang system files"
+  echo -e "\t3. Set hostname"
+  echo -e "\t4. Configure timezone & mirrors"
+  echo -e "\t5. Set locale & language"
+  echo -e "\t6. Configure desktop keyboard layout"
+  echo -e "\t7. Install bootloader (GRUB)"
+  echo -e "\t8. Set root password & create your user\n"
+
+  echo -e "${BYellow}⚠ Important:${Reset}"
+  echo -e "\t${Bold}All data on selected partitions will be LOST.${Reset}"
+  echo -e "\t${Bold}Backup anything important before continuing!${Reset}\n"
+
+  echo -e "${Bold}Quick Tips:${Reset}"
+  echo -e "\t• Installation typically takes 5-15 minutes"
+  echo -e "\t• You can retry or skip steps if something fails"
+  echo -e "\t• The live user 'ablive' will be renamed to your chosen username"
+  echo -e "\t• GRUB is the bootloader (installed automatically)\n"
+
+  print_line
+  read_input_text "Ready to begin?"
+  if [[ $OPTION != y ]]; then
+    print_info "Installation cancelled."
+    exit 0
+  fi
+}
+#}}}
+
+#RUN STEP {{{
+run_step() {
+  local step_num="$1"
+  local step_label="$2"
+  shift 2
+
+  if [[ ${checklist[$step_num]} -eq 1 ]]; then
+    print_info "Step ${step_num}: ${step_label} — already complete, skipping."
+    return 0
+  fi
+
+  while true; do
+    print_line
+    echo -e "# ${Bold}Step ${step_num} of 8: ${step_label}${Reset}"
+    print_line
+    echo ""
+    local failed=0
+    for fn in "$@"; do
+      if ! $fn; then
+        failed=1
+        break
+      fi
+    done
+
+    if [[ $failed -eq 0 ]]; then
+      checklist[$step_num]=1
+      return 0
+    fi
+
+    print_danger "Step '${step_label}' encountered an error."
+    read_input_text "Retry this step"
+    if [[ $OPTION == y ]]; then
+      continue
+    fi
+    read_input_text "Continue to next step anyway"
+    [[ $OPTION == y ]] && return 0 || error_msg "Installation aborted."
+  done
+}
+#}}}
 
 check_root
 check_boot_system
 detect_cpu
 check_trim
 
-while true
-do
-  print_title "ArchBang installer - www.archbang.org"
-  echo " 1) $(mainmenu_item "${checklist[1]}" "Partition Scheme")"
-  echo " 2) $(mainmenu_item "${checklist[2]}" "Install ArchBang")"
-  echo " 3) $(mainmenu_item "${checklist[3]}" "Hostname")"
-  echo " 4) $(mainmenu_item "${checklist[4]}" "Location")"
-  echo " 5) $(mainmenu_item "${checklist[5]}" "Locale")"
-  echo " 6) $(mainmenu_item "${checklist[6]}" "Desktop Keyboard Layout")"
-  echo " 7) $(mainmenu_item "${checklist[7]}" "Bootloader")"
-  echo " 8) $(mainmenu_item "${checklist[8]}" "Root and USer Setup")"
-  echo ""
-  echo " d) Done"
-  echo ""
-  read_input_options
-  for OPT in ${OPTIONS[@]}; do
-    case "$OPT" in
-      1)
-        umount_partitions
-        create_partition_scheme
-        format_partitions
-        checklist[1]=1
-        ;;
-      2)
-        install_archbang
-        configure_fstab
-        configure_mkinitcpio
-        checklist[2]=1
-        ;;
-      3)
-        configure_hostname
-        checklist[3]=1
-        ;;
-      4)
-        configure_timezone
-        configure_hardwareclock
-        configure_mirrors
-        checklist[4]=1
-        ;;
-      5)
-        configure_locale
-        checklist[5]=1
-        ;;
-      6)
-        select_xkeymap
-        checklist[6]=1
-        ;;
-      7)
-        configure_bootloader
-        checklist[7]=1
-        ;;
-      8)
-        root_password
-        setup_user
-        checklist[8]=1
-        ;;
-      "d")
-        finish
-        ;;
-      *)
-        invalid_option
-        ;;
-    esac
-  done
-done
+welcome_screen
+
+run_step 1 "Partition Scheme"        umount_partitions create_partition_scheme format_partitions
+run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio
+run_step 3 "Hostname"                configure_hostname
+run_step 4 "Location"                configure_timezone configure_hardwareclock configure_mirrors
+run_step 5 "Locale"                  configure_locale
+run_step 6 "Desktop Keyboard Layout" select_xkeymap
+run_step 7 "Bootloader"              configure_bootloader
+run_step 8 "Root and User Setup"     root_password setup_user
+finish
 #}}}

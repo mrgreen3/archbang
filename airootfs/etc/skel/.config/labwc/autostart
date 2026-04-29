@@ -7,7 +7,7 @@
 swaybg -i $HOME/Backgrounds/beach.jpg -m fill &
 
 # Start waybar
-waybar &
+waybar -c ~/.config/waybar/config -s ~/.config/waybar/style.css &
 
 # Polkit authentication agent
 /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &

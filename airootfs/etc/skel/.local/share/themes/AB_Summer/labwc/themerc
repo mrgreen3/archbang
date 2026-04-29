@@ -1,38 +1,36 @@
 # AB_Summer theme configuration for labwc
 # Beach palette from ~/Backgrounds/beach.jpg
 
-border.width: 0
+border.width: 3
 
 window.active.border.color: #87C8E8
-window.inactive.border.color: #D8EEF8
+window.inactive.border.color: #00000000
 
-# RRGGBBAA: sky blue at ~33% opacity for frosted titlebar effect
-window.active.title.bg.color: #87C8E855
+# RRGGBBAA: menu-highlight blue at 95% opacity
+window.active.title.bg.color: #87C8E8F2
 window.inactive.title.bg.color: #D8EEF833
 window.*.title.bg: Solid
 
-window.active.label.text.color: #1A3550
-window.inactive.label.text.color: #7AAEC0
+window.active.label.text.color: #1a1a1a
+window.inactive.label.text.color: #1a1a1a
 window.label.text.justify: left
 
 window.button.width: 26
 window.button.height: 26
 window.button.spacing: 0
 
-# ocean blue iconify
-window.active.button.iconify.unpressed.image.color: #A8DFF0
-window.active.button.iconify.pressed.image.color: #A8DFF0
-window.active.button.iconify.hover.image.color: #87C8E8
+# storm cloud buttons
+window.active.button.iconify.unpressed.image.color: #1a1a1a
+window.active.button.iconify.pressed.image.color: #1a1a1a
+window.active.button.iconify.hover.image.color: #5A6A80
 
-# sand max
-window.active.button.max.unpressed.image.color: #D4C8A4
-window.active.button.max.pressed.image.color: #D4C8A4
-window.active.button.max.hover.image.color: #EDE8DF
+window.active.button.max.unpressed.image.color: #1a1a1a
+window.active.button.max.pressed.image.color: #1a1a1a
+window.active.button.max.hover.image.color: #5A6A80
 
-# coral close
-window.active.button.close.unpressed.image.color: #E88A8A
-window.active.button.close.pressed.image.color: #E88A8A
-window.active.button.close.hover.image.color: #FF6B6B
+window.active.button.close.unpressed.image.color: #1a1a1a
+window.active.button.close.pressed.image.color: #1a1a1a
+window.active.button.close.hover.image.color: #5A6A80
 
 window.inactive.button.unpressed.image.color: #7AAEC099
 
@@ -42,9 +40,9 @@ window.active.shadow.color: #00000022
 window.inactive.shadow.color: #00000011
 
 menu.items.bg.color: #D8EEF8CC
-menu.items.text.color: #1A3550
+menu.items.text.color: #1a1a1a
 menu.items.active.bg.color: #87C8E8CC
-menu.items.active.text.color: #1A3550
+menu.items.active.text.color: #1a1a1a
 menu.border.color: #87C8E8
 menu.border.width: 0
 
@@ -54,4 +52,4 @@ menu.overlap.y: 0
 osd.bg.color: #D8EEF8
 osd.border.color: #87C8E8
 osd.border.width: 1
-osd.label.text.color: #1A3550
+osd.label.text.color: #1a1a1a

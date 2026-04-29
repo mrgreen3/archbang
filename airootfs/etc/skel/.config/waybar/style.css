@@ -1,7 +1,7 @@
 /* ---------- Summer Palette (from beach.jpg) ---------- */
-@define-color bg      rgba(135, 200, 232, 0.28);
-@define-color surface rgba(168, 223, 240, 0.40);
-@define-color border  rgba(255, 255, 255, 0.38);
+@define-color bg      rgba(0, 0, 0, 0);
+@define-color surface rgba(135, 200, 232, 0.80);
+@define-color border  rgba(255, 255, 255, 0.60);
 @define-color fg      #1A3550;
 @define-color accent  #87C8E8;
 @define-color subtext #7AAEC0;
@@ -18,7 +18,6 @@ window#waybar {
     background-color: @bg;
     color: @fg;
     border: none;
-    border-top: 1px solid @border;
     padding: 5px 0;
 }
 
@@ -38,9 +37,10 @@ window#waybar {
 #workspaces button.active {
     color: @fg;
     background-color: @surface;
-    padding: 0 5px;
-    margin: 0;
+    padding: 0 10px;
+    margin: 2px 2px;
     font-weight: bold;
+    border-radius: 999px;
 }
 
 #workspaces button.urgent {
@@ -52,6 +52,7 @@ window#waybar {
 #window {
     color: @fg;
     padding: 0 10px;
+    font-weight: bold;
 }
 
 /* ---------- Clock ---------- */
@@ -59,8 +60,9 @@ window#waybar {
     color: @fg;
     background-color: @surface;
     font-weight: normal;
-    padding: 4px 10px;
-    margin: 0;
+    padding: 4px 14px;
+    margin: 2px 4px;
+    border-radius: 999px;
 }
 
 #clock:hover {
@@ -123,6 +125,10 @@ window#waybar {
 #taskbar button.active {
     color: @fg;
     background-color: @surface;
+    border-radius: 999px;
+    padding: 0 10px;
+    margin: 2px 2px;
+    font-weight: normal;
 }
 
 #taskbar button:hover {
@@ -130,5 +136,6 @@ window#waybar {
 }
 
 #taskbar button:not(.active) {
-    color: @subtext;
+    color: @fg;
+    font-weight: normal;
 }

@@ -10,6 +10,12 @@
   <theme>
     <name>AB_Summer</name>
     <cornerRadius>6</cornerRadius>
+    <font place="ActiveWindow">
+      <name>Sans</name>
+      <size>10</size>
+      <slant>Normal</slant>
+      <weight>Normal</weight>
+    </font>
   </theme>
 
   <!-- Margins  add optional output="<MONITOR>" -->
@@ -96,7 +102,7 @@
 
     <!-- Applications Menu (Super+d) -->
     <keybind key="W-d">
-      <action name="Execute" command="~/AB_Scripts/wmenu-launcher"/>
+        <action name="Execute" command="/home/ablive/AB_Scripts/wmenu-launcher"/>
     </keybind>
 
     <!-- Applications -->
@@ -117,6 +123,9 @@
     </keybind>
     <keybind key="W-g">
       <action name="Execute" command="~/AB_Scripts/gparted-launcher"/>
+    </keybind>
+    <keybind key="W-m">
+      <action name="Execute" command="foot btop"/>
     </keybind>
 
     <!-- Right-click menu -->
@@ -143,6 +152,30 @@
     <!-- Display configuration -->
     <keybind key="W-C-F12">
       <action name="Execute" command="wlr-randr --output Virtual-1 --mode 1920x1080"/>
+    </keybind>
+
+    <!-- Volume Control (PipeWire) -->
+    <keybind key="XF86AudioRaiseVolume">
+      <action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"/>
+    </keybind>
+    <keybind key="XF86AudioLowerVolume">
+      <action name="Execute" command="wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"/>
+    </keybind>
+    <keybind key="XF86AudioMute">
+      <action name="Execute" command="wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"/>
+    </keybind>
+
+    <!-- Brightness Control -->
+    <keybind key="W-equal">
+      <action name="Execute" command="brightnessctl set +5%"/>
+    </keybind>
+    <keybind key="W-minus">
+      <action name="Execute" command="brightnessctl set 5%-"/>
+    </keybind>
+
+    <!-- Lock Screen -->
+    <keybind key="W-l">
+      <action name="Execute" command="swaylock -c 1e1e2e"/>
     </keybind>
 
     <!-- Exit -->

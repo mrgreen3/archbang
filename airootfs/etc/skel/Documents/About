@@ -1,0 +1,134 @@
+ArchBang: About
+===============
+
+What is ArchBang?
+-----------------
+
+ArchBang is a lightweight, Arch Linux-based live ISO that combines the power and flexibility
+of Arch with a modern, easy-to-use environment. It features labwc, a minimal Wayland
+compositor, paired with essential tools and a cohesive visual theme for a smooth out-of-the-box
+experience.
+
+
+A Brief History
+---------------
+
+ArchBang's story begins not with Arch Linux, but with a love for CrunchBang — a Debian-based
+live ISO built around the Openbox window manager, created by Philip Newborough. CrunchBang
+offered something rare: a minimal, fast, beautifully consistent desktop that just worked,
+without the weight of a full desktop environment. It built a devoted community of users who
+valued simplicity above everything else.
+
+The idea for ArchBang was born in a forum thread on the CrunchBang Forums, posted by Willensky
+Aristide. His goal was straightforward — he wanted that same Openbox experience, but built on
+a rolling release foundation. Arch Linux, with its lightweight and endlessly configurable base,
+was the natural fit. With encouragement from the CrunchBang community the project took shape,
+and the first release followed in January 2010.
+
+By 2012, Stan McLaren had taken over as project leader. It was around this time that a forum
+regular known as MrGreen began taking an increasingly active role in development — contributing,
+building, and helping hold the community together. When Stan and another key contributor quietly
+disappeared without fanfare or formal handover, MrGreen simply carried on. No announcement,
+no ceremony — just someone who cared too much to let the project fade.
+
+That quiet dedication has defined ArchBang ever since. Over the years the project evolved —
+moving through different window managers, embracing systemd, and growing alongside the Arch
+ecosystem. The most significant shift came with the move away from Openbox and tint2, both of
+which had become less actively developed, to a Wayland-first approach built around labwc. It
+was a natural progression: the broader Linux world was moving to Wayland, the major
+distributions and compositors had made the switch, and MrGreen had been running Sway as his
+daily driver for years. The direction was clear.
+
+ArchBang today is still maintained by a single person in their spare time, with one ear always
+open to the community. User feedback shapes the project as much as anything else.
+
+
+Design Philosophy
+-----------------
+
+ArchBang is built around these core principles:
+
+  * Lightweight - Minimal base system, fast installation, runs well on modest hardware
+  * Beginner-friendly - Pre-configured, guided installer, clear documentation
+  * Modern - Wayland-first approach with labwc instead of legacy Xorg
+  * Flexible - Full Arch Linux under the hood for customization and package access
+  * Coherent - Consistent theming (Catppuccin Mocha), thoughtful keybinds, unified experience
+
+
+Why Wayland and labwc?
+----------------------
+
+Most beginner-friendly Linux distributions still use Xorg, a decades-old display server.
+ArchBang takes a different approach: labwc is a minimal, modern Wayland compositor that
+provides everything needed without the bloat or complexity of traditional desktop environments.
+
+Benefits:
+  - Simpler, more secure architecture
+  - Better support for modern hardware (touchscreen, HiDPI displays)
+  - Faster performance on limited resources
+  - Native Wayland application support
+  - No external dependencies for basic functionality
+
+
+Target Audience
+---------------
+
+ArchBang is designed for:
+
+  - Users new to Arch Linux who want a guided introduction
+  - Those seeking a minimal, lightweight base system
+  - Developers and system administrators who value simplicity and control
+  - Users on older or modest hardware
+  - Anyone interested in learning how to customize their Linux desktop
+
+
+Features
+--------
+
+Installation
+  - Menu-driven installer with clear steps
+  - Support for UEFI and BIOS boot modes
+  - Optional LVM and full-disk encryption (LUKS)
+  - Automatic hardware detection (CPU, microcode)
+
+Desktop Environment
+  - labwc Wayland compositor
+  - foot terminal (configured with scrollback and sensible defaults)
+  - Catppuccin Mocha theme (dark, modern, easy on the eyes)
+  - Custom keybinds for common tasks (volume, brightness, monitor, launcher)
+  - Systemd for service management
+
+Documentation
+  - Comprehensive Guide for new users
+  - Pre-configured examples and best practices
+  - Links to Arch Wiki for deeper learning
+
+
+How It's Maintained
+-------------------
+
+ArchBang is maintained by a single developer in their spare time. While this means updates
+may be slower than larger projects, it also means every decision is thoughtful and the
+project stays focused on its core mission: simplicity and ease of use.
+
+If you find ArchBang useful and want to support its continued development:
+Buy me a coffee: https://ko-fi.com/archbang
+
+
+Getting Help
+------------
+
+ArchBang is not officially affiliated with Arch Linux. Questions specific to ArchBang or
+how it differs from stock Arch should be asked in ArchBang communities, not the Arch forums.
+
+For Arch-related questions, check the Arch Wiki:
+https://wiki.archlinux.org
+
+For more information about ArchBang, visit:
+https://archbang.org/
+
+---
+
+Thank you for using ArchBang.
+
+Copyright 2025 ArchBang ISO

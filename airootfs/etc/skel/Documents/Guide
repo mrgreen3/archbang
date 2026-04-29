@@ -1,4 +1,4 @@
-ArchBang Guide
+ ArchBang Guide
 
 Welcome to ArchBang, a lightweight Arch-based Wayland live ISO.
 Visit: https://archbang.org/
@@ -29,26 +29,10 @@ To begin installation:
 
 The installer is menu-driven and easy to follow.
 
-Need help with partitions?
-Use GParted, available in the ArchBang menu under Settings or via the launcher.
-
 ---
 
-POST-INSTALL STEPS
-##################
-
-MICROCODE NOTICE
-
-ArchBang includes both intel-ucode and amd-ucode microcode packages to support a wide range of CPUs.
-
-You only need one, depending on your processor.
-
-Important: If you remove a microcode package after installation, and your bootloader references it, your system may fail to boot.
-Only remove the unused one if you are comfortable editing your bootloader entries.
-
-After removal, update your bootloader configuration to reflect the change (e.g., regenerate GRUB or edit loader.conf if using systemd-boot).
-
----
+POST-INSTALLATION
+#################
 
 ENSURE YOU HAVE A NETWORK CONNECTION
 
@@ -80,11 +64,18 @@ sudo pacman -S <package-name>
 
 ---
 
-INSTALLATION TIPS AND TRICKS
+MICROCODE NOTICE
 
-If your live session runs out of disk space, you can remount the live filesystem with more space:
+ArchBang includes both intel-ucode and amd-ucode microcode packages to support a wide range of CPUs.
 
-sudo mount -o remount,size=8G /run/archiso/cowspace
+You only need one, depending on your processor.
+
+Important: If you remove a microcode package after installation, and your bootloader references it, your system may fail to boot.
+Only remove the unused one if you are comfortable editing your bootloader entries.
+
+After removal, update your bootloader configuration to reflect the change (e.g., regenerate GRUB or edit loader.conf if using systemd-boot).
+
+---
 
 INTEL GRAPHICS ON ARCHBANG
 
@@ -93,6 +84,14 @@ ArchBang uses Wayland with labwc, which relies on kernel modesetting drivers (vi
 No additional Intel graphics drivers are needed for Wayland - the built-in kernel drivers handle graphics acceleration directly.
 
 This provides better performance and eliminates tearing issues common with older Xorg drivers.
+
+---
+
+LIVE SESSION TIPS
+
+If your live session runs out of disk space, you can remount the live filesystem with more space:
+
+sudo mount -o remount,size=8G /run/archiso/cowspace
 
 ---
 
