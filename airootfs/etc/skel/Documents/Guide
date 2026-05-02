@@ -34,6 +34,14 @@ The installer is menu-driven and easy to follow.
 POST-INSTALLATION
 #################
 
+SUDO
+
+After installation, sudo requires your password. This is intentional — the live
+session used passwordless sudo for convenience, but the installed system is
+hardened to require authentication for all privileged operations.
+
+---
+
 ENSURE YOU HAVE A NETWORK CONNECTION
 
 Refer to the instructions in the Pacman Live section above if needed.

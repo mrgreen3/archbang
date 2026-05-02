@@ -955,6 +955,10 @@ EOF
   # Restore gparted visibility in menus
   sed -i '/^Hidden=true/d' ${MNT}/usr/share/applications/gparted.desktop
 
+  # Revert live NOPASSWD sudo — require password on installed system
+  sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' ${MNT}/etc/sudoers
+  sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' ${MNT}/etc/sudoers
+
 }
 #}}}
 
