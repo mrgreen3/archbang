@@ -11,8 +11,8 @@
   ],
   "modules-right": [
     // "pulseaudio",
-    "battery",
     "tray",
+    "battery",
     "clock"
   ],
   "ext/workspaces": {
@@ -53,8 +53,15 @@
     "on-click": "pavucontrol"
   },
   "battery": {
-    "format": "{capacity}% {icon}",
+    "format": "{icon}",
+    "format-charging": "󰂄",
+    "format-full": "󰁹",
+    "format-unknown": "",
     "format-icons": ["󰁻", "󰁼", "󰁽", "󰁾", "󰁿"],
-    "tooltip-format": "{time} {power}W"
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "tooltip-format": "{capacity}% · {time} remaining · {power}W"
   }
 }
