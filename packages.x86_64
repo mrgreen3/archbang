@@ -11,18 +11,19 @@ xz
 ## === TERMINAL ===
 foot
 
-## === WAYLAND DESKTOP ENVIRONMENT (labwc stack) ===
-labwc
+## === WAYLAND DESKTOP ENVIRONMENT (mango stack) ===
+mangowm-git
 swaybg
 waybar
 xorg-xwayland
 wlr-randr
 grim
+slurp
 wl-clipboard
 brightnessctl
 swaylock
 mako
-wmenu
+rofi
 
 ## === FILE MANAGER & UTILITIES ===
 thunar
