@@ -11,6 +11,9 @@ locale-gen
 # Allow Parallel Downloads in pacman
 [[ -f /etc/pacman.conf ]] && sed -i "s/^#Parallel/Parallel/" /etc/pacman.conf
 
+# Remove local build-time repo — path won't exist on live system
+sed -i '/^\[aur_repo\]/,/^$/d' /etc/pacman.conf
+
 # Un-comment mirrorlist to allow pacman to work live....
 [[ -f /etc/pacman.d/mirrorlist ]] && sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
 

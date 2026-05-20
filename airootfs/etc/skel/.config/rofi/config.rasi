@@ -1,0 +1,10 @@
+configuration {
+    modi:           "drun,run";
+    show-icons:     true;
+    icon-theme:     "Adwaita";
+    drun-display-format: "{name}";
+    display-drun:   "";
+    display-run:    "";
+}
+
+@theme "~/.config/rofi/theme.rasi"

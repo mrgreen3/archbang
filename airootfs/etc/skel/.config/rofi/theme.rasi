@@ -1,0 +1,81 @@
+/* Fruitbang rofi theme — colours matched to MangoWM */
+
+* {
+    bg:         #201b14ff;
+    bg-alt:     #2a2318ff;
+    fg:         #c9c0b0ff;
+    fg-dim:     #7a7060ff;
+    accent:     #c9b890ff;
+    urgent:     #ad401fff;
+    selected-fg:#201b14ff;
+
+    background-color:   transparent;
+    text-color:         @fg;
+    border-color:       @accent;
+}
+
+window {
+    background-color:   @bg;
+    border:             4px;
+    border-color:       @accent;
+    border-radius:      6px;
+    width:              30%;
+    padding:            12px;
+}
+
+mainbox {
+    background-color:   transparent;
+    children:           [ inputbar, listview ];
+    spacing:            8px;
+}
+
+inputbar {
+    background-color:   @bg-alt;
+    border-radius:      4px;
+    padding:            8px 10px;
+    children:           [ prompt, entry ];
+    spacing:            6px;
+}
+
+prompt {
+    text-color:         @accent;
+}
+
+entry {
+    text-color:         @fg;
+    placeholder:        "Search...";
+    placeholder-color:  @fg-dim;
+}
+
+listview {
+    background-color:   transparent;
+    lines:              8;
+    scrollbar:          false;
+    spacing:            2px;
+}
+
+element {
+    background-color:   transparent;
+    border-radius:      4px;
+    padding:            6px 10px;
+    spacing:            8px;
+    children:           [ element-icon, element-text ];
+}
+
+element selected.normal {
+    background-color:   @accent;
+    text-color:         @selected-fg;
+}
+
+element urgent {
+    text-color:         @urgent;
+}
+
+element-icon {
+    size:               1.2em;
+}
+
+element-text {
+    text-color:         inherit;
+    vertical-align:     0.5;
+}
