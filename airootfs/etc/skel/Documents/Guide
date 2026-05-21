@@ -1,103 +1,74 @@
- ArchBang Guide
+ FruitBang Guide
 
-Welcome to ArchBang, a lightweight Arch-based Wayland live ISO.
-Visit: https://archbang.org/
+Welcome to FruitBang, a lightweight Arch-based Wayland live ISO built around MangoWM.
 
-Note: Please do not post issues or problems related to ArchBang on the Arch Linux forums.
-At best, your thread will be closed; at worst, it will be deleted.
+Note: Do not post FruitBang issues on the Arch Linux forums.
 
 ---
 
 PACMAN (LIVE SESSION)
 
-To use pacman or a browser in the live session, you need a working network connection.
+Network required for pacman or browser use in the live session.
 
-- Wired (Ethernet) connections work automatically.
-- Wireless connections can be configured via the network icon on the panel:
-  - Left-click the icon
-  - Select your network from the list
-  - Enter your Wi-Fi password
+- Wired connections work automatically.
+- Wireless: left-click the network icon in waybar, select network, enter password.
 
 ---
 
 INSTALLATION
 
-To begin installation:
+1. Right-click on the desktop (or Super+Space for rofi)
+2. Select Install from the menu
 
-1. Right-click on the desktop
-2. Select Install from the main menu
-
-The installer is menu-driven and easy to follow.
+The installer (abinstall) is menu-driven.
 
 ---
 
 POST-INSTALLATION
-#################
 
 SUDO
 
-After installation, sudo requires your password. This is intentional — the live
-session used passwordless sudo for convenience, but the installed system is
-hardened to require authentication for all privileged operations.
+Installed system requires password for sudo. Live session used passwordless sudo
+for convenience — installed system does not.
 
 ---
 
-ENSURE YOU HAVE A NETWORK CONNECTION
-
-Refer to the instructions in the Pacman Live section above if needed.
-
 INITIALIZE PACMAN
 
-pacman will not work until keys are initialized. Run the following:
+pacman will not work until keys are initialized:
 
 ab-pacman-keys
 
-This will:
-
-- Create keys
-- Refresh the package cache
-- Update the archlinux-keyring
+This creates keys, refreshes the package cache, and updates archlinux-keyring.
 
 ---
 
 BASIC PACKAGE USAGE
 
-Search for packages:
-
-sudo pacman -Ss <package-name>
-
-Install a package:
-
-sudo pacman -S <package-name>
+Search:   sudo pacman -Ss <package-name>
+Install:  sudo pacman -S <package-name>
 
 ---
 
-MICROCODE NOTICE
+MICROCODE
 
-ArchBang includes both intel-ucode and amd-ucode microcode packages to support a wide range of CPUs.
+FruitBang includes both intel-ucode and amd-ucode. You only need one.
 
-You only need one, depending on your processor.
-
-Important: If you remove a microcode package after installation, and your bootloader references it, your system may fail to boot.
-Only remove the unused one if you are comfortable editing your bootloader entries.
-
-After removal, update your bootloader configuration to reflect the change (e.g., regenerate GRUB or edit loader.conf if using systemd-boot).
+If you remove the unused one after installation, update your bootloader config
+(regenerate GRUB or edit loader.conf) before rebooting.
 
 ---
 
-INTEL GRAPHICS ON ARCHBANG
+INTEL GRAPHICS
 
-ArchBang uses Wayland with labwc, which relies on kernel modesetting drivers (via Mesa).
-
-No additional Intel graphics drivers are needed for Wayland - the built-in kernel drivers handle graphics acceleration directly.
-
-This provides better performance and eliminates tearing issues common with older Xorg drivers.
+FruitBang uses Wayland with MangoWM, which relies on kernel modesetting via Mesa.
+No additional Intel drivers needed — built-in kernel drivers handle acceleration.
 
 ---
 
-LIVE SESSION TIPS
+LIVE SESSION DISK SPACE
 
-If your live session runs out of disk space, you can remount the live filesystem with more space:
+If the live session runs out of space:
 
 sudo mount -o remount,size=8G /run/archiso/cowspace
 
@@ -105,15 +76,8 @@ sudo mount -o remount,size=8G /run/archiso/cowspace
 
 NEED HELP?
 
-Check out the Arch Wiki:
-https://wiki.archlinux.org
+Arch Wiki: https://wiki.archlinux.org
 
 ---
 
-ArchBang is maintained by a single developer in their spare time.
-If you find it useful and would like to support its continued development:
-Buy me a coffee: https://ko-fi.com/archbang
-
-Thank you for using ArchBang.
-
-Copyright 2025 ArchBang ISO
+Copyright 2025 FruitBang

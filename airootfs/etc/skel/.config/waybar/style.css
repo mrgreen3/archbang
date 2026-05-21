@@ -102,6 +102,26 @@ window#waybar {
     color: @green;
 }
 
+/* ---------- Launchers ---------- */
+#custom-terminal,
+#custom-browser,
+#custom-launcher,
+#custom-files,
+#custom-editor {
+    font-family: "Symbols Nerd Font Mono";
+    font-size: 16px;
+    padding: 0 10px;
+    color: @fg;
+}
+
+#custom-terminal:hover,
+#custom-browser:hover,
+#custom-launcher:hover,
+#custom-files:hover,
+#custom-editor:hover {
+    color: @accent;
+}
+
 /* ---------- Tray ---------- */
 #tray {
     padding: 0 6px;

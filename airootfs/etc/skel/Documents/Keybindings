@@ -1,57 +1,74 @@
-ArchBANG KEYBINDINGS
-═══════════════════
+FruitBang KEYBINDINGS
+═════════════════════
 
 NOTE: Super = Windows Key
 
 
-APPLICATION SHORTCUTS
+APPLICATIONS
 ───────────────────────
 
-Super + Return       Terminal
-Super + w            Web Browser
-Super + f            File Manager
-Super + e            Editor
-Super + Space        Menu
-Super + Shift + Space  Client Menu
+Super + Return          Terminal (foot)
+Super + Space           Launcher (rofi)
+Super + w               Web Browser (firefox)
+Super + p               Screenshot
 
 
 WINDOW CONTROLS
 ───────────────────────
 
-Super + q                  Close Window
-Alt + Tab                  Switch Windows
-Super + [1-4]              Switch Workspace
-Super + Shift + [1-4]      Send Window to Workspace
-Super + Control + ←/↑/→/↓  Snap to Edge
-Super + Control + c        Centre 80%
-Super + Control + m        Toggle Maximize
-Super + Control + d        Decorations
-Super + Control + b        Border
+Super + q               Close Window
+Super + s               Toggle Float
+Super + f               Fullscreen
+Super + Shift + f       Fake Fullscreen
+Super + a               Maximise
+Super + i               Minimise
+Super + Shift + I       Restore Minimised
+Super + z               Scratchpad
+Super + o               Toggle Overlay
 
-AUDIO CONTROL
+
+FOCUS & MOVEMENT
 ───────────────────────
 
-Vol Up (F11)             Increase Volume
-Vol Down (F10)           Decrease Volume
-Mute (F12)               Toggle Mute
+Super + Tab             Next Window
+Super + Shift + ←/→/↑/↓  Focus Direction
+Ctrl + Shift + ←/→/↑/↓   Move Window (50px)
+Ctrl + Super + ←/→/↑/↓   Resize Window (50px)
 
 
-BRIGHTNESS CONTROL
+WORKSPACES
 ───────────────────────
 
-Brightness Up            Increase Brightness
-Brightness Down          Decrease Brightness
+Super + [1-9]           Switch to Workspace
+Super + Shift + [1-9]   Send Window to Workspace
+Super + Left/Right      Previous/Next Workspace
+Ctrl + Left/Right       Move with Window to Prev/Next
 
 
-SCREEN LOCK
+LAYOUT
 ───────────────────────
 
-Super + l                Lock Screen
+Super + n               Switch Layout Mode
+Super + e               Set Proportion Full
+Super + x               Cycle Proportion Preset
+Super + g               Toggle Gaps
+Super + Shift + X       Increase Gaps
+Super + Shift + Z       Decrease Gaps
 
 
-OTHER
+MULTI-MONITOR
 ───────────────────────
 
-Print                    Screenshot
-Super + Shift + r        Reconfigure
-Super + Control + F12    Display Configuration
+Super + Alt + Left/Right        Focus Monitor
+Super + Ctrl + Alt + Left/Right Send to Monitor
+
+
+SYSTEM
+───────────────────────
+
+Super + l               Lock Screen
+Super + r               Reload Config
+Super + m               Quit MangoWM
+Vol Up (XF86)           Increase Volume
+Vol Down (XF86)         Decrease Volume
+Mute (XF86)             Toggle Mute

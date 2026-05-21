@@ -1,11 +1,11 @@
-# ArchBANG login shell configuration
+# FruitBang login shell configuration
 # Starts mango (Wayland compositor)
 
 . $HOME/.bashrc
 
 WindowManager=mango
 
-# Start labwc on TTY1
+# Start mango on TTY1
 if [[ -z $WAYLAND_DISPLAY && -z $DISPLAY && $XDG_VTNR -eq 1 ]]; then
     export XDG_CURRENT_DESKTOP=$WindowManager
     export XDG_SESSION_TYPE=wayland

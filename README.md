@@ -1,35 +1,29 @@
-# ArchBang 
+# FruitBang
 
-ArchBang is a minimal Arch Linux-based distribution featuring the labwc Wayland compositor. It provides a lightweight, fast desktop environment while including all the essential tools needed to get the job done.
+FruitBang is a minimal Arch Linux-based distribution featuring the MangoWM Wayland compositor. Forked from ArchBang. Lean, keyboard-driven, dark warm palette.
 
 ## About
 
-- **Minimal Design**: Lightweight and fast, without unnecessary bloat
-- **Arch Linux Based**: Built on the stable and powerful Arch Linux foundation
-- **labwc Wayland Compositor**: A lightweight Wayland window-stacking compositor inspired by Openbox
-- **Complete Toolset**: Includes development tools, system utilities, and productivity applications
+- **Minimal Design**: Lightweight, no unnecessary packages
+- **Arch Linux Based**: archiso build system
+- **MangoWM**: Wayland compositor with warm yellow/brown theme
+- **ablive user**: live session user, wheel group, passwordless sudo
 
 ## Features
 
-- Streamlined system with only essential packages
-- Pure Wayland environment with labwc compositor
-- Pre-configured with common development and system administration tools
-- Network tools and wireless connectivity support
-- Live/Rescue ISO for installation and troubleshooting
-- Catppuccin Mocha theme
+- Pure Wayland environment with MangoWM compositor
 - Waybar panel with workspace indicators
+- Rofi launcher (Super+Space)
 - Mako notification daemon
 - Foot terminal emulator
+- Conky system monitor
+- swaybg wallpaper
+- AUR repo bundled for mangowm-git and deps
 
 ## Building
 
-See the `build` script and `profiledef.sh` for building your own ArchBang ISO.
-
-## Links
-
-- [ArchBang Website](https://archbang.org/)
-- [Report Issues](https://archbang.org/contact)
+See `profiledef.sh` and `airootfs/root/customize_airootfs.sh`.
 
 ---
 
-*ArchBang is not affiliated with Arch Linux.*
+*FruitBang is not affiliated with Arch Linux or ArchBang.*

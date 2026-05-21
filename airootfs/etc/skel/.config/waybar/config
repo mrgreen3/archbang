@@ -7,6 +7,11 @@
     "ext/workspaces"
   ],
   "modules-center": [
+    "custom/terminal",
+    "custom/browser",
+    "custom/launcher",
+    "custom/files",
+    "custom/editor"
   ],
   "modules-right": [
     // "pulseaudio",
@@ -38,6 +43,31 @@
     "format-muted": "󰖁 {volume}%",
     "format-icons": ["󰕿", "󰖀", "󰕾"],
     "on-click": "pavucontrol"
+  },
+  "custom/terminal": {
+    "format": "",
+    "on-click": "foot",
+    "tooltip": false
+  },
+  "custom/browser": {
+    "format": "",
+    "on-click": "firefox",
+    "tooltip": false
+  },
+  "custom/launcher": {
+    "format": "",
+    "on-click": "rofi -show drun",
+    "tooltip": false
+  },
+  "custom/files": {
+    "format": "",
+    "on-click": "thunar",
+    "tooltip": false
+  },
+  "custom/editor": {
+    "format": "",
+    "on-click": "l3afpad",
+    "tooltip": false
   },
   "battery": {
     "format": "{icon}",

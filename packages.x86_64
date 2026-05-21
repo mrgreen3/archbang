@@ -44,7 +44,6 @@ ttf-dejavu
 
 ## === SYSTEM MONITORING ===
 htop
-conky
 laptop-detect
 
 ## === DISK & PARTITION TOOLS ===

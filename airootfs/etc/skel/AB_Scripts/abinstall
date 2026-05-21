@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Abinstall ArchBang installer
+# Abinstall FruitBang installer
 # Modified by Mr Green mrgreen(at)archbang(dot)org
 # based on lilo fifo...scripts
 
@@ -192,7 +192,7 @@ done
   } #}}}
   check_archiso() { #{{{
     if [[ ! -d "/run/archiso/airootfs" ]]; then
-      error_msg "ERROR! Not running from ArchBang live environment"
+      error_msg "ERROR! Not running from FruitBang live environment"
     fi
   } #}}}
   read_input() { #{{{
@@ -444,16 +444,14 @@ WIKI="https://wiki.archlinux.org/index.php"
 #ARCHLINUX INSTALL SCRIPTS MODE {{{
 #SELECT KEYMAP {{{
 select_xkeymap(){
-  print_title "LABWC DESKTOP KEYBOARD LAYOUT"
-  print_info "Setting keyboard layout for labwc compositor"
+  print_title "MANGO DESKTOP KEYBOARD LAYOUT"
+  print_info "Setting keyboard layout for mango compositor"
   OPTION=n
   while [[ $OPTION != y ]]; do
     getxkeymap
     read_input_text "Confirm keymap: $XKEYMAP"
   done
-# Desktop keymap for labwc
-# change in labwc/environment
-   sed -i "s/XKB_DEFAULT_LAYOUT=.*/XKB_DEFAULT_LAYOUT=${XKEYMAP}/g" $MNT/home/${LIVE_USER}/.config/labwc/environment
+   sed -i "s/xkb_rules_layout=.*/xkb_rules_layout=${XKEYMAP}/" $MNT/home/${LIVE_USER}/.config/mango/config.conf
 }
 #}}}
 
@@ -880,9 +878,9 @@ copy_progress() {
 }
 
 #}}}
-#INSTALL ARCHBANG {{{
-install_archbang(){
-  print_title "INSTALL ARCHBANG - www.archbang.org"
+#INSTALL FRUITBANG {{{
+install_fruitbang(){
+  print_title "INSTALL FRUITBANG"
   print_info "Installing please wait..."
 
   # Check if running from live environment
@@ -922,15 +920,6 @@ EOF
 
   # Remove gparted-launcher script
   rm -f ${MNT}/home/${LIVE_USER}/AB_Scripts/gparted-launcher &> /dev/null
-
-  # Remove installer from root-menu
-  sed -i '/<!-- abinstall 5 -->/,+3d' ${MNT}/home/${LIVE_USER}/.config/labwc/menu.xml
-
-  # Remove GParted keybind from rc.xml
-  sed -i '/<keybind key="W-g">/,/<\/keybind>/d' ${MNT}/home/${LIVE_USER}/.config/labwc/rc.xml
-
-  # Remove GParted keybind from conky.conf
-  sed -i '/Super + g.*GParted/d' ${MNT}/home/${LIVE_USER}/.config/conky/conky.conf
 
   # remove autologin from install
   rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
@@ -977,7 +966,7 @@ configure_hostname() {
     read -p "Hostname [ex: arch]: " host_name
   fi
 
-  host_name="${host_name:-archbang}"
+  host_name="${host_name:-fruitbang}"
 
   print_info "Using hostname: ${host_name}"
   echo "${host_name}" > "${MNT}/etc/hostname"
@@ -1233,7 +1222,7 @@ setup_user(){
 #}}}
 #FINISH {{{
 finish(){
-  print_title "ARCHBANG INSTALL COMPLETED..."
+  print_title "FRUITBANG INSTALL COMPLETED..."
   read_input_text "Reboot system"
   if [[ $OPTION == y ]]; then
     umount_partitions
@@ -1245,20 +1234,20 @@ finish(){
 
 #WELCOME SCREEN {{{
 welcome_screen(){
-  print_title "Welcome to ArchBang!"
+  print_title "Welcome to FruitBang!"
 
-  echo -e "${Bold}What is ArchBang?${Reset}"
-  echo -e "\tArch Linux with the Labwc Wayland compositor."
-  echo -e "\tA gentle introduction to Arch for new users.\n"
+  echo -e "${Bold}What is FruitBang?${Reset}"
+  echo -e "\tArch Linux with the MangoWM Wayland compositor."
+  echo -e "\tA lean, keyboard-driven Arch-based live ISO.\n"
 
   echo -e "${Bold}System Requirements:${Reset}"
   echo -e "\t✓ 20GB+ free disk space"
   echo -e "\t✓ 2GB+ RAM"
-  echo -e "\t✓ Booted from ArchBang live ISO\n"
+  echo -e "\t✓ Booted from FruitBang live ISO\n"
 
   echo -e "${Bold}Installation Steps (8 total):${Reset}"
   echo -e "\t1. Partition your disk (Default, LVM, or LVM+LUKS)"
-  echo -e "\t2. Install ArchBang system files"
+  echo -e "\t2. Install FruitBang system files"
   echo -e "\t3. Set hostname"
   echo -e "\t4. Configure timezone & mirrors"
   echo -e "\t5. Set locale & language"
@@ -1333,7 +1322,7 @@ check_trim
 welcome_screen
 
 run_step 1 "Partition Scheme"        umount_partitions create_partition_scheme format_partitions
-run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio
+run_step 2 "Install FruitBang"       install_fruitbang configure_fstab configure_mkinitcpio
 run_step 3 "Hostname"                configure_hostname
 run_step 4 "Location"                configure_timezone configure_hardwareclock configure_mirrors
 run_step 5 "Locale"                  configure_locale
