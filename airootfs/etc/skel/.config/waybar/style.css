@@ -1,12 +1,12 @@
-/* ---------- Fruitbang palette — matched to MangoWM ---------- */
-@define-color bg      #201b14;
-@define-color surface #2a2318;
-@define-color fg      #c9c0b0;
-@define-color fg-dim  #7a7060;
-@define-color accent  #c9b890;
-@define-color red     #ad401f;
-@define-color green   #89aa61;
-@define-color yellow  #c9b890;
+/* ---------- Night sky palette — matched to MangoWM ---------- */
+@define-color bg      #1b3555;
+@define-color surface #2c4a6d;
+@define-color fg      #d4e4f0;
+@define-color fg-dim  #7089a5;
+@define-color accent  #8ea1bb;
+@define-color red     #c4607a;
+@define-color green   #536e8d;
+@define-color yellow  #b8d4e8;
 
 /* ---------- Base ---------- */
 * {
@@ -111,16 +111,19 @@ window#waybar {
     font-family: "Symbols Nerd Font Mono";
     font-size: 16px;
     padding: 0 10px;
-    color: @fg;
 }
 
-#custom-terminal:hover,
-#custom-browser:hover,
-#custom-launcher:hover,
-#custom-files:hover,
-#custom-editor:hover {
-    color: @accent;
-}
+#custom-terminal  { color: #7089a5; }
+#custom-browser   { color: #7089a5; }
+#custom-launcher  { color: #d4e4f0; }
+#custom-files     { color: #7089a5; }
+#custom-editor    { color: #7089a5; }
+
+#custom-terminal:hover { color: #6abfa0; }
+#custom-browser:hover  { color: #c4607a; }
+#custom-launcher:hover { color: #d4c87a; }
+#custom-files:hover    { color: #4db8e8; }
+#custom-editor:hover   { color: #f0f4f8; }
 
 /* ---------- Tray ---------- */
 #tray {
