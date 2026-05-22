@@ -30,7 +30,6 @@ thunar
 thunar-volman
 gvfs
 udisks2
-archlinux-xdg-menu
 
 ## === TEXT EDITORS ===
 vim
@@ -39,6 +38,7 @@ l3afpad
 ## === THEMES & FONTS ===
 adw-gtk-theme
 adwaita-icon-theme
+papirus-icon-theme
 ttf-nerd-fonts-symbols-mono
 ttf-dejavu
 
@@ -76,7 +76,6 @@ expac
 
 ## === COMMAND-LINE TOOLS ===
 openssh
-pkgfile
 arch-install-scripts
 curl
 pacman-contrib

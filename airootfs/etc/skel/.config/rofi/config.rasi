@@ -1,7 +1,7 @@
 configuration {
     modi:           "drun,run";
     show-icons:     true;
-    icon-theme:     "Adwaita";
+    icon-theme:     "Papirus-Dark";
     drun-display-format: "{name}";
     display-drun:   "";
     display-run:    "";

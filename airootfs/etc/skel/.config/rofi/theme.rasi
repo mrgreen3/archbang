@@ -1,13 +1,13 @@
-/* Fruitbang rofi theme — colours matched to MangoWM */
+/* Night sky rofi theme — colours matched to MangoWM */
 
 * {
-    bg:         #201b14ff;
-    bg-alt:     #2a2318ff;
-    fg:         #c9c0b0ff;
-    fg-dim:     #7a7060ff;
-    accent:     #c9b890ff;
-    urgent:     #ad401fff;
-    selected-fg:#201b14ff;
+    bg:         #1b3555ff;
+    bg-alt:     #2c4a6dff;
+    fg:         #d4e4f0ff;
+    fg-dim:     #7089a5ff;
+    accent:     #8ea1bbff;
+    urgent:     #c4607aff;
+    selected-fg:#1b3555ff;
 
     background-color:   transparent;
     text-color:         @fg;

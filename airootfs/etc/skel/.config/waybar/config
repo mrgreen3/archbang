@@ -16,7 +16,6 @@
   "modules-right": [
     // "pulseaudio",
     "tray",
-    "battery",
     "clock"
   ],
   "ext/workspaces": {
@@ -55,7 +54,7 @@
     "tooltip": false
   },
   "custom/launcher": {
-    "format": "",
+    "format": "",
     "on-click": "rofi -show drun",
     "tooltip": false
   },
