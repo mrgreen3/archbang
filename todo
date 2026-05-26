@@ -3,10 +3,22 @@ FruitBang based on ArchBang - MangoWM
 rofi - launcher
 
 Remaining tasks:
+- Look at cleaning up UI partitioning
+- aur_repo → move to server (Hermes)
+- Versioning (TBD)
 
-Installer simplification complete! 
+===== COMPLETED (2026-05-26) =====
 
-Look at cleaning up UI partitioning
+Rebrand & Cleanup:
+✅ AB_Scripts → Scripts
+✅ ablive → fblive live user
+✅ papirus-icon-theme → adwaita-icon-theme
+✅ wmenu → rofi
+✅ ab-pacman-keys → fix-keys
+✅ firefox re-enabled, mpv removed
+✅ aur_repo added to .gitignore
+✅ screenshot: -r flag for region select (SUPER+SHIFT+p)
+✅ waybar: all-outputs false, hover font-size 20px
 
 ===== COMPLETED (2026-03-14) =====
 
