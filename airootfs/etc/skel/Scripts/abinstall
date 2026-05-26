@@ -103,7 +103,7 @@ done
   LUKS_NAME="cryptroot"
   VG_NAME="lvm"
   LV_ROOT="root"
-  LIVE_USER="ablive"
+  LIVE_USER="fblive"
   [[ $1 == -v || $1 == --verbose ]] && VERBOSE_MODE=1 || VERBOSE_MODE=0 # VERBOSE MODE
   [[ -f $LOG ]] && rm -f $LOG
   AUTOMATIC_MODE=0
@@ -916,10 +916,10 @@ fallback_options="-S autodetect"
 EOF
 
   # Remove abinstall from target device
-  rm -f ${MNT}/home/${LIVE_USER}/AB_Scripts/abinstall &> /dev/null
+  rm -f ${MNT}/home/${LIVE_USER}/Scripts/abinstall &> /dev/null
 
   # Remove gparted-launcher script
-  rm -f ${MNT}/home/${LIVE_USER}/AB_Scripts/gparted-launcher &> /dev/null
+  rm -f ${MNT}/home/${LIVE_USER}/Scripts/gparted-launcher &> /dev/null
 
   # remove autologin from install
   rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
@@ -1262,7 +1262,7 @@ welcome_screen(){
   echo -e "${Bold}Quick Tips:${Reset}"
   echo -e "\t• Installation typically takes 5-15 minutes"
   echo -e "\t• You can retry or skip steps if something fails"
-  echo -e "\t• The live user 'ablive' will be renamed to your chosen username"
+  echo -e "\t• The live user 'fblive' will be renamed to your chosen username"
   echo -e "\t• GRUB is the bootloader (installed automatically)\n"
 
   print_line

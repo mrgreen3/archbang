@@ -22,7 +22,7 @@
     "format": "{id}",
     "on-click": "activate",
     "sort-by-id": true,
-    "all-outputs": true
+    "all-outputs": false
   },
   "tray": {
     "spacing": 10

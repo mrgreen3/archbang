@@ -1,0 +1,11 @@
+#!/bin/bash
+choice=$(printf "󰍃  Logout\n󰑓  Reboot\n󰐥  Poweroff" | rofi -dmenu -p "Power" \
+    -theme ~/.config/rofi/theme.rasi \
+    -lines 3 \
+    -theme-str 'inputbar { enabled: false; } listview { lines: 3; } window { width: 250px; }')
+
+case "$choice" in
+    *Logout)   pkill mango ;;
+    *Reboot)   systemctl reboot ;;
+    *Poweroff) systemctl poweroff ;;
+esac

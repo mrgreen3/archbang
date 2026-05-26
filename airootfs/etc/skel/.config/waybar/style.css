@@ -119,11 +119,11 @@ window#waybar {
 #custom-files     { color: #7089a5; }
 #custom-editor    { color: #7089a5; }
 
-#custom-terminal:hover { color: #6abfa0; }
-#custom-browser:hover  { color: #c4607a; }
-#custom-launcher:hover { color: #d4c87a; }
-#custom-files:hover    { color: #4db8e8; }
-#custom-editor:hover   { color: #f0f4f8; }
+#custom-terminal:hover { color: #6abfa0; font-size: 20px; }
+#custom-browser:hover  { color: #c4607a; font-size: 20px; }
+#custom-launcher:hover { color: #d4c87a; font-size: 20px; }
+#custom-files:hover    { color: #4db8e8; font-size: 20px; }
+#custom-editor:hover   { color: #f0f4f8; font-size: 20px; }
 
 /* ---------- Tray ---------- */
 #tray {

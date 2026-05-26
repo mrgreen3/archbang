@@ -1,0 +1,6 @@
+#!/bin/bash
+f=~/Pictures/$(date +%d%m%y%H%M).png
+case "$1" in
+    -r) grim -g "$(slurp)" "$f" ;;
+    *)  grim "$f" ;;
+esac && notify-send "Screenshot saved" "$f"

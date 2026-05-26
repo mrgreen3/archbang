@@ -15,6 +15,18 @@ Network required for pacman or browser use in the live session.
 
 ---
 
+TAGS AND LAYOUTS
+
+MangoWM uses tags (1–9) instead of workspaces.
+
+Tag 1 is floating — windows behave like a traditional floating desktop.
+Tags 2–9 are tiling — windows are arranged automatically.
+
+Switch tags with Super+1 through Super+9.
+Toggle a window between floating and tiling with Super+S.
+
+---
+
 INSTALLATION
 
 1. Right-click on the desktop (or Super+Space for rofi)
@@ -37,7 +49,7 @@ INITIALIZE PACMAN
 
 pacman will not work until keys are initialized:
 
-ab-pacman-keys
+fix-keys
 
 This creates keys, refreshes the package cache, and updates archlinux-keyring.
 

@@ -1,19 +1,10 @@
-ArchBang based on Labwc and Wayland
+FruitBang based on ArchBang - MangoWM
 
-wmenu - lightweight launcher fits well with labwc's dynamic menu, rofi would be overkill
+rofi - launcher
 
 Remaining tasks:
-- check new conky colors and layout [increased font]
-- Maybe look at coloured headers? from mocha theme
-- Review gparted keybind in rc.xml (post install consideration)
 
-Installer simplification (target: late Feb):
-- Merge Hostname, Locale, and Keyboard Layout into single "System Configuration" step
-- Rename getxkeymap() to get_desktop_keymap() (remove X11 legacy naming)
-- Implement console keymap setup (currently getkeymap() is unused)
-- Set both console and desktop keyboard layouts in one step
-- Reduce installer from 8 steps to 5-6 steps
-- Consider auto-detect timezone option (if reliable network available)
+Installer simplification complete! 
 
 Look at cleaning up UI partitioning
 
@@ -27,14 +18,9 @@ Configuration & Documentation:
 ✅ Documented hardcoded hostname as intentional for live ISO in customize_airootfs.sh
 ✅ Added clarifying comment: pulseaudio disabled for PipeWire-only system in waybar config
 
-Installer Menu:
-✅ Added wrench icon (🔧) to installer menu item in labwc menu.xml for better visual clarity
 
 Pacman Optimization:
 ✅ Enabled ParallelDownloads = 5 in pacman.conf for faster package downloads
 
-All changes committed and pushed to GitHub (commits 7137c96-8a6ef34)
-
-Summer release new wallapaper and themes to suit ... beach wallpaper then mid tone dark theme to suit.
 
 

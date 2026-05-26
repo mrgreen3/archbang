@@ -38,12 +38,12 @@ l3afpad
 ## === THEMES & FONTS ===
 adw-gtk-theme
 adwaita-icon-theme
-papirus-icon-theme
 ttf-nerd-fonts-symbols-mono
 ttf-dejavu
 
 ## === SYSTEM MONITORING ===
 htop
+fastfetch
 laptop-detect
 
 ## === DISK & PARTITION TOOLS ===
@@ -84,7 +84,6 @@ eza
 
 ## === MEDIA APPLICATIONS ===
 firefox
-mpv
 imv
 
 ## === BUILD & DEVELOPMENT TOOLS ===

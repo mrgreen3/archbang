@@ -56,6 +56,7 @@ SERVICES=(
   "wireplumber.service"
   "pipewire.service"
   "pipewire-pulse.service"
+  "xdg-user-dirs.service"
 )
 
 # Create target directory if it doesn't exist
@@ -72,8 +73,8 @@ for service in "${SERVICES[@]}"; do
 done
 
 # Add live user
-useradd -m -p "" -G "wheel" -s /bin/bash -g users ablive
-chown ablive /home/ablive
+useradd -m -p "" -G "wheel" -s /bin/bash -g users fblive
+chown fblive /home/fblive
 
 # Start required systemd services
 systemctl enable {pacman-init,NetworkManager}.service -f

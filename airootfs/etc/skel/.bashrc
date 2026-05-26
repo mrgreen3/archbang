@@ -4,8 +4,8 @@ export TERMINAL=foot
 export BROWSER=firefox
 
 # Add scripts path safely
-if [[ ":$PATH:" != *":$HOME/AB_Scripts:"* ]]; then
-    export PATH="$PATH:$HOME/AB_Scripts"
+if [[ ":$PATH:" != *":$HOME/Scripts:"* ]]; then
+    export PATH="$PATH:$HOME/Scripts"
 fi
 
 alias ls='ls --color=auto'
