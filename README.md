@@ -7,7 +7,7 @@ FruitBang is a minimal Arch Linux-based distribution featuring the MangoWM Wayla
 - **Minimal Design**: Lightweight, no unnecessary packages
 - **Arch Linux Based**: archiso build system
 - **MangoWM**: Wayland compositor with warm yellow/brown theme
-- **fblive user**: live session user, wheel group, passwordless sudo
+- **live user**: live session user, wheel group, passwordless sudo
 
 ## Features
 
