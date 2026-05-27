@@ -73,8 +73,8 @@ for service in "${SERVICES[@]}"; do
 done
 
 # Add live user
-useradd -m -p "" -G "wheel" -s /bin/bash -g users fblive
-chown fblive /home/fblive
+useradd -m -p "" -G "wheel" -s /bin/bash -g users live
+chown live /home/live
 
 # Start required systemd services
 systemctl enable {pacman-init,NetworkManager}.service -f
