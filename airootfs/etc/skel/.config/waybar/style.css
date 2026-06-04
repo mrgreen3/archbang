@@ -1,12 +1,12 @@
-/* ---------- Night sky palette — matched to MangoWM ---------- */
-@define-color bg      #1b3555;
-@define-color surface #2c4a6d;
-@define-color fg      #d4e4f0;
-@define-color fg-dim  #7089a5;
-@define-color accent  #8ea1bb;
+/* ---------- Paint palette — pulled from paint.jpg ---------- */
+@define-color bg      #2f2532;
+@define-color surface #4e2d39;
+@define-color fg      #d4dce8;
+@define-color fg-dim  #936156;
+@define-color accent  #6e9b7a;
 @define-color red     #c4607a;
-@define-color green   #536e8d;
-@define-color yellow  #b8d4e8;
+@define-color green   #616793;
+@define-color yellow  #b4becc;
 
 /* ---------- Base ---------- */
 * {
@@ -44,6 +44,11 @@ window#waybar {
     border-radius: 6px;
 }
 
+/* occupied but not focused — near-white */
+#workspaces button:not(.empty):not(.active) {
+    color: #e0e8ec;
+}
+
 #workspaces button:hover {
     color: @accent;
     background: transparent;
@@ -70,7 +75,7 @@ window#waybar {
 }
 
 /* ---------- Common section styling ---------- */
-#tray, #pulseaudio, #battery {
+#tray, #pulseaudio, #battery, #network {
     margin: 0;
     padding: 0 8px;
     color: @fg;
@@ -82,6 +87,17 @@ window#waybar {
 }
 
 #pulseaudio.muted {
+    color: @red;
+}
+
+/* ---------- Network ---------- */
+#network {
+    font-family: "Symbols Nerd Font Mono";
+    font-size: 16px;
+    color: #9b8ad4;
+}
+
+#network.disconnected {
     color: @red;
 }
 
@@ -110,20 +126,20 @@ window#waybar {
 #custom-editor {
     font-family: "Symbols Nerd Font Mono";
     font-size: 16px;
-    padding: 0 10px;
+    padding: 0 5px;
 }
 
-#custom-terminal  { color: #7089a5; }
-#custom-browser   { color: #7089a5; }
-#custom-launcher  { color: #d4e4f0; }
-#custom-files     { color: #7089a5; }
-#custom-editor    { color: #7089a5; }
+#custom-terminal  { color: #6abfa0; }
+#custom-browser   { color: #c4607a; }
+#custom-launcher  { color: #d4c87a; }
+#custom-files     { color: #4db8e8; }
+#custom-editor    { color: #f0f4f8; }
 
-#custom-terminal:hover { color: #6abfa0; font-size: 20px; }
-#custom-browser:hover  { color: #c4607a; font-size: 20px; }
-#custom-launcher:hover { color: #d4c87a; font-size: 20px; }
-#custom-files:hover    { color: #4db8e8; font-size: 20px; }
-#custom-editor:hover   { color: #f0f4f8; font-size: 20px; }
+#custom-terminal:hover,
+#custom-browser:hover,
+#custom-launcher:hover,
+#custom-files:hover,
+#custom-editor:hover { font-size: 22px; }
 
 /* ---------- Tray ---------- */
 #tray {

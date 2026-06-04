@@ -16,13 +16,15 @@
   "modules-right": [
     // "pulseaudio",
     "tray",
+    "battery",
+    "network",
     "clock"
   ],
   "ext/workspaces": {
     "format": "{id}",
     "on-click": "activate",
     "sort-by-id": true,
-    "all-outputs": false
+    "all-outputs": true
   },
   "tray": {
     "spacing": 10
@@ -44,29 +46,38 @@
     "on-click": "pavucontrol"
   },
   "custom/terminal": {
-    "format": "",
+    "format": "",
     "on-click": "foot",
     "tooltip": false
   },
   "custom/browser": {
-    "format": "",
+    "format": "",
     "on-click": "firefox",
     "tooltip": false
   },
   "custom/launcher": {
-    "format": "",
+    "format": "",
     "on-click": "rofi -show drun",
     "tooltip": false
   },
   "custom/files": {
-    "format": "",
+    "format": "",
     "on-click": "thunar",
     "tooltip": false
   },
   "custom/editor": {
-    "format": "",
+    "format": "",
     "on-click": "l3afpad",
     "tooltip": false
+  },
+  "network": {
+    "format-wifi": "󰤨",
+    "format-ethernet": "󰈀",
+    "format-disconnected": "󰤭",
+    "on-click": "bash -c 'networkmanager_dmenu'",
+    "tooltip-format-wifi": "{essid} {signalStrength}%",
+    "tooltip-format-ethernet": "{ipaddr}",
+    "tooltip-format-disconnected": "Disconnected"
   },
   "battery": {
     "format": "{icon}",

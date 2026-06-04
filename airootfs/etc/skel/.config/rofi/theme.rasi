@@ -1,13 +1,13 @@
-/* Night sky rofi theme — colours matched to MangoWM */
+/* Paint theme — colours pulled from paint.jpg, sage accent */
 
 * {
-    bg:         #1b3555ff;
-    bg-alt:     #2c4a6dff;
-    fg:         #d4e4f0ff;
-    fg-dim:     #7089a5ff;
-    accent:     #8ea1bbff;
+    bg:         #2f2532ff;
+    bg-alt:     #4e2d39ff;
+    fg:         #d4dce8ff;
+    fg-dim:     #936156ff;
+    accent:     #6e9b7aff;
     urgent:     #c4607aff;
-    selected-fg:#1b3555ff;
+    selected-fg:#2f2532ff;
 
     background-color:   transparent;
     text-color:         @fg;

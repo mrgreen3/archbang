@@ -56,7 +56,7 @@ ntfs-3g
 
 ## === NETWORK MANAGEMENT ===
 networkmanager
-network-manager-applet
+networkmanager-dmenu-git
 wpa_supplicant
 usb_modeswitch
 broadcom-wl
