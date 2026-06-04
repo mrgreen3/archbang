@@ -46,27 +46,27 @@
     "on-click": "pavucontrol"
   },
   "custom/terminal": {
-    "format": "",
+    "format": "",
     "on-click": "foot",
     "tooltip": false
   },
   "custom/browser": {
-    "format": "",
+    "format": "",
     "on-click": "firefox",
     "tooltip": false
   },
   "custom/launcher": {
-    "format": "",
+    "format": "",
     "on-click": "rofi -show drun",
     "tooltip": false
   },
   "custom/files": {
-    "format": "",
+    "format": "",
     "on-click": "thunar",
     "tooltip": false
   },
   "custom/editor": {
-    "format": "",
+    "format": "",
     "on-click": "l3afpad",
     "tooltip": false
   },
