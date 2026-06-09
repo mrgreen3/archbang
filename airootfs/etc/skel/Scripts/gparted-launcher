@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# GParted launcher for Wayland
-
-notify-send "GParted" "Running GParted as root" --icon=gparted 2>/dev/null || true
-
-sudo WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" gparted & disown
