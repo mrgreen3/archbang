@@ -534,7 +534,7 @@ create_partition() {
 
       case "$OPT" in
         gparted)
-          gparted
+          sudo WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" gparted
           ;;
         parted)
           parted -a opt "${device}"
@@ -917,9 +917,6 @@ EOF
 
   # Remove abinstall from target device
   rm -f ${MNT}/home/${LIVE_USER}/Scripts/abinstall &> /dev/null
-
-  # Remove gparted-launcher script
-  rm -f ${MNT}/home/${LIVE_USER}/Scripts/gparted-launcher &> /dev/null
 
   # remove autologin from install
   rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
