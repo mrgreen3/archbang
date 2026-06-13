@@ -1,38 +1,3 @@
 FruitBang based on ArchBang - MangoWM
 
-rofi - launcher
-
-Remaining tasks:
-- Look at cleaning up UI partitioning
-- aur_repo → move to server (Hermes)
-- Versioning (TBD)
-
-===== COMPLETED (2026-05-26) =====
-
-Rebrand & Cleanup:
-✅ AB_Scripts → Scripts
-✅ ablive → fblive live user
-✅ papirus-icon-theme → adwaita-icon-theme
-✅ wmenu → rofi
-✅ ab-pacman-keys → fix-keys
-✅ firefox re-enabled, mpv removed
-✅ aur_repo added to .gitignore
-✅ screenshot: -r flag for region select (SUPER+SHIFT+p)
-✅ waybar: all-outputs false, hover font-size 20px
-
-===== COMPLETED (2026-03-14) =====
-
-Configuration & Documentation:
-✅ Reorganized packages.x86_64 with 14 clear section headers (Audio, Archive Tools, Terminal, Wayland Desktop, etc.)
-✅ Added edk2-shell for UEFI rescue/troubleshooting capabilities
-✅ Switched ISO version format from DDMM to DDMMYY for chronological sorting (e.g., 140326 = March 14, 2026)
-✅ Added file existence checks to customize_airootfs.sh sed commands (prevents silent failures)
-✅ Documented hardcoded hostname as intentional for live ISO in customize_airootfs.sh
-✅ Added clarifying comment: pulseaudio disabled for PipeWire-only system in waybar config
-
-
-Pacman Optimization:
-✅ Enabled ParallelDownloads = 5 in pacman.conf for faster package downloads
-
-
-
+post install look at lines as removal of installer leaves a blank line!

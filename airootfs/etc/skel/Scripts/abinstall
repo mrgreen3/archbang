@@ -534,7 +534,7 @@ create_partition() {
 
       case "$OPT" in
         gparted)
-          sudo WAYLAND_DISPLAY="$WAYLAND_DISPLAY" XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" gparted
+          gparted
           ;;
         parted)
           parted -a opt "${device}"

@@ -1,0 +1,52 @@
+#!/bin/bash
+# fruitbang-menu an extended rofi launcher
+# installer test for removal post install
+# nol reduced by one if installer not present
+# designed by mrgreen [mrgreen@archbang.org]
+# written by Claude Code
+
+# number of lines nol is reduced by one post install
+nol=8
+
+# basically menu options in variable form
+items="Terminal\0icon\x1futilities-terminal\nFirefox\0icon\x1ffirefox\nFiles\0icon\x1fsystem-file-manager\nApplications\0icon\x1fsystem-run"
+
+# test if installer present
+[[ -x ~/Scripts/abinstall ]] && items="$items\nInstall\0icon\x1fsystem-software-install" || nol=7
+
+# more menu options
+items="$items\nGuide\0icon\x1fhelp-contents\nKeybinds\0icon\x1finput-keyboard\nExit\0icon\x1fsystem-shutdown"
+
+# on selection do....
+choice=$(printf "$items" | rofi -dmenu -p "FruitBang" -show-icons \
+  -theme-str "listview {lines: $nol;} inputbar { enabled: false; } window { width: 250px; }")
+
+case "$choice" in
+  Terminal)
+    foot
+    ;;
+  Firefox)
+    firefox
+    ;;
+  Files)
+    thunar
+    ;;
+  Applications)
+    rofi -show drun
+    ;;
+  Install)
+    foot --fullscreen -e sudo -EH ~/Scripts/abinstall
+    ;;
+  Guide)
+    l3afpad ~/Documents/Guide
+    ;;
+  Keybinds)
+    grep -E "(Super|Ctrl|Vol|Mute|Alt)" ~/Documents/Keybindings \
+      | rofi -dmenu -p "Keybinds" -columns 2 -theme-str "listview {lines: 16;}"
+    ;;
+  Exit)
+    ~/Scripts/powermenu
+    ;;
+esac
+
+
