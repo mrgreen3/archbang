@@ -31,3 +31,29 @@ def test_validate_name_rejects_bad():
     assert mod.validate_name("UPPER") is False
     assert mod.validate_name("inject;rm") is False
     assert mod.validate_name("a" * 33) is False
+
+
+LSBLK_SAMPLE = '''{
+  "blockdevices": [
+    {"name":"sda","size":"20G","type":"disk","children":[
+      {"name":"sda1","size":"512M","type":"part"},
+      {"name":"sda2","size":"19.5G","type":"part"}
+    ]}
+  ]
+}'''
+
+
+def test_parse_lsblk_returns_partitions():
+    mod = load_mod()
+    parts = mod.parse_lsblk(LSBLK_SAMPLE)
+    paths = [p["path"] for p in parts]
+    assert "/dev/sda1" in paths
+    assert "/dev/sda2" in paths
+    assert "/dev/sda" not in paths
+
+
+def test_parse_lsblk_includes_size():
+    mod = load_mod()
+    parts = mod.parse_lsblk(LSBLK_SAMPLE)
+    sda1 = next(p for p in parts if p["path"] == "/dev/sda1")
+    assert sda1["size"] == "512M"
