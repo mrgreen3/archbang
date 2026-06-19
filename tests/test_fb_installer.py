@@ -57,3 +57,21 @@ def test_parse_lsblk_includes_size():
     parts = mod.parse_lsblk(LSBLK_SAMPLE)
     sda1 = next(p for p in parts if p["path"] == "/dev/sda1")
     assert sda1["size"] == "512M"
+
+
+def test_parse_rsync_progress_extracts_percent():
+    mod = load_mod()
+    line = "    1,234,567  45%   12.3MB/s    0:00:10"
+    assert mod.parse_rsync_progress(line) == 45
+
+
+def test_parse_rsync_progress_none_when_absent():
+    mod = load_mod()
+    assert mod.parse_rsync_progress("sending incremental file list") is None
+
+
+def test_step_percent_weights():
+    mod = load_mod()
+    assert mod.step_percent(0, 0) == 0
+    assert mod.step_percent(2, 50) == 35
+    assert mod.step_percent(8, 100) == 100
