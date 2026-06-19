@@ -7,8 +7,141 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 PORT = 7777
 
-# Placeholder; real HTML wizard arrives in Task 8.
-PAGE_HTML = "<!doctype html><title>FruitBang Installer</title>"
+PAGE_HTML = r"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FruitBang Installer</title>
+<style>
+  body { background:#201b14; color:#c9c0b0; font-family:monospace;
+         max-width:640px; margin:40px auto; padding:0 16px; line-height:1.5; }
+  h1, h2 { color:#c9b890; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+  button { background:#c9b890; color:#201b14; border:none; border-radius:6px;
+           padding:10px 18px; font-family:monospace; font-size:1em; cursor:pointer; }
+  button:disabled { opacity:0.4; cursor:default; }
+  label { display:block; margin:8px 0; }
+  input[type=text], input[type=password] {
+    background:#2c261d; color:#c9c0b0; border:1px solid #c9b890;
+    border-radius:6px; padding:6px; font-family:monospace; width:100%; box-sizing:border-box; }
+  .warn { color:#e0a060; border:1px solid #e0a060; border-radius:6px; padding:10px; }
+  .err  { color:#e06060; border:1px solid #e06060; border-radius:6px; padding:10px; margin:10px 0; }
+  #bar { background:#2c261d; border-radius:6px; height:24px; overflow:hidden; margin:12px 0; }
+  #fill { background:#c9b890; height:100%; width:0%; transition:width 0.3s; }
+  pre { background:#2c261d; border-radius:6px; padding:8px; font-size:0.85em; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<h1>FruitBang Installer</h1>
+<div id="err" class="err" style="display:none"></div>
+
+<div id="p-welcome" class="panel active">
+  <div class="warn"><b>Warning:</b> Installing will erase data on the target partition.
+  Back up anything important first.</div>
+  <p>Requirements: booted from FruitBang live ISO, 20GB+ target disk.</p>
+  <button onclick="show('disk')">Begin</button>
+</div>
+
+<div id="p-disk" class="panel">
+  <h2>Select Partitions</h2>
+  <p>Choose the root partition (and EFI partition if UEFI).</p>
+  <div id="disks">Loading...</div>
+  <label>Root partition: <select id="root"></select></label>
+  <label>EFI partition (UEFI only, else leave blank):
+    <select id="efi"><option value="">none</option></select></label>
+  <button onclick="show('part')">Continue</button>
+</div>
+
+<div id="p-part" class="panel">
+  <h2>Partition the Disk</h2>
+  <p>If your disk is not yet partitioned, open a terminal and run:</p>
+  <pre>sudo cfdisk /dev/sdX</pre>
+  <p>Create a root partition (and a 512M EFI partition for UEFI). Return here when done.</p>
+  <button onclick="checkPartitions()">Continue</button>
+</div>
+
+<div id="p-install" class="panel">
+  <h2>Installing</h2>
+  <div id="bar"><div id="fill"></div></div>
+  <p id="step">Starting...</p>
+  <pre id="logtail"></pre>
+</div>
+
+<div id="p-configure" class="panel">
+  <h2>Configure System</h2>
+  <label>Hostname: <input type="text" id="hostname" value="fruitbang"></label>
+  <label>Username: <input type="text" id="username"></label>
+  <label>Password: <input type="password" id="pw1"></label>
+  <label>Confirm password: <input type="password" id="pw2"></label>
+  <button onclick="startInstall()">Install</button>
+</div>
+
+<div id="p-done" class="panel">
+  <h2>Installation Complete</h2>
+  <p>Remove the ISO and reboot.</p>
+  <button onclick="doReboot()">Reboot</button>
+</div>
+
+<script>
+const sel = {};  // chosen partitions carried from disk panel
+function show(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('p-' + name).classList.add('active');
+}
+function showErr(msg) {
+  const e = document.getElementById('err');
+  e.textContent = msg; e.style.display = msg ? 'block' : 'none';
+}
+async function loadDisks() {
+  const r = await fetch('/api/disks'); const d = await r.json();
+  const root = document.getElementById('root'), efi = document.getElementById('efi');
+  document.getElementById('disks').textContent =
+    d.disks.map(p => p.path + ' (' + p.size + ')').join(', ') || 'none found';
+  d.disks.forEach(p => {
+    root.add(new Option(p.path + ' (' + p.size + ')', p.path));
+    efi.add(new Option(p.path + ' (' + p.size + ')', p.path));
+  });
+}
+async function checkPartitions() {
+  showErr('');
+  sel.root_part = document.getElementById('root').value;
+  sel.efi_part = document.getElementById('efi').value;
+  const r = await fetch('/api/partition', {method:'POST',
+    body: JSON.stringify(sel)});
+  const d = await r.json();
+  if (!d.ok) return showErr(d.error);
+  show('configure');
+}
+async function startInstall() {
+  showErr('');
+  const pw1 = document.getElementById('pw1').value;
+  if (pw1 !== document.getElementById('pw2').value) return showErr('Passwords do not match');
+  const cfg = Object.assign({}, sel, {
+    hostname: document.getElementById('hostname').value,
+    username: document.getElementById('username').value,
+    password: pw1,
+  });
+  const r = await fetch('/api/install', {method:'POST', body: JSON.stringify(cfg)});
+  const d = await r.json();
+  if (!d.ok) return showErr(d.error);
+  show('install');
+  poll();
+}
+async function poll() {
+  const r = await fetch('/api/progress'); const s = await r.json();
+  document.getElementById('fill').style.width = s.percent + '%';
+  document.getElementById('step').textContent = s.step + ' (' + s.percent + '%)';
+  if (s.error) { showErr(s.error); return; }
+  if (s.done) { show('done'); return; }
+  setTimeout(poll, 2000);
+}
+async function doReboot() { await fetch('/api/reboot', {method:'POST', body:'{}'}); }
+loadDisks();
+</script>
+</body>
+</html>"""
 
 # --- Pure helpers (unit-tested) ---
 
