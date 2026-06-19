@@ -189,14 +189,15 @@ def copy_airootfs():
 
 def sync_upperdir():
     import glob
-    matches = glob.glob("/run/archiso/cowspace/*/x86_64/upperdir")
+    matches = glob.glob("/run/archiso/cowspace/**/upperdir", recursive=True)
+    matches = [m for m in matches if "/x86_64/" in m]
     if matches:
         run(["rsync", "-aAXH", matches[0] + "/", MNT + "/"])
 
 
 def configure_system():
     chroot("systemd-machine-id-setup")
-    res = subprocess.run(["genfstab", "-U", MNT], capture_output=True, text=True)
+    res = subprocess.run(["genfstab", "-U", MNT], capture_output=True, text=True, check=True)
     with open(MNT + "/etc/fstab", "a") as f:
         f.write(res.stdout)
     preset = (
@@ -211,6 +212,8 @@ def configure_system():
         f.write(preset)
     chroot("sed -i 's/^COMPRESSION=\"xz\"/#COMPRESSION=\"xz\"/' /etc/mkinitcpio.conf")
     chroot("sed -i 's/^COMPRESSION_OPTIONS=/#COMPRESSION_OPTIONS=/' /etc/mkinitcpio.conf")
+    hooks = "base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
+    chroot(f"sed -i -E 's|^HOOKS=.*|HOOKS=({hooks})|' /etc/mkinitcpio.conf")
     chroot("mkinitcpio -p linux")
 
 
@@ -260,5 +263,15 @@ def cleanup():
         "/etc/skel",
     ):
         chroot(f"rm -rf {p}")
+    # Switch journald from volatile (live) to auto (installed)
+    chroot("sed -i 's/volatile/auto/g' /etc/systemd/journald.conf.d/volatile-storage.conf 2>/dev/null || true")
+    chroot("mv /etc/systemd/journald.conf.d/volatile-storage.conf /etc/systemd/journald.conf.d/auto-storage.conf 2>/dev/null || true")
+    # Remove live-only services
+    chroot("unlink /etc/systemd/system/multi-user.target.wants/pacman-init.service 2>/dev/null || true")
+    chroot("rm -f /etc/systemd/system/pacman-init.service")
+    chroot("rm -f /etc/systemd/system/default.target")
+    chroot("rm -f /etc/systemd/system/etc-pacman.d-gnupg.mount")
+    # Restore gparted visibility in the menu
+    chroot("sed -i '/^Hidden=true/d' /usr/share/applications/gparted.desktop 2>/dev/null || true")
     chroot("sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers")
     chroot("sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers")
