@@ -1,0 +1,28 @@
+#!/bin/bash
+# Launch the FruitBang browser installer.
+set -e
+
+PORT=7777
+SCRIPT=/usr/local/bin/fb-installer.py
+
+if ! command -v firefox >/dev/null 2>&1; then
+  echo "Firefox not found." >&2
+  exit 1
+fi
+
+echo "Starting FruitBang installer..."
+sudo python3 "$SCRIPT" &
+SRV=$!
+
+# Wait for the port to accept connections (max ~10s)
+for i in $(seq 1 20); do
+  if curl -s "http://localhost:${PORT}/" >/dev/null 2>&1; then
+    break
+  fi
+  sleep 0.5
+done
+
+firefox "http://localhost:${PORT}"
+
+# When Firefox closes, stop the server.
+sudo kill "$SRV" 2>/dev/null || true

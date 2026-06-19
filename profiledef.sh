@@ -25,5 +25,6 @@ file_permissions=(
   ["/root"]="0:0:750"
   ["/root/.gnupg"]="0:0:700"
   ["/etc/skel/Scripts/"]="0:0:755"
+  ["/usr/local/bin/fb-installer.py"]="0:0:755"
 )
 #bootstrap_tarball_compression=(gzip -cn9)
