@@ -10,3 +10,8 @@ import re
 STEP_WEIGHTS = [2, 3, 60, 5, 8, 2, 5, 10, 5]
 
 NAME_RE = re.compile(r"^[a-z_][a-z0-9_-]{0,31}$")
+
+
+def validate_name(s):
+    """True if s is a safe hostname/username (lowercase, no shell metachars)."""
+    return bool(NAME_RE.match(s))

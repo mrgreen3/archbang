@@ -14,3 +14,20 @@ def load_mod():
 def test_step_weights_sum_to_100():
     mod = load_mod()
     assert sum(mod.STEP_WEIGHTS) == 100
+
+
+def test_validate_name_accepts_simple():
+    mod = load_mod()
+    assert mod.validate_name("kev") is True
+    assert mod.validate_name("fruit_bang") is True
+    assert mod.validate_name("test-host") is True
+
+
+def test_validate_name_rejects_bad():
+    mod = load_mod()
+    assert mod.validate_name("") is False
+    assert mod.validate_name("1host") is False
+    assert mod.validate_name("Has Space") is False
+    assert mod.validate_name("UPPER") is False
+    assert mod.validate_name("inject;rm") is False
+    assert mod.validate_name("a" * 33) is False
