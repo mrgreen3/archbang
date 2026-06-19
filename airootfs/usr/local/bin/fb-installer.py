@@ -54,3 +54,22 @@ def step_percent(step_index, sub_pct):
     prior = sum(STEP_WEIGHTS[:step_index])
     current = STEP_WEIGHTS[step_index] * (sub_pct / 100.0)
     return int(prior + current)
+
+
+# Human-readable label per install step; index aligns with STEP_WEIGHTS.
+INSTALL_STEPS = [
+    "Detecting firmware mode",
+    "Mounting partitions",
+    "Copying system files",
+    "Syncing live session changes",
+    "Configuring fstab and initramfs",
+    "Setting hostname",
+    "Creating user account",
+    "Installing bootloader",
+    "Cleaning up",
+]
+
+
+def new_state():
+    """Fresh shared install state dict."""
+    return {"percent": 0, "step": "", "done": False, "error": None}
