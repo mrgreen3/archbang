@@ -75,3 +75,17 @@ def test_step_percent_weights():
     assert mod.step_percent(0, 0) == 0
     assert mod.step_percent(2, 50) == 35
     assert mod.step_percent(8, 100) == 100
+
+
+def test_initial_state_shape():
+    mod = load_mod()
+    st = mod.new_state()
+    assert st["percent"] == 0
+    assert st["done"] is False
+    assert st["error"] is None
+    assert st["step"] == ""
+
+
+def test_install_steps_match_weights():
+    mod = load_mod()
+    assert len(mod.INSTALL_STEPS) == len(mod.STEP_WEIGHTS)
