@@ -26,7 +26,7 @@ fb-install (bash launcher)
         └── /api/configure   → applies hostname / user / bootloader post-install
 ```
 
-**Launcher** (`/usr/local/bin/fb-install`, bash):
+**Launcher** (`/etc/skel/Scripts/fb-install`, bash):
 ```bash
 #!/bin/bash
 sudo python3 /usr/local/bin/fb-installer.py &
@@ -125,9 +125,9 @@ Out of scope for MVP: locale, timezone, mirrors, LVM, LUKS, keyboard layout (pos
 
 | File | Action |
 |------|--------|
-| `airootfs/etc/skel/Scripts/abinstall` | Remove |
+| `airootfs/etc/skel/Scripts/abinstall` | Keep (unchanged) |
 | `airootfs/usr/local/bin/fb-installer.py` | Add (Python server + HTML) |
-| `airootfs/usr/local/bin/fb-install` | Add (bash launcher, executable) |
+| `airootfs/etc/skel/Scripts/fb-install` | Add (bash launcher, executable) |
 | `packages.x86_64` | No changes — Python stdlib only |
 
 ---
