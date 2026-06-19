@@ -1,4 +1,5 @@
 todo
+.venv-test/
 out/
 work/
 aur_repo/
