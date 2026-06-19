@@ -89,3 +89,14 @@ def test_initial_state_shape():
 def test_install_steps_match_weights():
     mod = load_mod()
     assert len(mod.INSTALL_STEPS) == len(mod.STEP_WEIGHTS)
+
+
+def test_validate_install_cfg():
+    mod = load_mod()
+    ok = {"root_part": "/dev/sda2", "hostname": "fruit",
+          "username": "kev", "password": "x"}
+    assert mod.validate_install_cfg(ok) is None
+    assert mod.validate_install_cfg({**ok, "hostname": "Bad Host"})
+    assert mod.validate_install_cfg({**ok, "username": "1bad"})
+    assert mod.validate_install_cfg({**ok, "password": ""})
+    assert mod.validate_install_cfg({**ok, "root_part": ""})

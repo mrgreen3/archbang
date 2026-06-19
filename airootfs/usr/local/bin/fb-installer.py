@@ -3,6 +3,12 @@
 
 import json
 import re
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+PORT = 7777
+
+# Placeholder; real HTML wizard arrives in Task 8.
+PAGE_HTML = "<!doctype html><title>FruitBang Installer</title>"
 
 # --- Pure helpers (unit-tested) ---
 
@@ -275,3 +281,95 @@ def cleanup():
     chroot("sed -i '/^Hidden=true/d' /usr/share/applications/gparted.desktop 2>/dev/null || true")
     chroot("sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' /etc/sudoers")
     chroot("sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers")
+
+
+# --- HTTP server ---
+
+
+class Handler(BaseHTTPRequestHandler):
+    def _send(self, code, body, ctype="application/json"):
+        data = body.encode() if isinstance(body, str) else body
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _json(self, obj, code=200):
+        self._send(code, json.dumps(obj))
+
+    def log_message(self, *a):
+        pass  # silence default stderr logging
+
+    def do_GET(self):
+        if self.path == "/" or self.path == "/index.html":
+            self._send(200, PAGE_HTML, "text/html")
+        elif self.path == "/api/disks":
+            res = subprocess.run(["lsblk", "-J", "-o", "NAME,SIZE,TYPE"],
+                                 capture_output=True, text=True)
+            self._json({"ok": True, "disks": parse_lsblk(res.stdout)})
+        elif self.path == "/api/progress":
+            with STATE_LOCK:
+                self._json(dict(STATE))
+        else:
+            self._json({"ok": False, "error": "not found"}, 404)
+
+    def do_POST(self):
+        length = int(self.headers.get("Content-Length", 0))
+        raw = self.rfile.read(length).decode() if length else "{}"
+        try:
+            body = json.loads(raw)
+        except ValueError:
+            return self._json({"ok": False, "error": "bad json"}, 400)
+
+        if self.path == "/api/partition":
+            import os
+            for key in ("root_part", "efi_part"):
+                p = body.get(key)
+                if p and not os.path.exists(p):
+                    return self._json({"ok": False, "error": f"{p} not found"}, 400)
+            if not body.get("root_part"):
+                return self._json({"ok": False, "error": "root partition required"}, 400)
+            self._json({"ok": True})
+
+        elif self.path == "/api/install":
+            err = validate_install_cfg(body)
+            if err:
+                return self._json({"ok": False, "error": err}, 400)
+            with STATE_LOCK:
+                STATE.update(new_state())
+            threading.Thread(target=do_install, args=(body,), daemon=True).start()
+            self._json({"ok": True})
+
+        elif self.path == "/api/reboot":
+            self._json({"ok": True})
+            subprocess.Popen(["reboot"])
+        else:
+            self._json({"ok": False, "error": "not found"}, 404)
+
+
+def validate_install_cfg(cfg):
+    """Return error string if cfg invalid, else None."""
+    if not cfg.get("root_part"):
+        return "root partition required"
+    if not validate_name(cfg.get("hostname", "")):
+        return "invalid hostname"
+    if not validate_name(cfg.get("username", "")):
+        return "invalid username"
+    if not cfg.get("password"):
+        return "password required"
+    return None
+
+
+def main():
+    open(LOG_PATH, "w").close()
+    server = HTTPServer(("127.0.0.1", PORT), Handler)
+    print(f"FruitBang installer running at http://localhost:{PORT}")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.shutdown()
+
+
+if __name__ == "__main__":
+    main()
