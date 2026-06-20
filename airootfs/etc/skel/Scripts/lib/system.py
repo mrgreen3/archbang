@@ -207,10 +207,14 @@ def cleanup():
     for p in (
         "/home/*/Scripts/abinstall",
         "/home/*/Scripts/fb-install",
+        "/home/*/Scripts/abi-install",
+        "/home/*/Scripts/abi-installer.py",
+        "/home/*/Scripts/lib",
         "/etc/systemd/system/getty@tty1.service.d",
         "/etc/skel",
     ):
         chroot(f"rm -rf {p}")
+    chroot("sed -i '/fruitbang\\.install/d' /etc/hosts")
     chroot("sed -i 's/volatile/auto/g' /etc/systemd/journald.conf.d/volatile-storage.conf 2>/dev/null || true")
     chroot("mv /etc/systemd/journald.conf.d/volatile-storage.conf /etc/systemd/journald.conf.d/auto-storage.conf 2>/dev/null || true")
     chroot("unlink /etc/systemd/system/multi-user.target.wants/pacman-init.service 2>/dev/null || true")
