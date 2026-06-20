@@ -156,9 +156,9 @@ def configure_keymap(layout, username):
     console_km = CONSOLE_KEYMAP.get(layout, layout)
     with open(MNT + "/etc/vconsole.conf", "w") as f:
         f.write(f"KEYMAP={console_km}\n")
-    mango_cfg = MNT + f"/home/{username}/.config/mango/config.conf"
-    if os.path.exists(mango_cfg):
-        chroot(f"sed -i 's/^xkb_rules_layout=.*/xkb_rules_layout={layout}/' {mango_cfg}")
+    mango_cfg_host = MNT + f"/home/{username}/.config/mango/config.conf"
+    if os.path.exists(mango_cfg_host):
+        chroot(f"sed -i 's/^xkb_rules_layout=.*/xkb_rules_layout={layout}/' /home/{username}/.config/mango/config.conf")
 
 
 def configure_hostname(hostname):
