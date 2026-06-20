@@ -25,3 +25,6 @@ cd "$TMP/yay"
 makepkg -si --noconfirm
 
 echo "yay installed: $(yay --version)"
+
+echo "Cleaning Go package cache..."
+go clean -cache 2>/dev/null || true
