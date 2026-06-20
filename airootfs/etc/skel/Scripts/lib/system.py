@@ -157,7 +157,8 @@ def configure_keymap(layout, username):
     with open(MNT + "/etc/vconsole.conf", "w") as f:
         f.write(f"KEYMAP={console_km}\n")
     mango_cfg = MNT + f"/home/{username}/.config/mango/config.conf"
-    chroot(f"sed -i 's/^xkb_rules_layout=.*/xkb_rules_layout={layout}/' {mango_cfg}")
+    if os.path.exists(mango_cfg):
+        chroot(f"sed -i 's/^xkb_rules_layout=.*/xkb_rules_layout={layout}/' {mango_cfg}")
 
 
 def configure_hostname(hostname):
@@ -250,11 +251,11 @@ def do_install(cfg):
         set_state(percent=step_percent(5, 50))
         configure_timezone(cfg.get("timezone", "UTC"))
         configure_locale(cfg.get("locale", "en_GB.UTF-8"))
-        configure_keymap(cfg.get("keymap", "us"), cfg["username"])
         set_state(percent=step_percent(5, 100))
 
         set_state(step=INSTALL_STEPS[6], percent=step_percent(6, 50))
         configure_user(cfg["username"], cfg["password"])
+        configure_keymap(cfg.get("keymap", "us"), cfg["username"])
         set_state(percent=step_percent(6, 100))
 
         set_state(step=INSTALL_STEPS[7], percent=step_percent(7, 20))
