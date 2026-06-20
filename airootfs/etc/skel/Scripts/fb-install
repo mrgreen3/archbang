@@ -3,7 +3,7 @@
 set -e
 
 PORT=7777
-SCRIPT=/usr/local/bin/fb-installer.py
+SCRIPT="$HOME/Scripts/fb-installer.py"
 
 if ! command -v firefox >/dev/null 2>&1; then
   echo "Firefox not found." >&2
