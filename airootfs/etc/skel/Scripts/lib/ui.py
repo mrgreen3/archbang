@@ -26,6 +26,26 @@ PAGE_HTML = r"""<!doctype html>
   #bar { background:#2c261d; border-radius:6px; height:24px; overflow:hidden; margin:12px 0; }
   #fill { background:#c9b890; height:100%; width:0%; transition:width 0.3s; }
   pre { background:#2c261d; border-radius:6px; padding:8px; font-size:0.85em; white-space:pre-wrap; }
+  #steps { display:flex; justify-content:center; margin-bottom:24px; }
+  .step { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; opacity:.35; }
+  .step.active { opacity:1; }
+  .step-num { background:#2c261d; color:#c9b890; border:2px solid #3a3228; border-radius:50%;
+              width:28px; height:28px; line-height:28px; text-align:center; font-size:.85em; }
+  .step.active .step-num { background:#c9b890; color:#201b14; border-color:#c9b890; }
+  .step.done .step-num { background:#c9b890; color:#201b14; border-color:#c9b890; }
+  .step.done { opacity:.7; }
+  .step-lbl { font-size:.7em; color:#8c8070; }
+  .step.active .step-lbl { color:#c9c0b0; }
+  #pct-num { display:block; font-size:3em; font-weight:bold; color:#c9b890;
+             text-align:center; line-height:1; margin:12px 0 4px; }
+  #step { display:block; text-align:center; color:#8c8070; margin-bottom:12px; font-size:.9em; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+  #fill.running { animation:pulse 1.5s ease-in-out infinite; }
+  #logtail-wrap { background:#0d0b07; border-radius:6px; padding:4px 8px;
+                  max-height:200px; overflow-y:auto; margin-top:8px; }
+  #logtail-wrap pre { background:transparent; padding:0; margin:0; font-size:.8em; color:#7a9960; }
+  .section-lbl { color:#8c8070; font-size:.85em; margin:12px 0 4px; }
+  .section-rule { border:none; border-top:1px solid #3a3228; margin:16px 0 4px; }
 </style>
 </head>
 <body>
@@ -38,6 +58,13 @@ PAGE_HTML = r"""<!doctype html>
           fill="#c9c0b0" letter-spacing="5">FruitBang</text>
   </svg>
 </div>
+<div id="steps">
+  <div class="step active" id="s-welcome"><div class="step-num">1</div><div class="step-lbl">Welcome</div></div>
+  <div class="step" id="s-disk"><div class="step-num">2</div><div class="step-lbl">Disk</div></div>
+  <div class="step" id="s-configure"><div class="step-num">3</div><div class="step-lbl">Configure</div></div>
+  <div class="step" id="s-install"><div class="step-num">4</div><div class="step-lbl">Install</div></div>
+  <div class="step" id="s-done"><div class="step-num">5</div><div class="step-lbl">Done</div></div>
+</div>
 <div id="err" class="err" style="display:none"></div>
 
 <div id="p-welcome" class="panel active">
@@ -49,9 +76,13 @@ PAGE_HTML = r"""<!doctype html>
 <div id="p-mode" class="panel">
   <h2>Partitioning</h2>
   <p><b>Auto</b> — wipe a whole disk and partition it automatically.</p>
+  <p><b>Custom</b> — wipe a whole disk and define your own partitions.</p>
   <p><b>Manual</b> — you have already partitioned; select existing partitions.</p>
-  <button onclick="showAuto()">Auto — erase whole disk</button>
-  <button onclick="showManual()">Manual — select partitions</button>
+  <div style="display:flex;gap:8px;">
+    <button style="flex:1" onclick="showAuto()">Auto</button>
+    <button style="flex:1" onclick="showCustom()">Custom</button>
+    <button style="flex:1" onclick="showManual()">Manual</button>
+  </div>
 </div>
 
 <div id="p-autodisk" class="panel">
@@ -60,6 +91,17 @@ PAGE_HTML = r"""<!doctype html>
   <label>Disk: <select id="wholedisk"></select></label>
   <p id="autodisk-uefi"></p>
   <button class="danger" onclick="confirmAutopart()">Erase disk and partition</button>
+</div>
+
+<div id="p-custom" class="panel">
+  <h2>Custom Layout</h2>
+  <div class="warn"><b>WARNING: All data on the selected disk will be permanently erased.</b></div>
+  <label>Disk: <select id="customdisk"></select></label>
+  <p id="custom-uefi" class="section-lbl"></p>
+  <div id="partrows"></div>
+  <button onclick="addRow()">+ Add partition</button>
+  <hr class="section-rule">
+  <button class="danger" onclick="createLayout()">Create layout and format</button>
 </div>
 
 <div id="p-disk" class="panel">
@@ -77,22 +119,26 @@ PAGE_HTML = r"""<!doctype html>
   <p>If your disk is not yet partitioned, open a terminal and run:</p>
   <pre>sudo cfdisk /dev/sdX</pre>
   <p>Create a root partition (and a 512M EFI partition for UEFI). Return here when done.</p>
-  <button onclick="checkPartitions()">Continue</button>
+  <button onclick="loadDisks()">Re-scan partitions</button>
 </div>
 
 <div id="p-install" class="panel">
   <h2>Installing</h2>
+  <span id="pct-num">0%</span>
+  <span id="step">Starting…</span>
   <div id="bar"><div id="fill"></div></div>
-  <p id="step">Starting...</p>
-  <pre id="logtail"></pre>
+  <div id="logtail-wrap"><pre id="logtail"></pre></div>
 </div>
 
 <div id="p-configure" class="panel">
   <h2>Configure System</h2>
+  <p class="section-lbl">System identity</p>
   <label>Hostname: <input type="text" id="hostname" value="fruitbang"></label>
   <label>Username: <input type="text" id="username"></label>
   <label>Password: <input type="password" id="pw1"></label>
   <label>Confirm password: <input type="password" id="pw2"></label>
+  <hr class="section-rule">
+  <p class="section-lbl">Localisation</p>
   <label>Timezone:
     <select id="timezone">
       <optgroup label="Europe">
@@ -212,9 +258,22 @@ git clone https://aur.archlinux.org/yay.git && cd yay && makepkg -si</code></p>
 
 <script>
 const sel = {};  // chosen partitions carried through panels
+const STEP_MAP = {
+  welcome:'welcome', mode:'disk', autodisk:'disk', custom:'disk',
+  disk:'disk', part:'disk', configure:'configure',
+  install:'install', done:'done'
+};
+const STEP_ORDER = ['welcome','disk','configure','install','done'];
 function show(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById('p-' + name).classList.add('active');
+  const step = STEP_MAP[name];
+  const activeIdx = STEP_ORDER.indexOf(step);
+  document.querySelectorAll('.step').forEach((el, i) => {
+    el.classList.remove('active','done');
+    if (i < activeIdx) el.classList.add('done');
+    else if (i === activeIdx) el.classList.add('active');
+  });
 }
 function showErr(msg) {
   const e = document.getElementById('err');
@@ -246,20 +305,121 @@ async function confirmAutopart() {
   sel.efi_part = d.efi_part || '';
   show('configure');
 }
+let customUefi = false;
+let rows = [];  // [{size, role, fs}] in on-disk order
+async function showCustom() {
+  showErr('');
+  let d;
+  try {
+    const r = await fetch('/api/whole_disks'); d = await r.json();
+  } catch (e) { return showErr('Could not query disks: ' + e); }
+  if (!d || !d.ok) return showErr((d && d.error) || 'Could not query disks');
+  const s = document.getElementById('customdisk'); s.innerHTML = '';
+  if (!d.disks.length) { showErr('No disks found'); return; }
+  d.disks.forEach(p => s.add(new Option(p.path + ' (' + p.size + ')', p.path)));
+  customUefi = !!d.uefi;
+  document.getElementById('custom-uefi').textContent = customUefi
+    ? 'UEFI (GPT): include exactly one EFI partition.'
+    : 'BIOS (MBR): no EFI partition, max 4 partitions.';
+  rows = customUefi
+    ? [{size:'512M', role:'efi', fs:'ext4'}, {size:'', role:'root', fs:'ext4'}]
+    : [{size:'', role:'root', fs:'ext4'}];
+  renderRows();
+  show('custom');
+}
+function renderRows() {
+  const c = document.getElementById('partrows');
+  c.innerHTML = '';
+  rows.forEach((row, i) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex; gap:6px; align-items:center; margin:6px 0; flex-wrap:wrap;';
+
+    const size = document.createElement('input');
+    size.type = 'text'; size.style.width = '90px';
+    size.placeholder = 'size'; size.value = row.size;
+    size.addEventListener('input', () => { rows[i].size = size.value; });
+
+    const roleSel = document.createElement('select');
+    (customUefi ? ['root','efi','swap','home'] : ['root','swap','home'])
+      .forEach(r => roleSel.add(new Option(r, r)));
+    roleSel.value = row.role;
+    roleSel.addEventListener('change', () => { rows[i].role = roleSel.value; renderRows(); });
+
+    div.appendChild(size);
+    div.appendChild(roleSel);
+
+    if (row.role === 'root' || row.role === 'home') {
+      const fsSel = document.createElement('select');
+      ['ext4','btrfs','xfs'].forEach(f => fsSel.add(new Option(f, f)));
+      fsSel.value = row.fs;
+      fsSel.addEventListener('change', () => { rows[i].fs = fsSel.value; });
+      div.appendChild(fsSel);
+    }
+
+    const del = document.createElement('button');
+    del.textContent = 'x'; del.disabled = rows.length <= 1;
+    del.addEventListener('click', () => { rows.splice(i, 1); renderRows(); });
+    div.appendChild(del);
+
+    c.appendChild(div);
+  });
+  const hint = document.createElement('div');
+  hint.className = 'section-lbl';
+  hint.textContent = 'Leave the last size blank to use remaining space. Sizes e.g. 512M, 30G.';
+  c.appendChild(hint);
+}
+function addRow() { rows.push({size:'10G', role:'home', fs:'ext4'}); renderRows(); }
+async function createLayout() {
+  showErr('');
+  const disk = document.getElementById('customdisk').value;
+  if (!disk) return showErr('No disk selected');
+  const btn = document.querySelector('#p-custom .danger');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  let d;
+  try {
+    const r = await fetch('/api/custompart', {method:'POST', body: JSON.stringify({disk, parts: rows})});
+    d = await r.json();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Create layout and format';
+    return showErr('Request failed: ' + e);
+  }
+  btn.disabled = false; btn.textContent = 'Create layout and format';
+  if (!d.ok) return showErr(d.error);
+  sel.root_part = d.root_part;
+  sel.efi_part = d.efi_part || '';
+  sel.swap_part = d.swap_part || '';
+  sel.home_part = d.home_part || '';
+  show('configure');
+}
 async function showManual() {
   showErr('');
   await loadDisks();
-  show('disk');
 }
 async function loadDisks() {
-  const r = await fetch('/api/disks'); const d = await r.json();
+  showErr('');
+  let d;
+  try {
+    const r = await fetch('/api/disks'); d = await r.json();
+  } catch (e) { return showErr('Could not query partitions: ' + e); }
+  if (!d || !d.ok) return showErr((d && d.error) || 'Could not query partitions');
   const root = document.getElementById('root'), efi = document.getElementById('efi');
+  // Rebuild from scratch so re-entry doesn't duplicate options.
+  root.innerHTML = '';
+  efi.innerHTML = '<option value="">none</option>';
+  const parts = d.disks || [];
+  if (!parts.length) {
+    // Nothing to select — send the user to the partitioning instructions
+    // instead of stranding them on an empty dropdown.
+    show('part');
+    return;
+  }
   document.getElementById('disks').textContent =
-    d.disks.map(p => p.path + ' (' + p.size + ')').join(', ') || 'none found';
-  d.disks.forEach(p => {
+    parts.map(p => p.path + ' (' + p.size + ')').join(', ');
+  parts.forEach(p => {
     root.add(new Option(p.path + ' (' + p.size + ')', p.path));
     efi.add(new Option(p.path + ' (' + p.size + ')', p.path));
   });
+  show('disk');
 }
 async function checkPartitions() {
   showErr('');
@@ -289,15 +449,17 @@ async function startInstall() {
   if (!d.ok) return showErr(d.error);
   _maxPct = 0;
   show('install');
+  document.getElementById('fill').classList.add('running');
   poll();
 }
 async function poll() {
   const r = await fetch('/api/progress'); const s = await r.json();
   if (s.percent > _maxPct) _maxPct = s.percent;
   document.getElementById('fill').style.width = _maxPct + '%';
-  document.getElementById('step').textContent = s.step + ' (' + _maxPct + '%)';
+  document.getElementById('pct-num').textContent = _maxPct + '%';
+  document.getElementById('step').textContent = s.step || '';
   if (s.error) { showErr(s.error); return; }
-  if (s.done) { show('done'); return; }
+  if (s.done) { document.getElementById('fill').classList.remove('running'); show('done'); return; }
   setTimeout(poll, 2000);
 }
 async function doReboot() { await fetch('/api/reboot', {method:'POST', body:'{}'}); }
