@@ -142,7 +142,7 @@ PAGE_HTML = r"""<!doctype html>
   <label>Timezone:
     <select id="timezone">
       <optgroup label="Europe">
-        <option value="Europe/London" selected>Europe/London</option>
+        <option value="Europe/London">Europe/London</option>
         <option value="Europe/Dublin">Europe/Dublin</option>
         <option value="Europe/Lisbon">Europe/Lisbon</option>
         <option value="Europe/Paris">Europe/Paris</option>
@@ -169,6 +169,7 @@ PAGE_HTML = r"""<!doctype html>
         <option value="America/Denver">America/Denver</option>
         <option value="America/Los_Angeles">America/Los_Angeles</option>
         <option value="America/Toronto">America/Toronto</option>
+        <option value="America/Montreal" selected>America/Montreal</option>
         <option value="America/Vancouver">America/Vancouver</option>
         <option value="America/Sao_Paulo">America/Sao_Paulo</option>
         <option value="America/Mexico_City">America/Mexico_City</option>
@@ -195,8 +196,8 @@ PAGE_HTML = r"""<!doctype html>
   </label>
   <label>Locale:
     <select id="locale">
-      <option value="en_GB.UTF-8" selected>en_GB.UTF-8 (English UK)</option>
-      <option value="en_US.UTF-8">en_US.UTF-8 (English US)</option>
+      <option value="en_GB.UTF-8">en_GB.UTF-8 (English UK)</option>
+      <option value="en_US.UTF-8" selected>en_US.UTF-8 (English US)</option>
       <option value="de_DE.UTF-8">de_DE.UTF-8 (German)</option>
       <option value="fr_FR.UTF-8">fr_FR.UTF-8 (French)</option>
       <option value="es_ES.UTF-8">es_ES.UTF-8 (Spanish)</option>
@@ -217,8 +218,8 @@ PAGE_HTML = r"""<!doctype html>
   </label>
   <label>Keyboard layout:
     <select id="keymap">
-      <option value="us">US English</option>
-      <option value="gb" selected>UK English</option>
+      <option value="us" selected>US English</option>
+      <option value="gb">UK English</option>
       <option value="de">German</option>
       <option value="fr">French</option>
       <option value="es">Spanish</option>

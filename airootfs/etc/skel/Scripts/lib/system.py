@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import re
 import subprocess
 import time
 
@@ -10,7 +11,18 @@ from .state import (
     log, set_state, step_percent,
 )
 
-CONSOLE_KEYMAP = {"gb": "uk", "br": "br-abnt2"}
+# Map ui.py xkb layout values to valid console keymaps (from localectl
+# list-keymaps). Layouts absent here pass through unchanged because their xkb
+# name already exists as a console keymap (us, de, fr, es, it, nl, pl, ru,
+# no, dk, fi). Listed entries have no identically-named console keymap.
+CONSOLE_KEYMAP = {
+    "gb": "uk",
+    "br": "br-abnt2",
+    "pt": "pt-latin1",
+    "se": "sv-latin1",
+    "be": "be-latin1",
+    "ch": "sg",
+}
 
 
 def run(cmd, **kw):
@@ -34,6 +46,42 @@ def chroot(cmd_str):
 def is_uefi():
     """True if the live system booted in UEFI mode."""
     return os.path.isdir("/sys/firmware/efi")
+
+
+def whole_disk(path):
+    """Resolve a partition or disk path to its parent whole-disk path.
+
+    A partition returns its disk (via lsblk pkname); a whole disk returns itself.
+    """
+    res = subprocess.run(["lsblk", "-no", "pkname", path],
+                         capture_output=True, text=True)
+    pk = res.stdout.strip().splitlines()
+    if pk and pk[0]:
+        return "/dev/" + pk[0]
+    return path
+
+
+def live_disk():
+    """Whole-disk path backing the running live medium, or None if undeterminable."""
+    res = subprocess.run(["findmnt", "-n", "-o", "SOURCE", "/run/archiso/bootmnt"],
+                         capture_output=True, text=True)
+    src = res.stdout.strip()
+    if not src:
+        return None
+    return whole_disk(src)
+
+
+def is_live_medium(target):
+    """True if target (disk or partition) sits on the running live medium's disk.
+
+    Fail-open: if the live disk cannot be determined, return False rather than
+    block a legitimate install. The destructive path still warns via the log.
+    """
+    live = live_disk()
+    if not live:
+        log("WARNING: could not determine live medium; skipping live-disk guard")
+        return False
+    return whole_disk(target) == live
 
 
 def do_autopart(disk):
@@ -89,6 +137,95 @@ def do_autopart(disk):
         return {"root_part": root_part, "efi_part": None}
 
 
+def _part_sort_key(path):
+    """Sort /dev/sda10 after /dev/sda2 by ordering on the trailing number."""
+    m = re.search(r"(\d+)$", path)
+    return (path[: m.start()] if m else path, int(m.group(1)) if m else 0)
+
+
+def build_sfdisk_script(parts, uefi):
+    """Build sfdisk script text for a validated custom layout.
+
+    Lines use the form `,<size>,<type>` (default start, given size, type code);
+    an empty size means "use the remaining space" and is only valid on the last
+    entry. GPT type codes: U=EFI, S=swap, L=Linux. MBR: 82=swap, 83=Linux, with
+    the root partition flagged bootable (*).
+    """
+    lines = ["label: gpt" if uefi else "label: dos"]
+    for p in parts:
+        size = (p.get("size") or "").strip()
+        role = p["role"]
+        if uefi:
+            code = {"efi": "U", "swap": "S", "root": "L", "home": "L"}[role]
+            lines.append(f",{size},{code}")
+        else:
+            code = {"swap": "82", "root": "83", "home": "83"}[role]
+            flag = ",*" if role == "root" else ""
+            lines.append(f",{size},{code}{flag}")
+    return "\n".join(lines) + "\n"
+
+
+def do_custompart(disk, parts, uefi):
+    """Wipe disk, create the user-defined layout, format each partition.
+
+    Returns {root_part, efi_part, swap_part, home_part}, with absent roles None.
+    Partitions are created in list order, so the lsblk children (sorted by the
+    trailing partition number) map positionally back onto the input specs.
+    """
+    run(["wipefs", "-a", disk])
+
+    script = build_sfdisk_script(parts, uefi)
+    log("custom sfdisk script:\n" + script)
+    res = subprocess.run(
+        ["sfdisk", "--no-reread", disk],
+        input=script, text=True, capture_output=True,
+    )
+    log("sfdisk stdout: " + res.stdout)
+    log("sfdisk stderr: " + res.stderr)
+    if res.returncode != 0:
+        raise RuntimeError(f"sfdisk failed: {res.stderr.strip()}")
+
+    subprocess.run(["partprobe", disk], capture_output=True)
+    time.sleep(1)
+
+    res2 = subprocess.run(
+        ["lsblk", "-J", "-o", "NAME,TYPE", disk],
+        capture_output=True, text=True, check=True,
+    )
+    data = json.loads(res2.stdout)
+    created = []
+    for dev in data.get("blockdevices", []):
+        for child in dev.get("children", []):
+            if child.get("type") == "part":
+                created.append("/dev/" + child["name"])
+    created.sort(key=_part_sort_key)
+    if len(created) != len(parts):
+        raise RuntimeError(f"expected {len(parts)} partitions, got {created}")
+
+    result = {"root_part": None, "efi_part": None,
+              "swap_part": None, "home_part": None}
+    for spec, path in zip(parts, created):
+        role = spec["role"]
+        if role == "efi":
+            run(["mkfs.vfat", "-F32", path])
+            result["efi_part"] = path
+        elif role == "swap":
+            run(["mkswap", path])
+            result["swap_part"] = path
+        else:
+            fs = spec.get("fs", "ext4")
+            if fs == "ext4":
+                run(["mkfs.ext4", "-F", path])
+            elif fs == "btrfs":
+                run(["mkfs.btrfs", "-f", path])
+            elif fs == "xfs":
+                run(["mkfs.xfs", "-f", path])
+            else:
+                raise RuntimeError(f"unsupported filesystem: {fs}")
+            result["root_part" if role == "root" else "home_part"] = path
+    return result
+
+
 def copy_airootfs():
     """rsync /run/archiso/airootfs -> /mnt with live percent into the copy step."""
     src = "/run/archiso/airootfs/"
@@ -117,7 +254,9 @@ def configure_system():
     """Generate fstab, set machine ID, write mkinitcpio preset, rebuild initramfs."""
     chroot("systemd-machine-id-setup")
     res = subprocess.run(["genfstab", "-U", MNT], capture_output=True, text=True, check=True)
-    with open(MNT + "/etc/fstab", "a") as f:
+    # Truncate, not append: a copied airootfs may ship its own fstab, which would
+    # otherwise leave stale/duplicate entries alongside the generated ones.
+    with open(MNT + "/etc/fstab", "w") as f:
         f.write(res.stdout)
     preset = (
         "PRESETS=('default' 'fallback')\n"
@@ -175,17 +314,28 @@ def configure_hostname(hostname):
 
 
 def configure_user(username, password):
-    """Rename the 'live' user to the chosen username, set password, fix ownership."""
+    """Rename the live 'live' account to the chosen username and set its password.
+
+    usermod rewrites /etc/passwd, /etc/shadow and group membership safely and moves
+    the home directory (uid/gid unchanged, so ownership is preserved). groupmod
+    renames the primary group if it matches the old login. Only absolute /home/live
+    paths baked into the user's own config files are rewritten — a targeted,
+    anchored replace, not the old blanket s/live/<user>/g across all of /etc.
+    """
     live = "live"
+    # Rename login, move and rename home dir in one operation.
+    chroot(f"usermod -l {username} -d /home/{username} -m {live}")
+    # Rename the user's primary group too, if one named after the old login exists.
+    chroot(f"getent group {live} >/dev/null && groupmod -n {username} {live} || true")
+    # Set the renamed account's password.
     subprocess.run(
         ["arch-chroot", MNT, "chpasswd"],
-        input=f"{live}:{password}\n", text=True, check=True,
+        input=f"{username}:{password}\n", text=True, check=True,
     )
-    chroot(f"find /home/{live} -type f -exec sed -i 's/{live}/{username}/g' {{}} +")
-    for f in ("group", "gshadow", "passwd", "shadow"):
-        chroot(f"sed -i 's/{live}/{username}/g' /etc/{f}")
-    chroot(f"mv /home/{live} /home/{username}")
-    chroot(f"chown -R {username}:users /home/{username}")
+    # Fix absolute /home/live paths in the user's config files (anchored, safe).
+    # Fix absolute /home/live paths in the user's config files (text only; -I skips binaries).
+    chroot(f"grep -rlZI '/home/{live}' /home/{username} 2>/dev/null | "
+           f"xargs -0 -r sed -i 's|/home/{live}|/home/{username}|g' || true")
 
 
 def install_grub(root_part, uefi):
@@ -196,7 +346,10 @@ def install_grub(root_part, uefi):
     else:
         res = subprocess.run(["lsblk", "-no", "pkname", root_part],
                              capture_output=True, text=True)
-        disk = "/dev/" + res.stdout.strip().splitlines()[0]
+        pk = res.stdout.strip().splitlines()
+        if not pk or not pk[0]:
+            raise RuntimeError(f"could not determine parent disk of {root_part}")
+        disk = "/dev/" + pk[0]
         run(["grub-install", "--target=i386-pc",
              "--boot-directory=" + MNT + "/boot", disk])
     chroot("grub-mkconfig -o /boot/grub/grub.cfg")
@@ -237,6 +390,13 @@ def do_install(cfg):
         if uefi and cfg.get("efi_part"):
             run(["mkdir", "-p", MNT + "/boot"])
             run(["mount", cfg["efi_part"], MNT + "/boot"])
+        # Mount extras before genfstab (run later in configure_system) so they
+        # land in the installed fstab automatically.
+        if cfg.get("home_part"):
+            run(["mkdir", "-p", MNT + "/home"])
+            run(["mount", cfg["home_part"], MNT + "/home"])
+        if cfg.get("swap_part"):
+            run(["swapon", cfg["swap_part"]])
         set_state(percent=step_percent(1, 100))
 
         set_state(step=INSTALL_STEPS[2], percent=step_percent(2, 0))
@@ -253,8 +413,8 @@ def do_install(cfg):
         set_state(step=INSTALL_STEPS[5], percent=step_percent(5, 20))
         configure_hostname(cfg["hostname"])
         set_state(percent=step_percent(5, 50))
-        configure_timezone(cfg.get("timezone", "UTC"))
-        configure_locale(cfg.get("locale", "en_GB.UTF-8"))
+        configure_timezone(cfg.get("timezone", "America/Montreal"))
+        configure_locale(cfg.get("locale", "en_US.UTF-8"))
         set_state(percent=step_percent(5, 100))
 
         set_state(step=INSTALL_STEPS[6], percent=step_percent(6, 50))
