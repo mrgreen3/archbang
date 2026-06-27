@@ -43,7 +43,7 @@ echo "LC_COLLATE=C" >> /etc/locale.conf
 hwclock --systohc --utc
 
 # Timezone
-ln -sf /usr/share/zoneinfo/Canada/Montreal /etc/localtime
+ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
 
 # Target directory where systemd user service symlinks will be created
 TARGET_DIR="/etc/skel/.config/systemd/user/default.target.wants"
