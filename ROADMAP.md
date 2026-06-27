@@ -12,8 +12,6 @@
 ## Near-term
 
 - [ ] Branding pass — name, logo, colours consistent across ISO
-- [ ] Welcome script on first boot
-- [ ] Conky system info panel
 - [ ] Audio (pipewire/wireplumber)
 - [ ] nm-applet wired up in waybar
 
