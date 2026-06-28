@@ -3,28 +3,23 @@
 ## Done
 
 - [x] Arch live ISO based on ArchBang
-- [x] MangoWM Wayland stack (labwc, waybar, foot, rofi-wayland, swaybg)
-- [x] NetworkManager with nm-applet
+- [x] MangoWM Wayland stack (waybar, foot, rofi-wayland, swaybg)
+- [x] NetworkManager with networkmanager-dmenu
 - [x] ABI browser-based installer integrated
 - [x] Full desktop config (waybar colours, keybindings, menu, wallpaper)
-- [x] fruitbang.install:7777 hostname alias for installer
+- [x] archbang.install:7777 hostname alias for installer
+- [x] Rebrand: FruitBang → ArchBang (2026-07-01)
+- [x] Port/retire abinstall — ABI is canonical installer
 
 ## Near-term
 
-- [ ] Branding pass — name, logo, colours consistent across ISO
+- [ ] Branding pass — logo, colours consistent across ISO
 - [ ] Audio (pipewire/wireplumber)
 - [ ] nm-applet wired up in waybar
 
-## Rebrand (target: 2026-07-01)
-
-- [ ] FruitBang replaces ArchBang as primary Arch Linux live ISO
-- [ ] labwc replaces existing ArchBang compositor
-- [ ] Migrate archbang and fruitbang repos from Codeberg to GitHub post-rebrand
-- [ ] Retire ~/archbang repo after migration confirmed
-- [ ] Port/retire abinstall — ABI becomes canonical installer
-
 ## Backlog / Ideas
 
+- [ ] Migrate repo from Codeberg to GitHub
 - [ ] Installer option: offline vs online install mode
 - [ ] rofi-wayland launcher theming
 - [ ] Accessibility options (font size, contrast)

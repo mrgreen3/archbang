@@ -1,6 +1,6 @@
-NAME="FruitBang"
-PRETTY_NAME="FruitBang"
-ID=fruitbang
+NAME="ArchBang"
+PRETTY_NAME="ArchBang"
+ID=archbang
 ID_LIKE=arch
 BUILD_ID=rolling
 

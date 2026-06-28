@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Profile modified for FruitBang
+# Profile modified for ArchBang
 # by Mr Green [mrgreen@archbang.org]
 
-iso_name="fruitbang"
-iso_label="FRUITBANG_$(date +%d%m%y)"
-iso_publisher="FruitBang <https://www.archbang.org>"
-iso_application="FruitBang Live Iso (Beta)"
+iso_name="archbang"
+iso_label="ARCHBANG_$(date +%d%m%y)"
+iso_publisher="ArchBang <https://www.archbang.org>"
+iso_application="ArchBang Live Iso (Beta)"
 # Version format: DDMMYY (day-month-year). Changes daily for testing/development builds.
 # Chronologically sortable for easy identification of ISO age.
 # For releases, replace with semantic versioning (e.g., "1.0.0") instead of $(date +%d%m%y)
@@ -25,6 +25,6 @@ file_permissions=(
   ["/root"]="0:0:750"
   ["/root/.gnupg"]="0:0:700"
   ["/etc/skel/Scripts/"]="0:0:755"
-  ["/usr/local/bin/fb-installer.py"]="0:0:755"
+  ["/usr/local/bin/ab-installer.py"]="0:0:755"
 )
 #bootstrap_tarball_compression=(gzip -cn9)

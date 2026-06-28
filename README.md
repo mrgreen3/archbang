@@ -1,6 +1,6 @@
-# FruitBang
+# ArchBang
 
-FruitBang is a minimal Arch Linux-based distribution featuring the MangoWM Wayland compositor. Forked from ArchBang. Lean, keyboard-driven, dark warm palette.
+ArchBang is a minimal Arch Linux-based distribution featuring the MangoWM Wayland compositor. Lean, keyboard-driven, dark warm palette.
 
 ## About
 
@@ -23,7 +23,3 @@ FruitBang is a minimal Arch Linux-based distribution featuring the MangoWM Wayla
 ## Building
 
 See `profiledef.sh` and `airootfs/root/customize_airootfs.sh`.
-
----
-
-*FruitBang is not affiliated with Arch Linux or ArchBang.*
