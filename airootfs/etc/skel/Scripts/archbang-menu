@@ -1,5 +1,5 @@
 #!/bin/bash
-# fruitbang-menu an extended rofi launcher
+# archbang-menu an extended rofi launcher
 # installer test for removal post install
 # nol reduced by one if installer not present
 # designed by mrgreen [mrgreen@archbang.org]
@@ -18,7 +18,7 @@ items="Terminal\0icon\x1futilities-terminal\nFirefox\0icon\x1ffirefox\nFiles\0ic
 items="$items\nGuide\0icon\x1fhelp-contents\nKeybinds\0icon\x1finput-keyboard\nExit\0icon\x1fsystem-shutdown"
 
 # on selection do....
-choice=$(printf "$items" | rofi -dmenu -p "FruitBang" -show-icons \
+choice=$(printf "$items" | rofi -dmenu -p "ArchBang" -show-icons \
   -theme-str "listview {lines: $nol;} inputbar { enabled: false; } window { width: 250px; }")
 
 case "$choice" in

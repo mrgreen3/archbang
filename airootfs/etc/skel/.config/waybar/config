@@ -57,7 +57,7 @@
   },
   "custom/launcher": {
     "format": "",
-    "on-click": "~/Scripts/fruitbang-menu",
+    "on-click": "~/Scripts/archbang-menu",
     "tooltip": false
   },
   "custom/files": {
