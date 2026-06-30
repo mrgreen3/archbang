@@ -1,4 +1,4 @@
-# FruitBang login shell configuration
+# ArchBang login shell configuration
 # Starts mango (Wayland compositor)
 
 . $HOME/.bashrc

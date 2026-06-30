@@ -1,4 +1,4 @@
-" Basic Vim config for FruitBang
+" Basic Vim config for ArchBang
 " Added by MrGreen
 syntax on
 set number

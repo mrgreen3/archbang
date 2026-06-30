@@ -1,7 +1,7 @@
 """Hardware info collector for the installer.
 
 This is a minimal port of the beerfetch sysinfo logic adapted for the
-FruitBang installer palette. It uses only the Python standard library.
+ArchBang installer palette. It uses only the Python standard library.
 """
 
 import json

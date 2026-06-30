@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Abinstall FruitBang installer
+# Abinstall ArchBang installer
 # Modified by Mr Green mrgreen(at)archbang(dot)org
 # based on lilo fifo...scripts
 
@@ -192,7 +192,7 @@ done
   } #}}}
   check_archiso() { #{{{
     if [[ ! -d "/run/archiso/airootfs" ]]; then
-      error_msg "ERROR! Not running from FruitBang live environment"
+      error_msg "ERROR! Not running from ArchBang live environment"
     fi
   } #}}}
   read_input() { #{{{
@@ -878,9 +878,9 @@ copy_progress() {
 }
 
 #}}}
-#INSTALL FRUITBANG {{{
-install_fruitbang(){
-  print_title "INSTALL FRUITBANG"
+#INSTALL ARCHBANG {{{
+install_archbang(){
+  print_title "INSTALL ARCHBANG"
   print_info "Installing please wait..."
 
   # Check if running from live environment
@@ -963,7 +963,7 @@ configure_hostname() {
     read -p "Hostname [ex: arch]: " host_name
   fi
 
-  host_name="${host_name:-fruitbang}"
+  host_name="${host_name:-archbang}"
 
   print_info "Using hostname: ${host_name}"
   echo "${host_name}" > "${MNT}/etc/hostname"
@@ -1219,7 +1219,7 @@ setup_user(){
 #}}}
 #FINISH {{{
 finish(){
-  print_title "FRUITBANG INSTALL COMPLETED..."
+  print_title "ARCHBANG INSTALL COMPLETED..."
   read_input_text "Reboot system"
   if [[ $OPTION == y ]]; then
     umount_partitions
@@ -1231,20 +1231,20 @@ finish(){
 
 #WELCOME SCREEN {{{
 welcome_screen(){
-  print_title "Welcome to FruitBang!"
+  print_title "Welcome to ArchBang!"
 
-  echo -e "${Bold}What is FruitBang?${Reset}"
+  echo -e "${Bold}What is ArchBang?${Reset}"
   echo -e "\tArch Linux with the MangoWM Wayland compositor."
   echo -e "\tA lean, keyboard-driven Arch-based live ISO.\n"
 
   echo -e "${Bold}System Requirements:${Reset}"
   echo -e "\t✓ 20GB+ free disk space"
   echo -e "\t✓ 2GB+ RAM"
-  echo -e "\t✓ Booted from FruitBang live ISO\n"
+  echo -e "\t✓ Booted from ArchBang live ISO\n"
 
   echo -e "${Bold}Installation Steps (8 total):${Reset}"
   echo -e "\t1. Partition your disk (Default, LVM, or LVM+LUKS)"
-  echo -e "\t2. Install FruitBang system files"
+  echo -e "\t2. Install ArchBang system files"
   echo -e "\t3. Set hostname"
   echo -e "\t4. Configure timezone & mirrors"
   echo -e "\t5. Set locale & language"
@@ -1319,7 +1319,7 @@ check_trim
 welcome_screen
 
 run_step 1 "Partition Scheme"        umount_partitions create_partition_scheme format_partitions
-run_step 2 "Install FruitBang"       install_fruitbang configure_fstab configure_mkinitcpio
+run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio
 run_step 3 "Hostname"                configure_hostname
 run_step 4 "Location"                configure_timezone configure_hardwareclock configure_mirrors
 run_step 5 "Locale"                  configure_locale

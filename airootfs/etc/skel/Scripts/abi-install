@@ -24,7 +24,7 @@ SRV=$!
 # Wait for the port to accept connections (max ~10s).
 ready=0
 for i in $(seq 1 20); do
-  if curl -s "http://fruitbang.install:${PORT}/" >/dev/null 2>&1; then
+  if curl -s "http://archbang.install:${PORT}/" >/dev/null 2>&1; then
     ready=1
     break
   fi
@@ -38,7 +38,7 @@ if [ "$ready" -eq 0 ]; then
   exit 1
 fi
 
-firefox "http://fruitbang.install:${PORT}"
+firefox "http://archbang.install:${PORT}"
 
 # When Firefox closes, stop the server (kill child Python first, then sudo).
 sudo pkill -P "$SRV" 2>/dev/null || true

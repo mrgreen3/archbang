@@ -1,10 +1,10 @@
-FruitBang: About
+ArchBang: About
 ================
 
-What is FruitBang?
+What is ArchBang?
 ------------------
 
-FruitBang is a lightweight, Arch Linux-based live ISO forked from ArchBang. It swaps
+ArchBang is a lightweight, Arch Linux-based live ISO forked from ArchBang. It swaps
 labwc for MangoWM — a custom Wayland compositor built around a warm brown and yellow
 palette. Same lean philosophy, different compositor and visual identity.
 
@@ -12,7 +12,7 @@ palette. Same lean philosophy, different compositor and visual identity.
 Origin
 ------
 
-FruitBang's story begins with CrunchBang — a Debian-based live ISO built around the
+ArchBang's story begins with CrunchBang — a Debian-based live ISO built around the
 Openbox window manager, created by Philip Newborough. CrunchBang offered something rare:
 a minimal, fast, beautifully consistent desktop that just worked, without the weight of a
 full desktop environment.
@@ -21,7 +21,7 @@ ArchBang emerged from that community, built on Arch Linux's rolling release foun
 MrGreen has maintained ArchBang for years — through window manager changes, the move to
 Wayland, and the shift to labwc.
 
-FruitBang is MrGreen's personal spin: the same base, the same installer, but built around
+ArchBang is MrGreen's personal spin: the same base, the same installer, but built around
 MangoWM and a warm dark theme rather than the stock ArchBang configuration.
 
 
@@ -38,7 +38,7 @@ Why MangoWM?
 ------------
 
 MangoWM is a custom Wayland compositor written by MrGreen. It provides a tiling and
-floating hybrid layout with a minimal footprint. FruitBang bundles the AUR packages
+floating hybrid layout with a minimal footprint. ArchBang bundles the AUR packages
 (mangowm-git, scenefx) directly in the ISO so no network access is needed to boot a
 working desktop.
 
@@ -66,8 +66,8 @@ Getting Help
 
 For Arch-related questions: https://wiki.archlinux.org
 
-FruitBang is not affiliated with Arch Linux or ArchBang.
+ArchBang is not affiliated with Arch Linux or ArchBang.
 
 ---
 
-Copyright 2025 FruitBang
+Copyright 2025 ArchBang

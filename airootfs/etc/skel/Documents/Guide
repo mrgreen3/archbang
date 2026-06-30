@@ -1,8 +1,8 @@
- FruitBang Guide
+ ArchBang Guide
 
-Welcome to FruitBang, a lightweight Arch-based Wayland live ISO built around MangoWM.
+Welcome to ArchBang, a lightweight Arch-based Wayland live ISO built around MangoWM.
 
-Note: Do not post FruitBang issues on the Arch Linux forums.
+Note: Do not post ArchBang issues on the Arch Linux forums.
 
 ---
 
@@ -64,7 +64,7 @@ Install:  sudo pacman -S <package-name>
 
 MICROCODE
 
-FruitBang includes both intel-ucode and amd-ucode. You only need one.
+ArchBang includes both intel-ucode and amd-ucode. You only need one.
 
 If you remove the unused one after installation, update your bootloader config
 (regenerate GRUB or edit loader.conf) before rebooting.
@@ -73,7 +73,7 @@ If you remove the unused one after installation, update your bootloader config
 
 INTEL GRAPHICS
 
-FruitBang uses Wayland with MangoWM, which relies on kernel modesetting via Mesa.
+ArchBang uses Wayland with MangoWM, which relies on kernel modesetting via Mesa.
 No additional Intel drivers needed — built-in kernel drivers handle acceleration.
 
 ---
@@ -92,4 +92,4 @@ Arch Wiki: https://wiki.archlinux.org
 
 ---
 
-Copyright 2025 FruitBang
+Copyright 2025 ArchBang
