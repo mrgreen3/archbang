@@ -3,7 +3,7 @@ PAGE_HTML = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ArchBang Installer</title>
+<title>FruitBang Installer</title>
 <style>
   body { background:#201b14; color:#c9c0b0; font-family:monospace;
          max-width:640px; margin:40px auto; padding:0 16px; line-height:1.5; }
@@ -55,7 +55,7 @@ PAGE_HTML = r"""<!doctype html>
     <text x="150" y="70" text-anchor="middle" font-family="monospace" font-size="56"
           font-weight="bold" fill="#c9b890">^!</text>
     <text x="150" y="98" text-anchor="middle" font-family="monospace" font-size="15"
-          fill="#c9c0b0" letter-spacing="5">ArchBang</text>
+          fill="#c9c0b0" letter-spacing="5">FruitBang</text>
   </svg>
 </div>
 <div id="steps">
@@ -69,8 +69,11 @@ PAGE_HTML = r"""<!doctype html>
 
 <div id="p-welcome" class="panel active">
   <div class="warn"><b>Warning:</b> Installing will erase the target disk — back up anything first.</div>
-  <p>Requirements: booted from ArchBang live ISO, 4GB+ RAM, 20GB+ target disk.</p>
-  <div style="text-align:center;"><button onclick="show('mode')">Begin</button></div>
+  <p>Requirements: booted from FruitBang live ISO, 4GB+ RAM, 20GB+ target disk.</p>
+  <div style="display:flex;gap:8px;justify-content:center;">
+    <button onclick="show('mode')">Begin</button>
+    <button onclick="showHardware()">System Info</button>
+  </div>
 </div>
 
 <div id="p-mode" class="panel">
@@ -90,7 +93,10 @@ PAGE_HTML = r"""<!doctype html>
   <div class="warn"><b>WARNING: All data on the selected disk will be permanently erased.</b></div>
   <label>Disk: <select id="wholedisk"></select></label>
   <p id="autodisk-uefi"></p>
-  <button class="danger" onclick="confirmAutopart()">Erase disk and partition</button>
+  <div style="display:flex;gap:8px;">
+    <button onclick="show('mode')">Back</button>
+    <button class="danger" onclick="confirmAutopart()">Erase disk and partition</button>
+  </div>
 </div>
 
 <div id="p-custom" class="panel">
@@ -101,7 +107,10 @@ PAGE_HTML = r"""<!doctype html>
   <div id="partrows"></div>
   <button onclick="addRow()">+ Add partition</button>
   <hr class="section-rule">
-  <button class="danger" onclick="createLayout()">Create layout and format</button>
+  <div style="display:flex;gap:8px;">
+    <button onclick="show('mode')">Back</button>
+    <button class="danger" onclick="createLayout()">Create layout and format</button>
+  </div>
 </div>
 
 <div id="p-disk" class="panel">
@@ -111,7 +120,10 @@ PAGE_HTML = r"""<!doctype html>
   <label>Root partition: <select id="root"></select></label>
   <label>EFI partition (UEFI only, else leave blank):
     <select id="efi"><option value="">none</option></select></label>
-  <button onclick="checkPartitions()">Continue</button>
+  <div style="display:flex;gap:8px;">
+    <button onclick="show('mode')">Back</button>
+    <button onclick="checkPartitions()">Continue</button>
+  </div>
 </div>
 
 <div id="p-part" class="panel">
@@ -119,7 +131,10 @@ PAGE_HTML = r"""<!doctype html>
   <p>If your disk is not yet partitioned, open a terminal and run:</p>
   <pre>sudo cfdisk /dev/sdX</pre>
   <p>Create a root partition (and a 512M EFI partition for UEFI). Return here when done.</p>
-  <button onclick="loadDisks()">Re-scan partitions</button>
+  <div style="display:flex;gap:8px;">
+    <button onclick="show('mode')">Back</button>
+    <button onclick="loadDisks()">Re-scan partitions</button>
+  </div>
 </div>
 
 <div id="p-install" class="panel">
@@ -133,7 +148,7 @@ PAGE_HTML = r"""<!doctype html>
 <div id="p-configure" class="panel">
   <h2>Configure System</h2>
   <p class="section-lbl">System identity</p>
-  <label>Hostname: <input type="text" id="hostname" value="archbang"></label>
+  <label>Hostname: <input type="text" id="hostname" value="fruitbang"></label>
   <label>Username: <input type="text" id="username"></label>
   <label>Password: <input type="password" id="pw1"></label>
   <label>Confirm password: <input type="password" id="pw2"></label>
@@ -240,6 +255,13 @@ PAGE_HTML = r"""<!doctype html>
   <button onclick="startInstall()">Install</button>
 </div>
 
+<div id="p-hardware" class="panel">
+  <h2>System Information</h2>
+  <div id="hw-body">Loading…</div>
+  <hr class="section-rule">
+  <button onclick="show('welcome')">Back to Welcome</button>
+</div>
+
 <div id="p-done" class="panel">
   <h2>Installation Complete</h2>
   <p>Remove the ISO and reboot into your new system.</p>
@@ -262,7 +284,7 @@ const sel = {};  // chosen partitions carried through panels
 const STEP_MAP = {
   welcome:'welcome', mode:'disk', autodisk:'disk', custom:'disk',
   disk:'disk', part:'disk', configure:'configure',
-  install:'install', done:'done'
+  install:'install', done:'done', hardware:'welcome'
 };
 const STEP_ORDER = ['welcome','disk','configure','install','done'];
 function show(name) {
@@ -392,9 +414,44 @@ async function createLayout() {
   sel.home_part = d.home_part || '';
   show('configure');
 }
+const _esc = t => String(t == null ? '' : t)
+  .replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
 async function showManual() {
   showErr('');
   await loadDisks();
+}
+async function showHardware() {
+  showErr('');
+  const body = document.getElementById('hw-body');
+  body.textContent = 'Probing hardware…';
+  let d;
+  try {
+    const r = await fetch('/api/hardware');
+    d = await r.json();
+  } catch (e) {
+    body.textContent = '';
+    return showErr('Could not reach /api/hardware: ' + e);
+  }
+  if (!d || !d.ok) return showErr(d?.error || 'Unknown error');
+  const s = d.hardware;
+  const cpuLine = [s.cpu.model, s.cpu.logical && s.cpu.logical + ' logical', s.cpu.arch]
+    .filter(Boolean).map(_esc).join(' · ');
+  const diskLines = s.disks.length
+    ? s.disks.map(x => _esc([x.path, x.size, x.model].filter(Boolean).join('  '))).join('<br>')
+    : '<span style="color:#6b6050">none detected</span>';
+  const gpuLines = s.gpu && s.gpu.length
+    ? s.gpu.map(_esc).join('<br>')
+    : '<span style="color:#6b6050">none detected</span>';
+  const wifiLine = s.wifi ? _esc(s.wifi) : '<span style="color:#6b6050">none detected</span>';
+  body.innerHTML =
+    '<p class="section-lbl">CPU</p><p>' + (cpuLine || 'unknown') + '</p>' +
+    '<p class="section-lbl">Memory</p><p>' + (_esc(s.mem.total) || 'unknown') + '</p>' +
+    '<p class="section-lbl">GPU</p><p>' + gpuLines + '</p>' +
+    '<p class="section-lbl">Wi-Fi</p><p>' + wifiLine + '</p>' +
+    '<p class="section-lbl">Drives</p><p>' + diskLines + '</p>' +
+    '<p class="section-lbl">Firmware</p><p>' + _esc(s.firmware) + '</p>';
+  show('hardware');
 }
 async function loadDisks() {
   showErr('');
@@ -466,7 +523,7 @@ async function poll() {
 async function doReboot() { await fetch('/api/reboot', {method:'POST', body:'{}'}); }
 </script>
 <footer style="text-align:center; margin-top:40px; font-size:0.8em; color:#6b6050;">
-  &copy; 2026 ArchBang &mdash; MIT Licence
+  &copy; 2026 FruitBang &mdash; MIT Licence
 </footer>
 </body>
 </html>"""

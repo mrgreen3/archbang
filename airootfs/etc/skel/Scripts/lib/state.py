@@ -20,6 +20,10 @@ INSTALL_STEPS = [
 
 STATE_LOCK = threading.Lock()
 
+# Set while an install worker thread is running. Used by the server to reject
+# concurrent /api/install requests.
+INSTALL_RUNNING = threading.Event()
+
 
 def new_state():
     """Fresh shared install state dict."""

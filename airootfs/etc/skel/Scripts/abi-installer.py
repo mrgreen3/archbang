@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ArchBang browser installer — Python stdlib HTTP server + HTML wizard."""
+"""FruitBang browser installer — Python stdlib HTTP server + HTML wizard."""
 
 import sys
 import os
@@ -18,7 +18,7 @@ def main():
     """Truncate the log, then start the HTTP server bound to localhost only."""
     open(LOG_PATH, "w").close()
     server = HTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"ArchBang installer running at http://localhost:{PORT}")
+    print(f"FruitBang installer running at http://localhost:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
