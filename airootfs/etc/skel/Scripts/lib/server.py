@@ -18,7 +18,7 @@ from .hwinfo import collect_hardware
 ALLOWED_HOSTS = frozenset({
     "127.0.0.1:7777",
     "localhost:7777",
-    "fruitbang.install:7777",
+    "archbang.install:7777",
 })
 
 

@@ -3,7 +3,7 @@ PAGE_HTML = r"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FruitBang Installer</title>
+<title>ArchBang Installer</title>
 <style>
   body { background:#201b14; color:#c9c0b0; font-family:monospace;
          max-width:640px; margin:40px auto; padding:0 16px; line-height:1.5; }
@@ -55,7 +55,7 @@ PAGE_HTML = r"""<!doctype html>
     <text x="150" y="70" text-anchor="middle" font-family="monospace" font-size="56"
           font-weight="bold" fill="#c9b890">^!</text>
     <text x="150" y="98" text-anchor="middle" font-family="monospace" font-size="15"
-          fill="#c9c0b0" letter-spacing="5">FruitBang</text>
+          fill="#c9c0b0" letter-spacing="5">ArchBang</text>
   </svg>
 </div>
 <div id="steps">
@@ -69,7 +69,7 @@ PAGE_HTML = r"""<!doctype html>
 
 <div id="p-welcome" class="panel active">
   <div class="warn"><b>Warning:</b> Installing will erase the target disk — back up anything first.</div>
-  <p>Requirements: booted from FruitBang live ISO, 4GB+ RAM, 20GB+ target disk.</p>
+  <p>Requirements: booted from ArchBang live ISO, 4GB+ RAM, 20GB+ target disk.</p>
   <div style="display:flex;gap:8px;justify-content:center;">
     <button onclick="show('mode')">Begin</button>
     <button onclick="showHardware()">System Info</button>
@@ -148,7 +148,7 @@ PAGE_HTML = r"""<!doctype html>
 <div id="p-configure" class="panel">
   <h2>Configure System</h2>
   <p class="section-lbl">System identity</p>
-  <label>Hostname: <input type="text" id="hostname" value="fruitbang"></label>
+  <label>Hostname: <input type="text" id="hostname" value="archbang"></label>
   <label>Username: <input type="text" id="username"></label>
   <label>Password: <input type="password" id="pw1"></label>
   <label>Confirm password: <input type="password" id="pw2"></label>
@@ -523,7 +523,7 @@ async function poll() {
 async function doReboot() { await fetch('/api/reboot', {method:'POST', body:'{}'}); }
 </script>
 <footer style="text-align:center; margin-top:40px; font-size:0.8em; color:#6b6050;">
-  &copy; 2026 FruitBang &mdash; MIT Licence
+  &copy; 2026 ArchBang &mdash; MIT Licence
 </footer>
 </body>
 </html>"""
