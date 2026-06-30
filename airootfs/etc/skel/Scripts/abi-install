@@ -1,6 +1,6 @@
 #!/bin/bash
 # Launch the ABI browser installer.
-set -e
+set -euo pipefail
 
 PORT=7777
 SCRIPT="$(dirname "$(realpath "$0")")/abi-installer.py"
@@ -10,19 +10,36 @@ if ! command -v firefox >/dev/null 2>&1; then
   exit 1
 fi
 
+# Cache sudo credentials before backgrounding the server so the password
+# prompt is visible and the background process doesn't hang waiting for input.
+if ! sudo -n true 2>/dev/null; then
+  echo "This installer needs sudo privileges." >&2
+  sudo -v || exit 1
+fi
+
 echo "Starting ABI installer..."
 sudo python3 "$SCRIPT" &
 SRV=$!
 
-# Wait for the port to accept connections (max ~10s)
+# Wait for the port to accept connections (max ~10s).
+ready=0
 for i in $(seq 1 20); do
   if curl -s "http://fruitbang.install:${PORT}/" >/dev/null 2>&1; then
+    ready=1
     break
   fi
   sleep 0.5
 done
 
+if [ "$ready" -eq 0 ]; then
+  echo "Installer server did not start on port ${PORT}." >&2
+  sudo pkill -P "$SRV" 2>/dev/null || true
+  sudo kill "$SRV" 2>/dev/null || true
+  exit 1
+fi
+
 firefox "http://fruitbang.install:${PORT}"
 
-# When Firefox closes, stop the server.
+# When Firefox closes, stop the server (kill child Python first, then sudo).
+sudo pkill -P "$SRV" 2>/dev/null || true
 sudo kill "$SRV" 2>/dev/null || true

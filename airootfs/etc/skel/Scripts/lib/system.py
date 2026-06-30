@@ -7,7 +7,7 @@ import time
 
 from .parse import parse_rsync_progress
 from .state import (
-    INSTALL_STEPS, MNT, LOG_PATH,
+    INSTALL_STEPS, MNT, LOG_PATH, INSTALL_RUNNING,
     log, set_state, step_percent,
 )
 
@@ -367,7 +367,7 @@ def cleanup():
         "/etc/skel",
     ):
         chroot(f"rm -rf {p}")
-    chroot("sed -i '/archbang\\.install/d' /etc/hosts")
+    chroot("sed -i '/fruitbang\\.install/d' /etc/hosts")
     chroot("sed -i 's/volatile/auto/g' /etc/systemd/journald.conf.d/volatile-storage.conf 2>/dev/null || true")
     chroot("mv /etc/systemd/journald.conf.d/volatile-storage.conf /etc/systemd/journald.conf.d/auto-storage.conf 2>/dev/null || true")
     chroot("unlink /etc/systemd/system/multi-user.target.wants/pacman-init.service 2>/dev/null || true")
@@ -432,3 +432,5 @@ def do_install(cfg):
     except Exception as e:
         log("ERROR: " + str(e))
         set_state(error=str(e))
+    finally:
+        INSTALL_RUNNING.clear()
