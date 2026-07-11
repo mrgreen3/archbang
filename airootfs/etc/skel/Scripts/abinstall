@@ -88,8 +88,6 @@ done
   #}}}
   # MOUNTPOINTS {{{
     EFI_MOUNTPOINT="/boot/efi"
-    ROOT_MOUNTPOINT="/dev/sda1"
-    BOOT_MOUNTPOINT="/dev/sda"
     MNT="/mnt"
   # MIRRORLIST
     LOG="/tmp/abinstall.log"
@@ -99,7 +97,7 @@ done
   UEFI=0
   LVM=0
   LUKS=0
-  LUKS_DISK="sda2"
+  LUKS_DISK=""
   LUKS_NAME="cryptroot"
   VG_NAME="lvm"
   LV_ROOT="root"
@@ -442,6 +440,18 @@ configure_mirrors() {
 WIKI="https://wiki.archlinux.org/index.php"
 
 #ARCHLINUX INSTALL SCRIPTS MODE {{{
+#CONFIGURE VCONSOLE {{{
+configure_vconsole(){
+  print_title "CONSOLE KEYMAP"
+  print_info "Select the keyboard layout for the virtual console (tty)."
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    getkeymap
+    read_input_text "Confirm keymap: $KEYMAP"
+  done
+  echo "KEYMAP=${KEYMAP}" > ${MNT}/etc/vconsole.conf
+}
+#}}}
 #SELECT KEYMAP {{{
 select_xkeymap(){
   print_title "MANGO DESKTOP KEYBOARD LAYOUT"
@@ -895,11 +905,11 @@ install_archbang(){
   UPPERDIR=$(find /run/archiso/cowspace -type d -path "*/persistent_*/x86_64/upperdir" 2>/dev/null | head -1)
   if [[ -n "$UPPERDIR" && -d "$UPPERDIR" ]]; then
     print_info "Syncing live session changes..."
-    rsync -av "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1
+    rsync -av "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1 || print_warning "Cowspace sync had errors (non-fatal)"
   fi
 
   # Generate unique machine id
-  arch-chroot ${MNT} systemd-machine-id-setup
+  arch_chroot "systemd-machine-id-setup"
 
   # Convert mkinitcpio preset from archiso to standard for installed system
   cat > ${MNT}/etc/mkinitcpio.d/linux.preset <<'EOF'
@@ -950,7 +960,7 @@ EOF
 
 #CONFIGURE FSTAB {{{
 configure_fstab(){
-  genfstab -U "$MNT" >> "${MNT}/etc/fstab" 
+  genfstab -U "$MNT" > "${MNT}/etc/fstab"
 }
 #}}}
 
@@ -1083,10 +1093,14 @@ configure_bootloader(){
 
   # --- Handle LUKS UUID detection if used ---
   if [[ $LUKS -eq 1 ]]; then
-      if [[ -n "$LUKS_PART" ]]; then
-          LUKS_UUID=$(blkid -s UUID -o value "$LUKS_PART")
-      elif [[ -n "$LUKS_DISK" ]]; then
-          LUKS_UUID=$(blkid -s UUID -o value "/dev/${LUKS_DISK}")
+      if [[ -z "$LUKS_PART" ]]; then
+          print_error "LUKS enabled but no partition recorded — run step 1 first."
+          return 1
+      fi
+      LUKS_UUID=$(blkid -s UUID -o value "$LUKS_PART")
+      if [[ -z "$LUKS_UUID" ]]; then
+          print_error "Could not read UUID from LUKS partition ${LUKS_PART}!"
+          return 1
       fi
       print_info "Detected LUKS UUID: $LUKS_UUID"
   fi
@@ -1200,18 +1214,18 @@ setup_user(){
 
   # Rewrite occurrences of old username inside config files
   print_info "Updating config files..."
-  arch_chroot "find /home/${LIVE_USER} -type f -exec sed -i \"s/${LIVE_USER}/${new_username}/g\" {} +"
+  arch_chroot "grep -rlI \"${LIVE_USER}\" /home/${LIVE_USER} | xargs -r sed -i \"s/${LIVE_USER}/${new_username}/g\""
 
   # Update system account files
   arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/group"
   arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/gshadow"
   arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/passwd"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/\"  /etc/shadow"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/shadow"
 
   # Rename home directory and fix ownership
   print_info "Renaming home directory..."
   arch_chroot "mv /home/${LIVE_USER} /home/${new_username}"
-  arch_chroot "chown -R ${new_username}:users /home/${new_username}"
+  arch_chroot "chown -R ${new_username}: /home/${new_username}"
   
   pause_function
 }
@@ -1323,7 +1337,7 @@ run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_
 run_step 3 "Hostname"                configure_hostname
 run_step 4 "Location"                configure_timezone configure_hardwareclock configure_mirrors
 run_step 5 "Locale"                  configure_locale
-run_step 6 "Desktop Keyboard Layout" select_xkeymap
+run_step 6 "Keyboard Layout"         select_xkeymap
 run_step 7 "Bootloader"              configure_bootloader
 run_step 8 "Root and User Setup"     root_password setup_user
 finish
