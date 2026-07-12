@@ -8,6 +8,7 @@ APPLICATIONS
 ───────────────────────
 
 Super + Return          Terminal (foot)
+Super + Shift + Return  AI Code Agent (opencode)
 Super + Space           Launcher (rofi)
 Super + w               Web Browser (firefox)
 Super + p               Screenshot
