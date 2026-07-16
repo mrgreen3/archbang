@@ -3,11 +3,11 @@
 anchor=top-right
 margin=10
 padding=8
-border-size=4
-border-radius=6
+border-size=2
+border-radius=3
 default-timeout=4000
 font=monospace 10
-background-color=#2f2532
-text-color=#d4dce8
-border-color=#6e9b7a
+background-color=#251848
+text-color=#ead6e8
+border-color=#c0568b
 max-visible=3

@@ -1,25 +1,26 @@
 {
   "layer": "top",
-  "position": "bottom",
+  "position": "top",
   "height": 30,
   "spacing": 4,
   "modules-left": [
+    "custom/launcher",
     "ext/workspaces"
   ],
   "modules-center": [
-    "custom/terminal",
-    "custom/browser",
-    "custom/launcher",
-    "custom/files",
-    "custom/editor"
-  ],
-  "modules-right": [
-    // "pulseaudio",
-    "tray",
-    "battery",
-    "network",
     "clock"
   ],
+  "modules-right": [
+    "tray",
+    "battery",
+    "network"
+  ],
+  "custom/launcher": {
+    "format": "",
+    "on-click": "~/Scripts/archbang-menu",
+    "tooltip": true,
+    "tooltip-format": "Main Menu"
+  },
   "ext/workspaces": {
     "format": "{id}",
     "on-click": "activate",
@@ -31,44 +32,14 @@
   },
   "clock": {
     "format": "{:%H:%M}",
+    "format-alt": "{:%A %d %B  %H:%M}",
     "tooltip-format": "<big>{:%A %d}</big>\n<tt>{calendar}</tt>",
     "calendar": {
-        "mode": "month",
-        "weeks-pos": "right",
-        "on-scroll": 1
+      "mode": "month",
+      "weeks-pos": "right",
+      "on-scroll": 1
     },
     "interval": 60
-  },
-  "pulseaudio": {
-    "format": "{volume}% {icon}",
-    "format-muted": "󰖁 {volume}%",
-    "format-icons": ["󰕿", "󰖀", "󰕾"],
-    "on-click": "pavucontrol"
-  },
-  "custom/terminal": {
-    "format": "",
-    "on-click": "foot",
-    "tooltip": false
-  },
-  "custom/browser": {
-    "format": "",
-    "on-click": "firefox",
-    "tooltip": false
-  },
-  "custom/launcher": {
-    "format": "",
-    "on-click": "~/Scripts/archbang-menu",
-    "tooltip": false
-  },
-  "custom/files": {
-    "format": "",
-    "on-click": "thunar",
-    "tooltip": false
-  },
-  "custom/editor": {
-    "format": "",
-    "on-click": "l3afpad",
-    "tooltip": false
   },
   "network": {
     "format-wifi": "󰤨",
@@ -84,7 +55,13 @@
     "format-charging": "󰂄",
     "format-full": "󰁹",
     "format-unknown": "",
-    "format-icons": ["󰁻", "󰁼", "󰁽", "󰁾", "󰁿"],
+    "format-icons": [
+      "󰁻",
+      "󰁼",
+      "󰁽",
+      "󰁾",
+      "󰁿"
+    ],
     "states": {
       "warning": 30,
       "critical": 15
