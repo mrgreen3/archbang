@@ -55,8 +55,8 @@ window#waybar {
     font-weight: bold;
 }
 
-#workspaces button:not(.empty):not(.active) {
-    color: #c0568b;
+#workspaces button:not(.active) {
+    color: @fg-dim;
 }
 
 #workspaces button:hover {
@@ -69,7 +69,7 @@ window#waybar {
 }
 
 #workspaces button.urgent {
-    color: #ffffff;
+    color: #e060c0;
     border-radius: 6px;
 }
 
