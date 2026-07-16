@@ -9,6 +9,7 @@
     urgent:     #f2729aff;
     selected-fg:#251848ff;
 
+    font:               "Cascadia Mono Light 10.5";
     background-color:   transparent;
     text-color:         @fg;
     border-color:       @accent;
