@@ -1,13 +1,13 @@
-/* Paint theme — colours pulled from paint.jpg, sage accent */
+/* FruitBang — palette from sunset-lake.png */
 
 * {
-    bg:         #2f2532ff;
-    bg-alt:     #4e2d39ff;
-    fg:         #d4dce8ff;
-    fg-dim:     #936156ff;
-    accent:     #6e9b7aff;
-    urgent:     #c4607aff;
-    selected-fg:#2f2532ff;
+    bg:         #251848ff;
+    bg-alt:     #1e1540ff;
+    fg:         #ead6e8ff;
+    fg-dim:     #7b4178ff;
+    accent:     #c0568bff;
+    urgent:     #f2729aff;
+    selected-fg:#251848ff;
 
     background-color:   transparent;
     text-color:         @fg;
@@ -16,9 +16,9 @@
 
 window {
     background-color:   @bg;
-    border:             4px;
+    border:             2px;
     border-color:       @accent;
-    border-radius:      6px;
+    border-radius:      3px;
     width:              30%;
     padding:            12px;
 }
