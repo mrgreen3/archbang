@@ -12,7 +12,7 @@
 /* ---------- Base ---------- */
 * {
     border-radius: 0;
-    font-family: monospace;
+    font-family: "Cascadia Mono Light", monospace;
     font-size: 14px;
 }
 
@@ -131,6 +131,6 @@ tooltip {
 
 tooltip label {
     color: @fg;
-    font-family: monospace;
+    font-family: "Cascadia Mono Light", monospace;
     font-size: 13px;
 }
