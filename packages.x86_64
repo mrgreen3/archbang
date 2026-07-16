@@ -40,6 +40,7 @@ l3afpad
 ## === THEMES & FONTS ===
 adw-gtk-theme
 adwaita-icon-theme
+ttf-cascadia-code
 ttf-nerd-fonts-symbols-mono
 ttf-dejavu
 
