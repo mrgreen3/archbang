@@ -1,0 +1,65 @@
+#!/bin/bash
+# Created by MrGreen [mrgreen@archbang.org]
+# For FruitBang Linux
+# Coding by Claude Code
+
+run() { foot -e bash -c "$*; echo; read -rp 'Press Enter to close...'"; }
+
+check_network() {
+    curl -fs --max-time 5 https://archlinux.org -o /dev/null || {
+        notify-send -u critical "Pacmenu" "No network connection"
+        exit 1
+    }
+}
+
+check_reflector() {
+    command -v reflector &>/dev/null || {
+        notify-send -u normal "Pacmenu" "reflector is not installed"
+        exit 1
+    }
+}
+
+cleanup_orphans() {
+    orphans=$(pacman -Qdtq)
+    [[ -n "$orphans" ]] && sudo pacman -Rns $orphans
+}
+export -f cleanup_orphans
+
+choice=$(printf '%s\n' \
+    "󰁪  System Update" \
+    "󰐒  Install Package" \
+    "󰍷  Remove Package" \
+    "󰃯  Clear Pacman Cache" \
+    "󰔥  Generate Mirrorlist" \
+    | rofi -dmenu -p "󰣇 Pacman" -mesg "Pacman Menu" \
+        -theme-str 'inputbar { enabled: false; } listview { lines: 5; } window { width: 340px; } mainbox { children: [message, listview]; } message { horizontal-align: 0.35; } textbox { horizontal-align: 0.35; }')
+
+case "$choice" in
+    *System\ Update*)
+        check_network
+        run "sudo pacman -Syu"
+        ;;
+    *Install\ Package*)
+        check_network
+        pkg=$(rofi -dmenu -p "󰐒 Package Name" -matching fuzzy)
+        [[ -n "$pkg" ]] && run "sudo pacman -S \"$pkg\""
+        ;;
+    *Remove\ Package*)
+        pkg=$(pacman -Qq | rofi -dmenu -p "󰍷 Remove package")
+        if [[ -n "$pkg" ]]; then
+            run "sudo pacman -Rns \"$pkg\" && cleanup_orphans"
+        fi
+        ;;
+    *Cache*)
+        run "command -v paccache &>/dev/null && sudo paccache -rk1 || sudo pacman -Sc"
+        ;;
+    *Generate\ Mirrorlist*)
+        check_network
+        check_reflector
+        country=$(reflector --list-countries | tail -n +3 | rofi -dmenu -p "󰔥 Country" -matching fuzzy)
+        code=$(echo "$country" | awk '{print $(NF-1)}')
+        if [[ -n "$code" ]]; then
+            run "sudo reflector --country $code --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist"
+        fi
+        ;;
+esac
