@@ -10,6 +10,7 @@ xz
 
 ## === TERMINAL ===
 foot
+opencode
 
 ## === WAYLAND DESKTOP ENVIRONMENT (mango stack) ===
 mangowm-git
@@ -23,6 +24,7 @@ wl-clipboard
 brightnessctl
 swaylock
 mako
+reflector
 rofi
 
 ## === FILE MANAGER & UTILITIES ===
@@ -57,13 +59,11 @@ ntfs-3g
 ## === NETWORK MANAGEMENT ===
 networkmanager
 networkmanager-dmenu-git
-wpa_supplicant
 usb_modeswitch
 broadcom-wl
 
 ## === DESKTOP UTILITIES ===
 polkit
-gnome-keyring
 libsecret
 xdg-user-dirs
 
@@ -72,7 +72,6 @@ dialog
 sudo
 fontconfig
 kbd
-expac
 
 ## === COMMAND-LINE TOOLS ===
 openssh
@@ -99,7 +98,6 @@ os-prober
 lsb-release
 syslinux
 efibootmgr
-edk2-shell
 intel-ucode
 amd-ucode
 
@@ -144,7 +142,6 @@ shadow
 sysfsutils
 systemd-sysvcompat
 tar
-texinfo
 usbutils
 util-linux
 which
