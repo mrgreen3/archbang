@@ -11,7 +11,11 @@ Super + Return          Terminal (foot)
 Super + Shift + Return  AI Code Agent (opencode)
 Super + Space           Launcher (rofi)
 Super + w               Web Browser (firefox)
-Super + p               Screenshot
+Super + p               Screenshot (full)
+Super + Shift + s       Screenshot (region)
+Super + Shift + p       Package Manager (pacmenu)
+Super + Shift + a       AUR Helper (aurmenu)
+Super + k               Show Keybindings
 
 
 WINDOW CONTROLS
@@ -32,7 +36,8 @@ FOCUS & MOVEMENT
 ───────────────────────
 
 Super + Tab             Next Window
-Super + Shift + ←/→/↑/↓  Focus Direction
+Super + Ctrl + ←/→/↑/↓   Focus Direction
+Super + Shift + ←/→/↑/↓  Swap Window Direction
 Ctrl + Shift + ←/→/↑/↓   Move Window (50px)
 Ctrl + Super + ←/→/↑/↓   Resize Window (50px)
 

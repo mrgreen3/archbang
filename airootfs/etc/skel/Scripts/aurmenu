@@ -1,0 +1,44 @@
+#!/bin/bash
+# Created by MrGreen [mrgreen@archbang.org]
+# For FruitBang Linux
+# Coding by Claude Code
+
+run() { foot -e bash -c "$*; echo; read -rp 'Press Enter to close...'"; }
+
+check_network() {
+    curl -fs --max-time 2 https://archlinux.org -o /dev/null || {
+        notify-send -u critical "Aurmenu" "No network connection"
+        exit 1
+    }
+}
+
+check_yay() {
+    command -v yay &>/dev/null || {
+        notify-send -u normal "Aurmenu" "yay is not installed"
+        exit 1
+    }
+}
+
+choice=$(printf '%s\n' \
+    "󰏔  Install Package" \
+    "󰁪  Update Packages" \
+    "󰋾  List Installed" \
+    | rofi -dmenu -p "󰣇 AUR" -mesg "AUR Menu" \
+        -theme-str 'inputbar { enabled: false; } listview { lines: 3; } window { width: 340px; } mainbox { children: [message, listview]; } message { horizontal-align: 0.35; } textbox { horizontal-align: 0.35; }')
+
+case "$choice" in
+    *Install\ Package*)
+        check_network
+        check_yay
+        pkg=$(curl -fs --max-time 5 https://aur.archlinux.org/packages.gz | gzip -dc | rofi -dmenu -p "󰏔 Install" -matching fuzzy)
+        [[ -n "$pkg" ]] && run "yay -S \"$pkg\""
+        ;;
+    *Update\ Packages*)
+        check_network
+        check_yay
+        run "yay -Syu --aur"
+        ;;
+    *List\ Installed*)
+        run "pacman -Qm"
+        ;;
+esac
