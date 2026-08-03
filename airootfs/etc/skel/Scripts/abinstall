@@ -106,6 +106,11 @@ done
   [[ -f $LOG ]] && rm -f $LOG
   AUTOMATIC_MODE=0
   TRIM=0
+  AUTO_PARTITIONED=0
+  LOCATION=""        # country name, e.g. "United Kingdom" — also read by getmirror()
+  DERIVED_TZ=""      # e.g. "Europe/London"
+  DERIVED_XKB=""     # e.g. "gb"
+  DERIVED_LOCALE=""  # e.g. "en_GB"
   cpu_id=""
   # --- Optional installer variables (can be overridden by args) ---
   host_name=""          # For hostname
@@ -388,16 +393,79 @@ configure_mirrors() {
   # Remove everything before Albania
   sed -i '1,/^## Albania/{/^## Albania/!d}' ${MIRROR}
 
-  OPTION=n
-  while [[ $OPTION != y ]]; do
-    getmirror
-    echo ""
-    read_input_text "Confirm Location: $LOCATION"
-  done
+  if [[ -n "$LOCATION" ]] && grep -q "^## ${LOCATION}$" ${MIRROR}; then
+    print_success "Using mirrors for ${LOCATION} (derived from location)."
+  else
+    OPTION=n
+    while [[ $OPTION != y ]]; do
+      getmirror
+      echo ""
+      read_input_text "Confirm Location: $LOCATION"
+    done
+  fi
 
   # magic happens here....
   sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
 }
+
+#SELECT LOCATION (derives timezone + xkb layout + mirror country) {{{
+# A few countries are named differently in the bundled mirrorlist than in
+# tzdata's iso3166.tab (confirmed against the real pacman-mirrorlist package:
+# "Czechia"/"South Korea"/"Türkiye"/"United Kingdom" vs iso3166's "Czech
+# Republic"/"Korea (South)"/"Turkey"/"Britain (UK)"). This alias table is only
+# used to resolve the country CODE for timezone/xkb derivation — the mirrorlist
+# country name itself (used by configure_mirrors) is never touched.
+declare -A MIRROR_NAME_ALIASES=(
+  ["Czechia"]="Czech Republic"
+  ["South Korea"]="Korea (South)"
+  ["Türkiye"]="Turkey"
+  ["United Kingdom"]="Britain (UK)"
+)
+
+select_location() {
+  print_title "LOCATION - ${WIKI}/Timezone"
+  print_info "Select your country. Timezone, mirrors and desktop keyboard layout will be derived automatically where possible."
+
+  # Reuse getmirror()'s own country list (the "## Country" headers already in
+  # the bundled mirrorlist) so the selected LOCATION always matches what
+  # configure_mirrors expects later — no separate country dataset to keep in sync.
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    getmirror
+    read_input_text "Confirm country: $LOCATION"
+  done
+  LOCATION="${LOCATION# }"    # getmirror()'s "## X" -> "##"-strip leaves a leading space
+
+  local _iso_name="${MIRROR_NAME_ALIASES[$LOCATION]:-$LOCATION}"
+  local _ccode=$(awk -F'\t' -v name="$_iso_name" '!/^#/ && $2==name {print $1; exit}' /usr/share/zoneinfo/iso3166.tab)
+
+  # --- derive timezone ---
+  local _tz_matches=($(awk -F'\t' -v cc="$_ccode" '$1 ~ "(^|,)"cc"(,|$)" {print $3}' /usr/share/zoneinfo/zone1970.tab))
+  if [[ ${#_tz_matches[@]} -eq 1 ]]; then
+    DERIVED_TZ="${_tz_matches[0]}"
+  elif [[ ${#_tz_matches[@]} -gt 1 ]]; then
+    print_info "Multiple timezones found for ${LOCATION}:"
+    PS3="$prompt1"
+    select DERIVED_TZ in "${_tz_matches[@]}"; do
+      if contains_element "$DERIVED_TZ" "${_tz_matches[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+    done
+  else
+    DERIVED_TZ=""
+  fi
+
+  # --- derive desktop (xkb) keyboard layout ---
+  local _xkb_candidate=$(echo "$_ccode" | tr '[:upper:]' '[:lower:]')
+  if localectl list-x11-keymap-layouts | grep -qx "$_xkb_candidate"; then
+    DERIVED_XKB="$_xkb_candidate"
+  else
+    DERIVED_XKB=""
+  fi
+}
+#}}}
 
   setlocale() { #{{{
     local _locale_list=(`cat /etc/locale.gen | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
@@ -435,6 +503,80 @@ configure_mirrors() {
       fi
     done
   } #}}}
+
+#SELECT LANGUAGE (derives locale) {{{
+# Curated common languages -> locale code. "More languages..." falls back to the
+# full locale.gen-derived list in setlocale().
+declare -A CURATED_LOCALES=(
+  ["English (US)"]="en_US"
+  ["English (UK)"]="en_GB"
+  ["English (Australia)"]="en_AU"
+  ["English (Canada)"]="en_CA"
+  ["English (Ireland)"]="en_IE"
+  ["English (New Zealand)"]="en_NZ"
+  ["English (South Africa)"]="en_ZA"
+  ["Français (France)"]="fr_FR"
+  ["Français (Canada)"]="fr_CA"
+  ["Deutsch (Deutschland)"]="de_DE"
+  ["Deutsch (Österreich)"]="de_AT"
+  ["Deutsch (Schweiz)"]="de_CH"
+  ["Español (España)"]="es_ES"
+  ["Español (México)"]="es_MX"
+  ["Español (Argentina)"]="es_AR"
+  ["Italiano"]="it_IT"
+  ["Português (Portugal)"]="pt_PT"
+  ["Português (Brasil)"]="pt_BR"
+  ["Nederlands"]="nl_NL"
+  ["Svenska"]="sv_SE"
+  ["Norsk"]="nb_NO"
+  ["Dansk"]="da_DK"
+  ["Suomi"]="fi_FI"
+  ["Polski"]="pl_PL"
+  ["Čeština"]="cs_CZ"
+  ["Română"]="ro_RO"
+  ["Magyar"]="hu_HU"
+  ["Ελληνικά"]="el_GR"
+  ["Türkçe"]="tr_TR"
+  ["Русский"]="ru_RU"
+  ["Українська"]="uk_UA"
+  ["日本語"]="ja_JP"
+  ["한국어"]="ko_KR"
+  ["中文 (简体)"]="zh_CN"
+  ["中文 (繁體)"]="zh_TW"
+  ["العربية"]="ar_SA"
+  ["עברית"]="he_IL"
+  ["हिन्दी"]="hi_IN"
+  ["ไทย"]="th_TH"
+  ["Tiếng Việt"]="vi_VN"
+)
+
+select_language() {
+  print_title "LANGUAGE - ${WIKI}/Locale"
+  print_info "Select your language. This sets the system locale."
+
+  mapfile -t _lang_list < <(printf '%s\n' "${!CURATED_LOCALES[@]}" "More languages..." | sort)
+
+  OPTION=n
+  while [[ $OPTION != y ]]; do
+    PS3="$prompt1"
+    echo "Select language:"
+    select LANG_CHOICE in "${_lang_list[@]}"; do
+      if contains_element "$LANG_CHOICE" "${_lang_list[@]}"; then
+        break
+      else
+        invalid_option
+      fi
+    done
+    read_input_text "Confirm language: $LANG_CHOICE"
+  done
+
+  if [[ "$LANG_CHOICE" == "More languages..." ]]; then
+    DERIVED_LOCALE=""
+  else
+    DERIVED_LOCALE="${CURATED_LOCALES[$LANG_CHOICE]}"
+  fi
+}
+#}}}
 #}}}
 
 WIKI="https://wiki.archlinux.org/index.php"
@@ -456,11 +598,16 @@ configure_vconsole(){
 select_xkeymap(){
   print_title "MANGO DESKTOP KEYBOARD LAYOUT"
   print_info "Setting keyboard layout for mango compositor"
-  OPTION=n
-  while [[ $OPTION != y ]]; do
-    getxkeymap
-    read_input_text "Confirm keymap: $XKEYMAP"
-  done
+  if [[ -n "$DERIVED_XKB" ]]; then
+    XKEYMAP="$DERIVED_XKB"
+    print_success "Using keyboard layout ${XKEYMAP} (derived from ${LOCATION:-your location})."
+  else
+    OPTION=n
+    while [[ $OPTION != y ]]; do
+      getxkeymap
+      read_input_text "Confirm keymap: $XKEYMAP"
+    done
+  fi
    sed -i "s/xkb_rules_layout=.*/xkb_rules_layout=${XKEYMAP}/" $MNT/home/${LIVE_USER}/.config/mango/config.conf
 }
 #}}}
@@ -502,24 +649,27 @@ create_partition_scheme(){
   fi
   print_info "Partitioning a hard drive allows one to logically divide the available space into sections that can be accessed independently of one another."
   print_warning "Maintain Current does not work with LUKS"
-  partition_layout=("Default" "LVM" "LVM+LUKS" "Maintain Current")
+  partition_layout=("Auto (erase disk)" "Default" "LVM" "LVM+LUKS" "Maintain Current")
   PS3="$prompt1"
   echo -e "Select partition scheme:"
   select OPT in "${partition_layout[@]}"; do
     case "$REPLY" in
       1)
-        create_partition
+        auto_partition_disk
         ;;
       2)
         create_partition
-        setup_lvm
         ;;
       3)
+        create_partition
+        setup_lvm
+        ;;
+      4)
         create_partition
         setup_luks
         setup_lvm
         ;;
-      4)
+      5)
         modprobe dm-mod
         vgscan &> /dev/null
         vgchange -ay &> /dev/null
@@ -530,6 +680,115 @@ create_partition_scheme(){
     esac
     [[ -n $OPT ]] && break
   done
+}
+#}}}
+#AUTO PARTITION{{{
+partition_suffix() {
+  [[ "$1" =~ (nvme|mmcblk) ]] && echo "p" || echo ""
+}
+
+auto_partition_disk() {
+  print_title "AUTO PARTITION - ${WIKI}/Partitioning"
+  print_danger "WARNING: This will ERASE ALL DATA on the selected device."
+  select_device
+  device="${BOOT_MNT}"
+
+  read_input_text "This will erase ALL data on ${device}. Continue"
+  if [[ $OPTION != y ]]; then
+    print_info "Auto-partitioning cancelled."
+    return 1
+  fi
+
+  local suffix=$(partition_suffix "${device}")
+
+  # --- compute swap size from total RAM (no swap partition above 8GiB RAM) ---
+  local mem_kib=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+  local mem_gib=$(( (mem_kib + 1048575) / 1048576 ))
+  local swap_gib
+  if [[ $mem_gib -le 2 ]]; then
+    swap_gib=$(( mem_gib * 2 ))
+  elif [[ $mem_gib -le 8 ]]; then
+    swap_gib=$mem_gib
+  else
+    swap_gib=0
+  fi
+
+  if [[ $swap_gib -gt 0 ]]; then
+    print_info "Partitioning ${device} (swap: ${swap_gib}GiB)..."
+  else
+    print_info "Partitioning ${device} (no swap partition — RAM > 8GiB)..."
+  fi
+
+  umount_partitions
+  swapoff -a &>/dev/null
+
+  wipefs -af "${device}" &>/dev/null
+
+  if [[ $UEFI -eq 1 ]]; then
+    EFI_PART="${device}${suffix}1"
+
+    if [[ $swap_gib -gt 0 ]]; then
+      SWAP_PART="${device}${suffix}2"
+      ROOT_PART="${device}${suffix}3"
+
+      parted -s "${device}" mklabel gpt \
+        mkpart primary fat32 1MiB 513MiB set 1 esp on \
+        mkpart primary linux-swap 513MiB "$(( 513 + swap_gib * 1024 ))MiB" \
+        mkpart primary ext4 "$(( 513 + swap_gib * 1024 ))MiB" 100% || return 1
+    else
+      SWAP_PART=""
+      ROOT_PART="${device}${suffix}2"
+
+      parted -s "${device}" mklabel gpt \
+        mkpart primary fat32 1MiB 513MiB set 1 esp on \
+        mkpart primary ext4 513MiB 100% || return 1
+    fi
+  else
+    EFI_PART=""
+
+    if [[ $swap_gib -gt 0 ]]; then
+      SWAP_PART="${device}${suffix}1"
+      ROOT_PART="${device}${suffix}2"
+
+      parted -s "${device}" mklabel msdos \
+        mkpart primary linux-swap 1MiB "$(( 1 + swap_gib * 1024 ))MiB" \
+        mkpart primary ext4 "$(( 1 + swap_gib * 1024 ))MiB" 100% || return 1
+    else
+      SWAP_PART=""
+      ROOT_PART="${device}${suffix}1"
+
+      parted -s "${device}" mklabel msdos \
+        mkpart primary ext4 1MiB 100% || return 1
+    fi
+  fi
+
+  partprobe "${device}" &>/dev/null
+  udevadm settle 2>/dev/null || sleep 2
+
+  if [[ -n "$EFI_PART" ]]; then
+    mkfs.vfat -F32 "${EFI_PART}" || return 1
+  fi
+  if [[ -n "$SWAP_PART" ]]; then
+    mkswap "${SWAP_PART}" || return 1
+  fi
+  mkfs.ext4 -F $([[ $TRIM -eq 1 ]] && echo "-E discard") "${ROOT_PART}" || return 1
+
+  mount "${ROOT_PART}" "${MNT}"
+  if [[ -n "$EFI_PART" ]]; then
+    mkdir -p "${MNT}/boot"
+    mount "${EFI_PART}" "${MNT}/boot"
+  fi
+  if [[ -n "$SWAP_PART" ]]; then
+    swapon "${SWAP_PART}"
+  fi
+
+  ROOT_MNT="${ROOT_PART}"
+  LUKS=0
+  LVM=0
+  AUTO_PARTITIONED=1
+
+  print_success "Auto-partitioning of ${device} complete."
+  pause_function
 }
 #}}}
 #SETUP PARTITION{{{
@@ -671,6 +930,11 @@ setup_lvm() {
 #}}}
 #SELECT|FORMAT PARTITIONS {{{
 format_partitions(){
+  if [[ $AUTO_PARTITIONED -eq 1 ]]; then
+    print_info "Disk already partitioned and formatted (auto)."
+    return 0
+  fi
+
   print_title "FILESYSTEMS - ${WIKI}/File_Systems"
   print_info "This step will select and format the selected partiton where the archlinux will be installed"
   print_danger "\tAll data on the ROOT and SWAP partition will be LOST."
@@ -990,11 +1254,17 @@ EOF"
 configure_timezone(){
   print_title "TIMEZONE - ${WIKI}/Timezone"
   print_info "In an operating system the time (clock) is determined by four parts: Time value, Time standard, Time Zone, and DST (Daylight Saving Time if applicable)."
-  OPTION=n
-  while [[ $OPTION != y ]]; do
-    settimezone
-    read_input_text "Confirm timezone (${ZONE}/${SUBZONE})"
-  done
+  if [[ -n "$DERIVED_TZ" && -e "/usr/share/zoneinfo/${DERIVED_TZ}" ]]; then
+    ZONE="${DERIVED_TZ%%/*}"
+    SUBZONE="${DERIVED_TZ#*/}"
+    print_success "Using timezone ${DERIVED_TZ} (derived from ${LOCATION:-your location})."
+  else
+    OPTION=n
+    while [[ $OPTION != y ]]; do
+      settimezone
+      read_input_text "Confirm timezone (${ZONE}/${SUBZONE})"
+    done
+  fi
   arch_chroot "ln -sf /usr/share/zoneinfo/${ZONE}/${SUBZONE} /etc/localtime"
 }
 #}}}
@@ -1013,11 +1283,17 @@ configure_hardwareclock(){
 configure_locale(){
   print_title "LOCALE - ${WIKI}/Locale"
   print_info "Locales are used in Linux to define which language the user uses & character sets."
-  OPTION=n
-  while [[ $OPTION != y ]]; do
-    setlocale
-    read_input_text "Confirm locale ($LOCALE)"
-  done
+  if [[ -n "$DERIVED_LOCALE" ]] && grep -q "^#\{0,1\}${DERIVED_LOCALE}.*UTF-8" /etc/locale.gen; then
+    LOCALE="$DERIVED_LOCALE"
+    LOCALE_UTF8="${LOCALE}.UTF-8"
+    print_success "Using locale ${LOCALE_UTF8}."
+  else
+    OPTION=n
+    while [[ $OPTION != y ]]; do
+      setlocale
+      read_input_text "Confirm locale ($LOCALE)"
+    done
+  fi
   echo 'LANG="'$LOCALE_UTF8'"' > ${MNT}/etc/locale.conf
   arch_chroot "sed -i '/en_US\.UTF-8/ s/^#*/#/'  /etc/locale.gen"
   arch_chroot "sed -i '/'${LOCALE_UTF8}'/s/^#//' /etc/locale.gen"
@@ -1335,8 +1611,8 @@ welcome_screen
 run_step 1 "Partition Scheme"        umount_partitions create_partition_scheme format_partitions
 run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio
 run_step 3 "Hostname"                configure_hostname
-run_step 4 "Location"                configure_timezone configure_hardwareclock configure_mirrors
-run_step 5 "Locale"                  configure_locale
+run_step 4 "Location"                select_location configure_timezone configure_hardwareclock configure_mirrors
+run_step 5 "Locale"                  select_language configure_locale
 run_step 6 "Keyboard Layout"         select_xkeymap
 run_step 7 "Bootloader"              configure_bootloader
 run_step 8 "Root and User Setup"     root_password setup_user
