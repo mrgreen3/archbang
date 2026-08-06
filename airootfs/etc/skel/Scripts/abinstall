@@ -363,7 +363,7 @@ getmirror() {
   while IFS= read -r line
   do
    # do stuff
-   [[ $line =~ ^##.* ]] && location+=("${line//##}")
+   [[ $line =~ ^##[[:space:]].+ ]] && [[ ! $line =~ ^##[[:space:]]*(Arch\ Linux\ repository\ mirrorlist|Generated\ on) ]] && location+=("${line//##}")
 
   done < "$input"
 
