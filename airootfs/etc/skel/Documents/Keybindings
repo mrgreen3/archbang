@@ -13,8 +13,6 @@ Super + Space           Launcher (rofi)
 Super + w               Web Browser (firefox)
 Super + p               Screenshot (full)
 Super + Shift + s       Screenshot (region)
-Super + Shift + p       Package Manager (pacmenu)
-Super + Shift + a       AUR Helper (aurmenu)
 Super + k               Show Keybindings
 
 
