@@ -1,3 +1,7 @@
-FruitBang based on ArchBang - MangoWM
+ArchBang - MangoWM
 
 post install look at lines as removal of installer leaves a blank line!
+
+vconsole setup, check /etc/vconsole.conf and option in installer
+
+create or check username group is created rather than using users group
