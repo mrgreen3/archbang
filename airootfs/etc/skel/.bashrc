@@ -13,6 +13,10 @@ alias ls='ls --color=auto'
 # Package sizes
 alias pkg_size="pacman -Qi | awk '/^Name/{n=\$3} /^Installed Size/{print \$4\$5\"\t\"n}' | sort -hr"
 
+# Pacman upgrades
+alias update='sudo pacman -Syu'
+alias updates='checkupdates'
+
 # fzf shell integration
 eval "$(fzf --bash)"
 
