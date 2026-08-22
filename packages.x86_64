@@ -5,7 +5,7 @@ pipewire-pulse
 ## === ARCHIVE TOOLS ===
 zip
 unzip
-p7zip
+7zip
 xz
 
 ## === TERMINAL ===
@@ -131,7 +131,7 @@ lvm2
 man-db
 man-pages
 nano
-vi
+ex-vi-compat
 pacman
 pciutils
 perl
