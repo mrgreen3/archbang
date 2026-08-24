@@ -623,11 +623,27 @@ umount_partitions(){
 #}}}
 #SELECT DEVICE {{{
 select_device(){
-  devices_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'mmc\|nvme\|sd\|hd\|vd'`);
+  local NAME SIZE MODEL TRAN path label
+  devices_list=()
+  local display_list=()
+  while IFS= read -r line; do
+    NAME=""; SIZE=""; MODEL=""; TRAN=""
+    eval "$line"
+    [[ "$NAME" =~ ^(mmc|nvme|sd|hd|vd) ]] || continue
+    path="/dev/${NAME}"
+    label="${path}  ${SIZE}  ${MODEL:-unknown}  [${TRAN:-?}]"
+    if [[ "$TRAN" == "usb" ]]; then
+      label="${BGreen}${label}  <-- USB / EXTERNAL${Reset}"
+    fi
+    devices_list+=("$path")
+    display_list+=("$label")
+  done < <(lsblk -Pdo NAME,SIZE,MODEL,TRAN)
+
   PS3="$prompt1"
-  echo -e "Select partition:\n"
-  select device in "${devices_list[@]}"; do
-    if contains_element "${device}" "${devices_list[@]}"; then
+  echo -e "Select drive:\n"
+  select opt in "${display_list[@]}"; do
+    if [[ -n "$opt" && $REPLY -ge 1 && $REPLY -le ${#devices_list[@]} ]]; then
+      device="${devices_list[$((REPLY-1))]}"
       break
     else
       invalid_option
@@ -1306,14 +1322,17 @@ configure_mkinitcpio(){
     print_info "Setting up initramfs hooks based on your system configuration."
 
     # Determine hooks based on setup (systemd-based modern configuration)
+    # No 'autodetect': it trims the initramfs to only the drivers loaded on
+    # the installing machine, which breaks booting an install on different
+    # hardware (e.g. a portable USB install moved to another machine).
     if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block lvm2 filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block lvm2 filesystems fsck"
     elif [[ $LUKS -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block filesystems fsck"
     elif [[ $LVM -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block lvm2 filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole block lvm2 filesystems fsck"
     else
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
     fi
 
     # Update mkinitcpio.conf with hooks
@@ -1329,6 +1348,100 @@ configure_mkinitcpio(){
     print_info "Initramfs configuration complete."
     pause_function
 }
+#}}}
+#CONFIGURE GREETER {{{
+configure_greeter(){
+    print_title "Configuring login screen"
+    print_info "Setting up greetd (cage + gtkgreet) as the installed system's graphical login manager. The live ISO keeps its own autologin and is unaffected."
+
+    mkdir -p ${MNT}/etc/greetd
+
+    cat > ${MNT}/etc/greetd/config.toml <<'EOF'
+[terminal]
+vt = 1
+
+[default_session]
+command = "cage -s -- gtkgreet -s /etc/greetd/gtkgreet.css"
+user = "greeter"
+# greetd's built-in default service name (greetd-greeter) has no matching
+# /etc/pam.d file, so real-user auth through gtkgreet silently fails PAM
+# and loops back to the login screen. Reuse the "greetd" PAM service
+# (a full system-local-login stack, shipped by the greetd package) instead.
+service = "greetd"
+EOF
+
+    # Session options for gtkgreet's dropdown come from this flat list, not
+    # .desktop files.
+    echo "mango" > ${MNT}/etc/greetd/environments
+
+    cat > ${MNT}/etc/greetd/gtkgreet.css <<'EOF'
+/* gtkgreet theme — matches the ArchBang desktop palette (waybar/rofi/mako,
+   pulled from Backgrounds/sunset-lake.png) so the login screen doesn't look
+   like a bare default GTK dialog. Solid background rather than the actual
+   wallpaper image, since gtkgreet's session dropdown is a separate GtkWindow
+   that would inherit an image background too. */
+
+window {
+    background-color: #251848;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+}
+
+box#body {
+    background-color: rgba(30, 21, 64, 0.9);
+    border: 2px solid #c0568b;
+    border-radius: 6px;
+    padding: 32px;
+}
+
+label {
+    color: #ead6e8;
+}
+
+entry {
+    background-color: #1e1540;
+    color: #ead6e8;
+    caret-color: #ead6e8;
+    border: 1px solid #7b4178;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+entry:focus {
+    border-color: #c0568b;
+}
+
+button {
+    background-color: #c0568b;
+    color: #251848;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: #ffadd0;
+}
+
+combobox {
+    color: #ead6e8;
+}
+EOF
+
+    # GTK_THEME via /etc/environment (read by pam_env in every session,
+    # including the greeter's) so gtkgreet picks up the same adw-gtk3-dark
+    # theme the desktop itself uses instead of falling back to bare default
+    # GTK styling.
+    echo "GTK_THEME=adw-gtk3-dark" >> ${MNT}/etc/environment
+
+    arch_chroot "systemctl enable greetd.service"
+    arch_chroot "systemctl set-default graphical.target"
+
+    print_info "Greeter configuration complete."
+    pause_function
+}
+#}}}
 
 #CONFIGURE BOOTLOADER {{{
 # {{{ CONFIGURE BOOTLOADER
@@ -1609,7 +1722,7 @@ check_trim
 welcome_screen
 
 run_step 1 "Partition Scheme"        umount_partitions create_partition_scheme format_partitions
-run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio
+run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio configure_greeter
 run_step 3 "Hostname"                configure_hostname
 run_step 4 "Location"                select_location configure_timezone configure_hardwareclock configure_mirrors
 run_step 5 "Locale"                  select_language configure_locale
