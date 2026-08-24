@@ -11,10 +11,11 @@
     "group/left"
   ],
   "modules-center": [
-    "clock"
+    "wlr/taskbar"
   ],
   "modules-right": [
-    "group/right"
+    "group/right",
+    "clock"
   ],
   "group/left": {
     "orientation": "horizontal",
@@ -32,10 +33,18 @@
     ]
   },
   "custom/launcher": {
-    "format": "",
+    "format": "",
     "on-click": "~/Scripts/archbang-menu",
     "tooltip": true,
     "tooltip-format": "Main Menu"
+  },
+  "wlr/taskbar": {
+    "format": "{icon} {name}",
+    "icon-size": 16,
+    "active-first": true,
+    "tooltip-format": "{title}",
+    "on-click": "activate",
+    "on-click-middle": "close"
   },
   "ext/workspaces": {
     "format": "{id}",
