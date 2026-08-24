@@ -17,20 +17,11 @@
 }
 
 window#waybar {
-    background-color: transparent;
+    background-color: alpha(@bg, 0.85);
     color: @fg;
     border: none;
+    border-radius: 0;
     padding: 0;
-}
-
-/* ---------- Floating pill groups ---------- */
-#group-left,
-#group-right,
-#clock {
-    background-color: @bg;
-    border-radius: 15px;
-    padding: 0 10px;
-    margin: 0 4px;
 }
 
 /* ---------- Launcher ---------- */
@@ -38,8 +29,8 @@ window#waybar {
     color: @accent;
     font-family: "Symbols Nerd Font Mono";
     font-size: 14px;
-    padding: 0 10px 0 2px;
-    margin: 0;
+    padding: 0 12px;
+    margin: 2px 2px;
 }
 
 #custom-launcher:hover {
@@ -61,7 +52,8 @@ window#waybar {
 
 #workspaces button.active {
     color: @fg;
-    background: transparent;
+    background: @accent;
+    border-radius: 0;
     font-weight: bold;
 }
 
@@ -75,7 +67,7 @@ window#waybar {
 }
 
 #workspaces button.active:hover {
-    color: #ffffff;
+    color: @fg;
 }
 
 #workspaces button.urgent {
@@ -83,9 +75,49 @@ window#waybar {
     border-radius: 6px;
 }
 
+/* ---------- Taskbar (active window) ---------- */
+#taskbar {
+    margin: 0;
+}
+
+#taskbar button {
+    padding: 0 6px;
+    margin: 0;
+    background: transparent;
+    border: none;
+}
+
+#taskbar button label {
+    font-size: 0;
+    margin: 0;
+    padding: 0;
+}
+
+#taskbar button.active label {
+    font-size: 14px;
+    margin-left: 6px;
+    color: @fg;
+    font-weight: bold;
+}
+
+#taskbar button:not(.active) {
+    opacity: 0;
+    min-width: 0px;
+    min-height: 0px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+}
+
+#taskbar button:not(.active) image {
+    -gtk-icon-transform: scale(0);
+}
+
 /* ---------- Clock ---------- */
 #clock {
     color: @fg;
+    padding: 0 14px;
     font-weight: bold;
 }
 
