@@ -55,6 +55,8 @@ window#waybar {
     background: @accent;
     border-radius: 0;
     font-weight: bold;
+    padding: 4px 10px;
+    margin: 10px 10px;
 }
 
 #workspaces button:not(.active) {
