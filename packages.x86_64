@@ -26,6 +26,12 @@ mako
 reflector
 rofi
 
+## === GREETER (installed-system login only, configured/enabled by
+## abinstall — not used or started on the live ISO itself) ===
+greetd
+greetd-gtkgreet
+cage
+
 ## === FILE MANAGER & UTILITIES ===
 thunar
 thunar-volman
