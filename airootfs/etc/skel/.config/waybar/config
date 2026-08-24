@@ -1,22 +1,38 @@
 {
   "layer": "top",
-  "position": "top",
+  "position": "bottom",
   "height": 30,
   "spacing": 4,
+  "margin-top": 0,
+  "margin-bottom": 8,
+  "margin-left": 8,
+  "margin-right": 8,
   "modules-left": [
-    "custom/launcher",
-    "ext/workspaces"
+    "group/left"
   ],
   "modules-center": [
     "clock"
   ],
   "modules-right": [
-    "tray",
-    "battery",
-    "network"
+    "group/right"
   ],
+  "group/left": {
+    "orientation": "horizontal",
+    "modules": [
+      "custom/launcher",
+      "ext/workspaces"
+    ]
+  },
+  "group/right": {
+    "orientation": "horizontal",
+    "modules": [
+      "tray",
+      "network",
+      "battery"
+    ]
+  },
   "custom/launcher": {
-    "format": "",
+    "format": "",
     "on-click": "~/Scripts/archbang-menu",
     "tooltip": true,
     "tooltip-format": "Main Menu"
