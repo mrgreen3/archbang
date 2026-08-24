@@ -97,6 +97,7 @@ done
   UEFI=0
   LVM=0
   LUKS=0
+  PORTABLE_INSTALL=0
   LUKS_DISK=""
   LUKS_NAME="cryptroot"
   VG_NAME="lvm"
@@ -626,6 +627,7 @@ select_device(){
   local NAME SIZE MODEL TRAN path label
   devices_list=()
   local display_list=()
+  local tran_list=()
   while IFS= read -r line; do
     NAME=""; SIZE=""; MODEL=""; TRAN=""
     eval "$line"
@@ -637,6 +639,7 @@ select_device(){
     fi
     devices_list+=("$path")
     display_list+=("$label")
+    tran_list+=("$TRAN")
   done < <(lsblk -Pdo NAME,SIZE,MODEL,TRAN)
 
   PS3="$prompt1"
@@ -644,6 +647,7 @@ select_device(){
   select opt in "${display_list[@]}"; do
     if [[ -n "$opt" && $REPLY -ge 1 && $REPLY -le ${#devices_list[@]} ]]; then
       device="${devices_list[$((REPLY-1))]}"
+      DEVICE_TRAN="${tran_list[$((REPLY-1))]}"
       break
     else
       invalid_option
@@ -715,6 +719,13 @@ auto_partition_disk() {
     return 1
   fi
 
+  if [[ "$DEVICE_TRAN" == "usb" ]]; then
+    PORTABLE_INSTALL=1
+    print_info "USB target detected — will install hybrid BIOS+UEFI GRUB for portability."
+  else
+    PORTABLE_INSTALL=0
+  fi
+
   local suffix=$(partition_suffix "${device}")
 
   # --- compute swap size from total RAM (no swap partition above 8GiB RAM) ---
@@ -740,7 +751,34 @@ auto_partition_disk() {
 
   wipefs -af "${device}" &>/dev/null
 
-  if [[ $UEFI -eq 1 ]]; then
+  BIOS_GRUB_PART=""
+
+  if [[ $PORTABLE_INSTALL -eq 1 ]]; then
+    # GPT + ESP + bios_grub, regardless of this machine's own firmware mode,
+    # so the drive boots on both UEFI and legacy-BIOS targets (see
+    # configure_bootloader, which installs GRUB twice for this case).
+    BIOS_GRUB_PART="${device}${suffix}1"
+    EFI_PART="${device}${suffix}2"
+
+    if [[ $swap_gib -gt 0 ]]; then
+      SWAP_PART="${device}${suffix}3"
+      ROOT_PART="${device}${suffix}4"
+
+      parted -s "${device}" mklabel gpt \
+        mkpart primary 1MiB 2MiB set 1 bios_grub on \
+        mkpart primary fat32 2MiB 514MiB set 2 esp on \
+        mkpart primary linux-swap 514MiB "$(( 514 + swap_gib * 1024 ))MiB" \
+        mkpart primary ext4 "$(( 514 + swap_gib * 1024 ))MiB" 100% || return 1
+    else
+      SWAP_PART=""
+      ROOT_PART="${device}${suffix}3"
+
+      parted -s "${device}" mklabel gpt \
+        mkpart primary 1MiB 2MiB set 1 bios_grub on \
+        mkpart primary fat32 2MiB 514MiB set 2 esp on \
+        mkpart primary ext4 514MiB 100% || return 1
+    fi
+  elif [[ $UEFI -eq 1 ]]; then
     EFI_PART="${device}${suffix}1"
 
     if [[ $swap_gib -gt 0 ]]; then
@@ -1494,27 +1532,52 @@ configure_bootloader(){
       print_info "Detected LUKS UUID: $LUKS_UUID"
   fi
 
+  # --- Determine BOOT_DEV (parent disk of ROOT_PART) up front; needed for
+  #     BIOS-target grub-install, standalone or as part of a hybrid install ---
+  if [[ -z "$BOOT_DEV" || "$BOOT_DEV" =~ [0-9]$ ]]; then
+      BOOT_DEV=$(lsblk -no pkname "$ROOT_PART" | awk '{print "/dev/"$1}')
+      print_info "Corrected BOOT_DEV to ${BOOT_DEV} (parent of ${ROOT_PART})"
+  fi
+  if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
+      print_error "Could not determine valid boot device!"
+      lsblk -f
+      return 1
+  fi
+
   # --- Install GRUB ---
-  if [[ $UEFI -eq 1 ]]; then
+  if [[ $PORTABLE_INSTALL -eq 1 ]]; then
+      # Portable USB target: install both GRUB targets to the same disk so
+      # it boots on UEFI and legacy-BIOS machines alike (#5).
+      if [[ -z "$BIOS_GRUB_PART" ]]; then
+          print_error "Portable install requested but no bios_grub partition was recorded — re-run Auto partitioning."
+          return 1
+      fi
+      print_info "Installing hybrid GRUB (UEFI + BIOS) for portable USB target"
+
+      # --removable: write the ESP fallback path (EFI/BOOT/BOOTX64.EFI)
+      # instead of registering an NVRAM entry on this build machine — the
+      # drive needs to boot on whatever machine it ends up in, and the
+      # build machine may not even be UEFI (no efivars to register into).
+      arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable --recheck"
+      if [[ $? -ne 0 ]]; then
+          print_error "GRUB installation failed for UEFI target!"
+          return 1
+      fi
+
+      grub-install --target=i386-pc --boot-directory=${MNT}/boot ${BOOT_DEV}
+      if [[ $? -ne 0 ]]; then
+          print_error "GRUB installation failed for BIOS target!"
+          lsblk -f
+          return 1
+      fi
+      print_success "Hybrid GRUB successfully installed to ${BOOT_DEV}"
+
+  elif [[ $UEFI -eq 1 ]]; then
       print_info "Installing GRUB (UEFI mode) to /boot/EFI/GRUB/"
       arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck"
 
   else
       print_info "Installing GRUB (BIOS mode)"
-
-      # --- Ensure correct device for BIOS installs ---
-      # BIOS GRUB must install to the entire disk (e.g. /dev/vda), not a partition (e.g. /dev/vda1)
-      if [[ -z "$BOOT_DEV" || "$BOOT_DEV" =~ [0-9]$ ]]; then
-          BOOT_DEV=$(lsblk -no pkname "$ROOT_PART" | awk '{print "/dev/"$1}')
-          print_info "Corrected BOOT_DEV to ${BOOT_DEV} (parent of ${ROOT_PART})"
-      fi
-
-      # Validate disk exists
-      if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
-          print_error "Could not determine valid boot device for BIOS install!"
-          lsblk -f
-          return 1
-      fi
 
       # --- Run grub-install outside chroot (BIOS) ---
       grub-install --target=i386-pc --boot-directory=${MNT}/boot ${BOOT_DEV}
