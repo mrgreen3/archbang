@@ -17,10 +17,20 @@
 }
 
 window#waybar {
-    background-color: @bg;
+    background-color: transparent;
     color: @fg;
     border: none;
-    padding: 2px 0;
+    padding: 0;
+}
+
+/* ---------- Floating pill groups ---------- */
+#group-left,
+#group-right,
+#clock {
+    background-color: @bg;
+    border-radius: 15px;
+    padding: 0 10px;
+    margin: 0 4px;
 }
 
 /* ---------- Launcher ---------- */
@@ -28,8 +38,8 @@ window#waybar {
     color: @accent;
     font-family: "Symbols Nerd Font Mono";
     font-size: 14px;
-    padding: 0 12px;
-    margin: 2px 2px;
+    padding: 0 10px 0 2px;
+    margin: 0;
 }
 
 #custom-launcher:hover {
@@ -76,15 +86,13 @@ window#waybar {
 /* ---------- Clock ---------- */
 #clock {
     color: @fg;
-    background-color: transparent;
-    padding: 0 14px;
     font-weight: bold;
 }
 
 /* ---------- Common section styling ---------- */
 #tray, #battery, #network {
     margin: 0;
-    padding: 0 8px;
+    padding: 0 6px;
     color: @fg;
 }
 
