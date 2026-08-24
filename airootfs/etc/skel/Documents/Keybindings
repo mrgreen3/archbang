@@ -10,6 +10,7 @@ APPLICATIONS
 Super + Return          Terminal (foot)
 Super + Space           Launcher (rofi)
 Super + w               Web Browser (firefox)
+Super + f               File Manager (thunar)
 Super + p               Screenshot (full)
 Super + Shift + s       Screenshot (region)
 Super + k               Show Keybindings
@@ -20,7 +21,7 @@ WINDOW CONTROLS
 
 Super + q               Close Window
 Super + s               Toggle Float
-Super + f               Fullscreen
+Super + F11             Fullscreen
 Super + Shift + f       Fake Fullscreen
 Super + a               Maximise
 Super + i               Minimise
