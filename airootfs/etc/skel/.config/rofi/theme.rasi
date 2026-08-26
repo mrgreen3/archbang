@@ -1,8 +1,8 @@
 /* FruitBang — palette from sunset-lake.png */
 
 * {
-    bg:         #111318ff;
-    bg-alt:     #44474fff;
+    bg:         #111318b3;
+    bg-alt:     #44474fc8;
     fg:         #e2e2e9ff;
     fg-dim:     #c4c6d0ff;
     accent:     #adc6ffff;
