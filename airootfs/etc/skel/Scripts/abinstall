@@ -405,8 +405,10 @@ configure_mirrors() {
     done
   fi
 
-  # magic happens here....
-  sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
+  # magic happens here.... (exact-match on the "## <country>" header, not a
+  # regex built from user-controlled text, to avoid metacharacter injection)
+  awk -v loc="$LOCATION" '$0 == "## " loc {f=1} f && NF==0 {exit} f' ${MIRROR} > "${MIRROR}.filtered" \
+    && mv "${MIRROR}.filtered" ${MIRROR}
 }
 
 #SELECT LOCATION (derives timezone + xkb layout + mirror country) {{{
@@ -1263,6 +1265,10 @@ EOF
   # clean out live user overlay files from /etc/skel on new install
   rm -r ${MNT}/etc/skel &>/dev/null
 
+  # Remove live-ISO-only polkit rule granting unrestricted udisks access —
+  # must not persist onto the installed system.
+  rm -f ${MNT}/etc/polkit-1/rules.d/50-default.rules &>/dev/null
+
   # Revert gparted to stock version without sudo
   #sed -i 's|^Exec=sudo /usr/bin/gparted|Exec=/usr/bin/gparted|' ${MNT}/usr/share/applications/gparted.desktop
 
@@ -1664,20 +1670,20 @@ setup_user(){
     arch_chroot "passwd ${LIVE_USER}" && break
   done
 
-  # Rewrite occurrences of old username inside config files
-  print_info "Updating config files..."
-  arch_chroot "grep -rlI \"${LIVE_USER}\" /home/${LIVE_USER} | xargs -r sed -i \"s/${LIVE_USER}/${new_username}/g\""
-
-  # Update system account files
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/group"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/gshadow"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/passwd"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/shadow"
-
-  # Rename home directory and fix ownership
-  print_info "Renaming home directory..."
-  arch_chroot "mv /home/${LIVE_USER} /home/${new_username}"
+  # Rename the account and move its home directory (live user's primary
+  # group is the shared "users" group, not a private "live" group, so no
+  # groupmod is needed here).
+  print_info "Renaming account and home directory..."
+  arch_chroot "usermod -l ${new_username} ${LIVE_USER}"
+  arch_chroot "usermod -d /home/${new_username} -m ${new_username}"
+  arch_chroot "usermod -aG wheel ${new_username}"
   arch_chroot "chown -R ${new_username}: /home/${new_username}"
+
+  # Fix hardcoded /home/<old-user>/ paths left in dotfiles (e.g. swaybg's
+  # wallpaper path in mango's config.conf). Scoped to the literal path text,
+  # not the bare word "live", which can legitimately appear in prose/config.
+  print_info "Updating hardcoded paths in config files..."
+  arch_chroot "grep -rlI \"/home/${LIVE_USER}/\" /home/${new_username} 2>/dev/null | xargs -r sed -i \"s|/home/${LIVE_USER}/|/home/${new_username}/|g\""
   
   pause_function
 }
