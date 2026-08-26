@@ -2,38 +2,22 @@
   "layer": "top",
   "position": "bottom",
   "height": 24,
-  "spacing": 4,
-  "margin-top": 0,
-  "margin-bottom": 4,
-  "margin-left": 4,
-  "margin-right": 4,
+  "spacing": 2,
   "modules-left": [
-    "group/left"
+    "custom/launcher",
+    "ext/workspaces"
   ],
   "modules-center": [
     "wlr/taskbar"
   ],
   "modules-right": [
-    "group/right",
+    "tray",
+    "network",
+    "battery",
     "clock"
   ],
-  "group/left": {
-    "orientation": "horizontal",
-    "modules": [
-      "custom/launcher",
-      "ext/workspaces"
-    ]
-  },
-  "group/right": {
-    "orientation": "horizontal",
-    "modules": [
-      "tray",
-      "network",
-      "battery"
-    ]
-  },
   "custom/launcher": {
-    "format": "",
+    "format": "",
     "on-click": "~/Scripts/archbang-menu",
     "tooltip": true,
     "tooltip-format": "Main Menu"

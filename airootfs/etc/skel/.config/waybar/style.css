@@ -1,23 +1,25 @@
-/* ---------- Palette pulled from sunset-lake.png ---------- */
-/* sky-top:#843978  horizon:#c0568b  water:#7b4178  treeline:#372666  glow:#f2729a */
-@define-color bg      #251848;
-@define-color surface #1e1540;
-@define-color fg      #ead6e8;
-@define-color fg-dim  #7b4178;
-@define-color accent  #c0568b;
-@define-color red     #f2729a;
-@define-color green   #b49ac0;
-@define-color yellow  #d4a8b8;
+/* ---------- Palette pulled from aesthetic.jpg ---------- */
+@define-color bg        #111318;
+@define-color surface   #44474f;
+@define-color fg        #e2e2e9;
+@define-color fg-dim    #c4c6d0;
+@define-color accent    #adc6ff;
+@define-color on-accent #0f2f60;
+@define-color red       #ffb4ab;
+@define-color green     #ffadc6;
+@define-color yellow    #e6adff;
+@define-color mauve     #debcdf;
+@define-color on-mauve  #402843;
 
 /* ---------- Base ---------- */
 * {
-    border-radius: 0;
+    border-radius: 2px;
     font-family: "JetBrains Mono", monospace;
     font-size: 14px;
 }
 
 window#waybar {
-    background-color: alpha(@bg, 0.85);
+    background-color: alpha(@bg, 0.38);
     color: @fg;
     border: none;
     border-radius: 0;
@@ -26,7 +28,7 @@ window#waybar {
 
 /* ---------- Launcher ---------- */
 #custom-launcher {
-    color: @accent;
+    color: @fg;
     font-family: "Symbols Nerd Font Mono";
     font-size: 14px;
     padding: 0 12px;
@@ -35,7 +37,7 @@ window#waybar {
 }
 
 #custom-launcher:hover {
-    color: #ffadd0;
+    color: @accent;
 }
 
 /* ---------- Workspaces / tags ---------- */
@@ -44,25 +46,26 @@ window#waybar {
 }
 
 #workspaces button {
-    padding: 0 8px;
+    padding: 0 4px;
     margin: 0;
-    color: @fg-dim;
+    color: @fg;
     background: transparent;
     border: none;
     min-height: 0;
+    font-weight: 400;
 }
 
 #workspaces button.active {
-    color: @fg;
+    color: @accent;
     background: @accent;
-    border-radius: 0;
-    font-weight: bold;
-    padding: 2px 6px;
-    margin: 0 10px;
+    border-radius: 2px;
+    font-weight: 400;
+    padding: 0px 2px;
+    margin: 3px 4px;
 }
 
 #workspaces button:not(.active) {
-    color: @fg-dim;
+    color: @fg;
 }
 
 #workspaces button:hover {
@@ -75,8 +78,13 @@ window#waybar {
 }
 
 #workspaces button.urgent {
-    color: #e060c0;
-    border-radius: 6px;
+    color: @accent;
+    background: transparent;
+    border: 1px solid @accent;
+    border-radius: 2px;
+    font-weight: bold;
+    padding: 0 4px;
+    margin: 2px 3px;
 }
 
 /* ---------- Taskbar (active window) ---------- */
@@ -102,7 +110,7 @@ window#waybar {
     font-size: 14px;
     margin-left: 6px;
     color: @fg;
-    font-weight: bold;
+    font-weight: 400;
 }
 
 #taskbar button:not(.active) {
@@ -123,7 +131,7 @@ window#waybar {
 #clock {
     color: @fg;
     padding: 0 14px;
-    font-weight: bold;
+    font-weight: 400;
 }
 
 /* ---------- Common section styling ---------- */
@@ -169,13 +177,13 @@ window#waybar {
 /* ---------- Tooltips ---------- */
 tooltip {
     background-color: @surface;
-    border: 1px solid @accent;
-    border-radius: 4px;
+    border: 3px solid @accent;
+    border-radius: 2px;
     padding: 4px 8px;
 }
 
 tooltip label {
     color: @fg;
     font-family: "JetBrains Mono", monospace;
-    font-size: 13px;
+    font-size: 14px;
 }
