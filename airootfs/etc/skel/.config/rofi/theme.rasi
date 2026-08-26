@@ -1,13 +1,13 @@
 /* FruitBang — palette from sunset-lake.png */
 
 * {
-    bg:         #251848ff;
-    bg-alt:     #1e1540ff;
-    fg:         #ead6e8ff;
-    fg-dim:     #7b4178ff;
-    accent:     #c0568bff;
-    urgent:     #f2729aff;
-    selected-fg:#251848ff;
+    bg:         #111318ff;
+    bg-alt:     #44474fff;
+    fg:         #e2e2e9ff;
+    fg-dim:     #c4c6d0ff;
+    accent:     #adc6ffff;
+    urgent:     #ffb4abff;
+    selected-fg:#0f2f60ff;
 
     font:               "JetBrains Mono 10.5";
     background-color:   transparent;
