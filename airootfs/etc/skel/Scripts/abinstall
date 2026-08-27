@@ -87,7 +87,6 @@ done
     EDITOR="vim"
   #}}}
   # MOUNTPOINTS {{{
-    EFI_MOUNTPOINT="/boot/efi"
     MNT="/mnt"
   # MIRRORLIST
     LOG="/tmp/abinstall.log"
@@ -103,7 +102,6 @@ done
   VG_NAME="lvm"
   LV_ROOT="root"
   LIVE_USER="live"
-  [[ $1 == -v || $1 == --verbose ]] && VERBOSE_MODE=1 || VERBOSE_MODE=0 # VERBOSE MODE
   [[ -f $LOG ]] && rm -f $LOG
   AUTOMATIC_MODE=0
   TRIM=0
@@ -161,7 +159,7 @@ done
     for device in /sys/block/*/queue/discard_granularity; do
       if [[ -f "$device" ]]; then
         discard_value=$(cat "$device" 2>/dev/null)
-        if [[ "$discard_value" -gt 0 ]]; then
+        if [[ -n "$discard_value" && "$discard_value" -gt 0 ]]; then
           TRIM=1
           break
         fi
@@ -182,16 +180,6 @@ done
   check_root() { #{{{
     if [[ "$(id -u)" != "0" ]]; then
       error_msg "ERROR! You must execute the script as the 'root' user."
-    fi
-  } #}}}
-  check_user() { #{{{
-    if [[ "$(id -u)" == "0" ]]; then
-      error_msg "ERROR! You must execute the script as a normal user."
-    fi
-  } #}}}
-  check_hostname() { #{{{
-    if [[ `echo ${HOSTNAME} | sed 's/ //g'` == "" ]]; then
-      error_msg "ERROR! Hostname is not configured."
     fi
   } #}}}
   check_archiso() { #{{{
@@ -281,20 +269,12 @@ done
     local _filepath=${3}
     local _filebase=`basename ${3}`
 
-    sed -e "s/${_search}/${_replace}/" ${_filepath} > /tmp/${_filebase} 2>"$LOG"
+    sed -e "s/${_search}/${_replace}/" ${_filepath} > /tmp/${_filebase} 2>>"$LOG"
     if [[ ${?} -eq 0 ]]; then
       mv /tmp/${_filebase} ${_filepath}
     else
       cecho "failed: ${_search} - ${_filepath}"
     fi
-  } #}}}
-  checkbox() { #{{{
-    #display [X] or [ ]
-    [[ "$1" -eq 1 ]] && echo -e "${BBlue}[${Reset}${Bold}X${BBlue}]${Reset}" || echo -e "${BBlue}[ ${BBlue}]${Reset}";
-  } #}}}
-  checkbox_package() { #{{{
-    #check if [X] or [ ]
-    is_package_installed "$1" && checkbox 1 || checkbox 0
   } #}}}
   contains_element() { #{{{
     #check if an element exist in a string
@@ -310,22 +290,6 @@ done
     if [[ $AUTOMATIC_MODE -eq 0 ]]; then
       read -e -sn 1 -p "Press enter to continue..."
     fi
-  } #}}}
-  menu_item() { #{{{
-    #check if the number of arguments is less then 2
-    [[ $# -lt 2 ]] && _package_name="$1" || _package_name="$2";
-    #list of chars to remove from the package name
-    local _chars=("Ttf-" "-bzr" "-hg" "-svn" "-git" "-stable" "-icon-theme" "Gnome-shell-theme-" "Gnome-shell-extension-");
-    #remove chars from package name
-    for char in ${_chars[@]}; do _package_name=`echo ${_package_name^} | sed 's/'$char'//'`; done
-    #display checkbox and package name
-    echo -e "$(checkbox_package "$1") ${Bold}${_package_name}${Reset}"
-  } #}}}
-  mainmenu_item() { #{{{
-    echo -e "$(checkbox "$1") ${Bold}$2${Reset}"
-  } #}}}
-  elihw() { #{{{
-    [[ $OPT == b || $OPT == d ]] && break;
   } #}}}
   arch_chroot() { #{{{
     arch-chroot $MNT /bin/bash -c "${1}"
@@ -405,10 +369,8 @@ configure_mirrors() {
     done
   fi
 
-  # magic happens here.... (exact-match on the "## <country>" header, not a
-  # regex built from user-controlled text, to avoid metacharacter injection)
-  awk -v loc="$LOCATION" '$0 == "## " loc {f=1} f && NF==0 {exit} f' ${MIRROR} > "${MIRROR}.filtered" \
-    && mv "${MIRROR}.filtered" ${MIRROR}
+  # magic happens here....
+  sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
 }
 
 #SELECT LOCATION (derives timezone + xkb layout + mirror country) {{{
@@ -632,7 +594,18 @@ select_device(){
   local tran_list=()
   while IFS= read -r line; do
     NAME=""; SIZE=""; MODEL=""; TRAN=""
-    eval "$line"
+    # Parse KEY="value" pairs without eval — MODEL comes from device
+    # firmware/USB descriptors, which a hostile USB drive could spoof to
+    # inject shell commands if this were eval'd.
+    while [[ "$line" =~ ^([A-Z]+)=\"([^\"]*)\"[[:space:]]*(.*)$ ]]; do
+      case "${BASH_REMATCH[1]}" in
+        NAME)  NAME="${BASH_REMATCH[2]}" ;;
+        SIZE)  SIZE="${BASH_REMATCH[2]}" ;;
+        MODEL) MODEL="${BASH_REMATCH[2]}" ;;
+        TRAN)  TRAN="${BASH_REMATCH[2]}" ;;
+      esac
+      line="${BASH_REMATCH[3]}"
+    done
     [[ "$NAME" =~ ^(mmc|nvme|sd|hd|vd) ]] || continue
     path="/dev/${NAME}"
     label="${path}  ${SIZE}  ${MODEL:-unknown}  [${TRAN:-?}]"
@@ -890,9 +863,12 @@ setup_luks() {
   echo -e "Select partition to encrypt with LUKS:"
   select OPT in "${block_list[@]}" "Cancel"; do
     if contains_element "$OPT" "${block_list[@]}"; then
-      # confirm not encrypting /boot or EFI accidentally
-      if [[ "$OPT" =~ .*1$ ]] && blkid "$OPT" | grep -q "vfat"; then
-        print_error "$OPT appears to be EFI or /boot; skipping."
+      # confirm not encrypting an EFI/boot partition — checked by actual
+      # filesystem type, not a "partition name ends in 1" heuristic (which
+      # misfires on e.g. nvme0n1p11 and misses EFI parts numbered >1)
+      _fstype=$(blkid -s TYPE -o value "$OPT" 2>/dev/null)
+      if [[ "$_fstype" == "vfat" ]]; then
+        print_error "$OPT is formatted vfat (likely EFI or /boot); skipping."
         return 1
       fi
 
@@ -960,12 +936,20 @@ setup_lvm() {
   vgcreate "$VG_NAME" "$TARGET_DEV"
 
   # Ask only for root + extras
-  read -p "Enter root volume size (e.g. 25G): " ROOT_SIZE
+  while true; do
+    read -p "Enter root volume size (e.g. 25G): " ROOT_SIZE
+    [[ "$ROOT_SIZE" =~ ^[0-9]+(\.[0-9]+)?[KkMmGgTt][Ii]?[Bb]?$ ]] && break
+    print_danger "Invalid size. Use a number followed by a unit, e.g. 25G or 500M."
+  done
   lvcreate -L "${ROOT_SIZE}" "$VG_NAME" -n root
 
   echo
   print_info "Now you can add extra volumes such as home, var, swap..."
-  read -p "How many extra volumes? [0-9]: " extra_count
+  while true; do
+    read -p "How many extra volumes? [0-9]: " extra_count
+    [[ "$extra_count" =~ ^[0-9]+$ ]] && break
+    print_danger "Enter a whole number (0 or more)."
+  done
 
   i=1
   while [[ $i -le $extra_count ]]; do
@@ -973,7 +957,11 @@ setup_lvm() {
     if [[ $i -eq $extra_count ]]; then
       lvcreate -l 100%FREE "$VG_NAME" -n "$lvname"
     else
-      read -p "Size for $lvname (e.g. 10G): " lvsize
+      while true; do
+        read -p "Size for $lvname (e.g. 10G): " lvsize
+        [[ "$lvsize" =~ ^[0-9]+(\.[0-9]+)?[KkMmGgTt][Ii]?[Bb]?$ ]] && break
+        print_danger "Invalid size. Use a number followed by a unit, e.g. 10G or 500M."
+      done
       lvcreate -L "$lvsize" "$VG_NAME" -n "$lvname"
     fi
     i=$((i+1))
@@ -996,7 +984,11 @@ format_partitions(){
   print_danger "\tAll data on the ROOT and SWAP partition will be LOST."
   i=0
 
-  block_list=(`lsblk | grep 'part\|lvm' | awk '{print substr($1,3)}'`)
+  # lsblk -p gives full /dev/... paths; strip to bare device name so the
+  # loop below can prepend /dev/ or /dev/mapper/ as appropriate. A bare
+  # substr()-based prefix strip (the old approach) truncated NVMe/mmcblk
+  # names, which use a longer "nvme0n1p1"/"mmcblk0p1" naming scheme.
+  block_list=($(lsblk -nrpo NAME,TYPE | awk '$2=="part" || $2=="lvm" {sub(/^.*\//,"",$1); print $1}'))
 
   # check if there is no partition
   if [[ ${#block_list[@]} -eq 0 ]]; then
@@ -1221,6 +1213,12 @@ install_archbang(){
     error_msg "ERROR: Failed to copy system files"
   fi
 
+  # The live squashfs never carries vmlinuz-linux under its own /boot —
+  # archiso keeps the boot kernel separate, on the ISO media itself, so
+  # mkinitcpio has nothing to point -k at after the copy above. Pull it in.
+  mkdir -p "${MNT}/boot"
+  cp -a /run/archiso/bootmnt/arch/boot/x86_64/vmlinuz-linux "${MNT}/boot/vmlinuz-linux"
+
   # Sync changes made during live session
   UPPERDIR=$(find /run/archiso/cowspace -type d -path "*/persistent_*/x86_64/upperdir" 2>/dev/null | head -1)
   if [[ -n "$UPPERDIR" && -d "$UPPERDIR" ]]; then
@@ -1264,10 +1262,6 @@ EOF
 
   # clean out live user overlay files from /etc/skel on new install
   rm -r ${MNT}/etc/skel &>/dev/null
-
-  # Remove live-ISO-only polkit rule granting unrestricted udisks access —
-  # must not persist onto the installed system.
-  rm -f ${MNT}/etc/polkit-1/rules.d/50-default.rules &>/dev/null
 
   # Revert gparted to stock version without sudo
   #sed -i 's|^Exec=sudo /usr/bin/gparted|Exec=/usr/bin/gparted|' ${MNT}/usr/share/applications/gparted.desktop
@@ -1538,11 +1532,22 @@ configure_bootloader(){
       print_info "Detected LUKS UUID: $LUKS_UUID"
   fi
 
-  # --- Determine BOOT_DEV (parent disk of ROOT_PART) up front; needed for
-  #     BIOS-target grub-install, standalone or as part of a hybrid install ---
-  if [[ -z "$BOOT_DEV" || "$BOOT_DEV" =~ [0-9]$ ]]; then
-      BOOT_DEV=$(lsblk -no pkname "$ROOT_PART" | awk '{print "/dev/"$1}')
-      print_info "Corrected BOOT_DEV to ${BOOT_DEV} (parent of ${ROOT_PART})"
+  # --- Determine BOOT_DEV (top-level disk of ROOT_PART) up front; needed for
+  #     BIOS-target grub-install, standalone or as part of a hybrid install.
+  #     ROOT_PART can be several layers deep (e.g. an LVM LV on a LUKS
+  #     container on a partition), so walk up parents until we hit a
+  #     device of TYPE "disk" rather than stopping after one hop. ---
+  if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
+      _walk_dev="$ROOT_PART"
+      for _walk_hop in 1 2 3 4 5; do
+          _walk_type=$(lsblk -no TYPE "$_walk_dev" 2>/dev/null | head -1)
+          [[ "$_walk_type" == "disk" ]] && break
+          _walk_parent=$(lsblk -no pkname "$_walk_dev" 2>/dev/null | head -1)
+          [[ -z "$_walk_parent" ]] && break
+          _walk_dev="/dev/${_walk_parent}"
+      done
+      BOOT_DEV="$_walk_dev"
+      print_info "Corrected BOOT_DEV to ${BOOT_DEV} (top-level disk of ${ROOT_PART})"
   fi
   if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
       print_error "Could not determine valid boot device!"
@@ -1616,7 +1621,7 @@ configure_bootloader(){
   fi
 
   # --- Update /etc/default/grub inside chroot ---
-  arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub"
+  arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub && rm -f /etc/default/grub.bak"
 
   # --- Enable GRUB cryptodisk if using LUKS ---
   if [[ $LUKS -eq 1 ]]; then
@@ -1670,20 +1675,26 @@ setup_user(){
     arch_chroot "passwd ${LIVE_USER}" && break
   done
 
-  # Rename the account and move its home directory (live user's primary
-  # group is the shared "users" group, not a private "live" group, so no
-  # groupmod is needed here).
-  print_info "Renaming account and home directory..."
-  arch_chroot "usermod -l ${new_username} ${LIVE_USER}"
-  arch_chroot "usermod -d /home/${new_username} -m ${new_username}"
-  arch_chroot "usermod -aG wheel ${new_username}"
-  arch_chroot "chown -R ${new_username}: /home/${new_username}"
+  # Rewrite occurrences of old username inside config files
+  print_info "Updating config files..."
+  arch_chroot "grep -rlI \"${LIVE_USER}\" /home/${LIVE_USER} | xargs -r sed -i \"s/${LIVE_USER}/${new_username}/g\""
 
-  # Fix hardcoded /home/<old-user>/ paths left in dotfiles (e.g. swaybg's
-  # wallpaper path in mango's config.conf). Scoped to the literal path text,
-  # not the bare word "live", which can legitimately appear in prose/config.
-  print_info "Updating hardcoded paths in config files..."
-  arch_chroot "grep -rlI \"/home/${LIVE_USER}/\" /home/${new_username} 2>/dev/null | xargs -r sed -i \"s|/home/${LIVE_USER}/|/home/${new_username}/|g\""
+  # Update system account files
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/group"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/gshadow"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/passwd"
+  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/shadow"
+
+  # Rename home directory and fix ownership
+  print_info "Renaming home directory..."
+  arch_chroot "mv /home/${LIVE_USER} /home/${new_username}"
+
+  # Ensure a dedicated group matching the new username exists and is the
+  # user's primary group, rather than relying on whatever group the live
+  # user happened to carry over (e.g. a shared "users" group).
+  arch_chroot "getent group \"${new_username}\" >/dev/null || groupadd \"${new_username}\""
+  arch_chroot "usermod -g \"${new_username}\" \"${new_username}\""
+  arch_chroot "chown -R ${new_username}:${new_username} /home/${new_username}"
   
   pause_function
 }
@@ -1795,7 +1806,7 @@ run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_
 run_step 3 "Hostname"                configure_hostname
 run_step 4 "Location"                select_location configure_timezone configure_hardwareclock configure_mirrors
 run_step 5 "Locale"                  select_language configure_locale
-run_step 6 "Keyboard Layout"         select_xkeymap
+run_step 6 "Keyboard Layout"         configure_vconsole select_xkeymap
 run_step 7 "Bootloader"              configure_bootloader
 run_step 8 "Root and User Setup"     root_password setup_user
 finish
