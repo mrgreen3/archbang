@@ -1412,60 +1412,11 @@ EOF
     # .desktop files.
     echo "mango" > ${MNT}/etc/greetd/environments
 
-    cat > ${MNT}/etc/greetd/gtkgreet.css <<'EOF'
-/* gtkgreet theme — matches the ArchBang desktop palette (waybar/rofi/mako,
-   pulled from Backgrounds/sunset-lake.png) so the login screen doesn't look
-   like a bare default GTK dialog. Solid background rather than the actual
-   wallpaper image, since gtkgreet's session dropdown is a separate GtkWindow
-   that would inherit an image background too. */
-
-window {
-    background-color: #251848;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 14px;
-}
-
-box#body {
-    background-color: rgba(30, 21, 64, 0.9);
-    border: 2px solid #c0568b;
-    border-radius: 6px;
-    padding: 32px;
-}
-
-label {
-    color: #ead6e8;
-}
-
-entry {
-    background-color: #1e1540;
-    color: #ead6e8;
-    caret-color: #ead6e8;
-    border: 1px solid #7b4178;
-    border-radius: 4px;
-    padding: 6px 10px;
-}
-
-entry:focus {
-    border-color: #c0568b;
-}
-
-button {
-    background-color: #c0568b;
-    color: #251848;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 14px;
-    font-weight: bold;
-}
-
-button:hover {
-    background-color: #ffadd0;
-}
-
-combobox {
-    color: #ead6e8;
-}
-EOF
+    # gtkgreet.css itself is NOT written here — it was already brought over
+    # by the airootfs copy earlier in install_archbang, and is kept current
+    # with the rest of the desktop palette by the archbang-theme skill.
+    # Writing a hardcoded copy here would clobber whatever palette is
+    # actually live and silently drift out of sync with it.
 
     # GTK_THEME via /etc/environment (read by pam_env in every session,
     # including the greeter's) so gtkgreet picks up the same adw-gtk3-dark
@@ -1759,38 +1710,49 @@ run_step() {
   local step_num="$1"
   local step_label="$2"
   shift 2
+  local -a fns=("$@")
 
   if [[ ${checklist[$step_num]} -eq 1 ]]; then
     print_info "Step ${step_num}: ${step_label} — already complete, skipping."
     return 0
   fi
 
-  while true; do
-    print_line
-    echo -e "# ${Bold}Step ${step_num} of 8: ${step_label}${Reset}"
-    print_line
-    echo ""
-    local failed=0
-    for fn in "$@"; do
-      if ! $fn; then
-        failed=1
-        break
-      fi
-    done
+  print_line
+  echo -e "# ${Bold}Step ${step_num} of 8: ${step_label}${Reset}"
+  print_line
+  echo ""
 
-    if [[ $failed -eq 0 ]]; then
-      checklist[$step_num]=1
-      return 0
+  # Retry/skip operates per sub-step, not by restarting the whole chain from
+  # fns[0] — restarting from the top re-ran expensive/destructive earlier
+  # sub-steps (e.g. install_archbang's full filesystem copy) and could
+  # silently clobber work a later sub-step (e.g. configure_greeter) had
+  # already done, without that later sub-step ever running again.
+  local i=0
+  while [[ $i -lt ${#fns[@]} ]]; do
+    local fn="${fns[$i]}"
+    if "$fn"; then
+      i=$((i + 1))
+      continue
     fi
 
-    print_danger "Step '${step_label}' encountered an error."
-    read_input_text "Retry this step"
+    print_danger "Step '${step_label}' failed at '${fn}'."
+    read_input_text "Retry '${fn}'"
     if [[ $OPTION == y ]]; then
       continue
     fi
-    read_input_text "Continue to next step anyway"
-    [[ $OPTION == y ]] && return 0 || error_msg "Installation aborted."
+
+    read_input_text "Skip '${fn}' and continue with the rest of this step"
+    if [[ $OPTION == y ]]; then
+      print_danger "Skipping '${fn}' — this step's configuration may be incomplete."
+      i=$((i + 1))
+      continue
+    fi
+
+    error_msg "Installation aborted."
   done
+
+  checklist[$step_num]=1
+  return 0
 }
 #}}}
 
