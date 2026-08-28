@@ -6,13 +6,13 @@
 # written by Claude Code
 
 # number of lines nol is reduced by one post install
-nol=8
+nol=9
 
 # basically menu options in variable form
-items="Terminal\0icon\x1futilities-terminal\nFirefox\0icon\x1ffirefox\nFiles\0icon\x1fsystem-file-manager\nApplications\0icon\x1fsystem-run"
+items="Terminal\0icon\x1futilities-terminal\nFirefox\0icon\x1ffirefox\nFiles\0icon\x1fsystem-file-manager\nApplications\0icon\x1fsystem-run\nSystem Monitor\0icon\x1futilities-system-monitor"
 
 # test if installer present
-[[ -x ~/Scripts/abinstall ]] && items="$items\nInstall\0icon\x1fsystem-software-install" || nol=7
+[[ -x ~/Scripts/abinstall ]] && items="$items\nInstall\0icon\x1fsystem-software-install" || nol=8
 
 # more menu options
 items="$items\nGuide\0icon\x1fhelp-contents\nKeybinds\0icon\x1finput-keyboard\nExit\0icon\x1fsystem-shutdown"
@@ -33,6 +33,9 @@ case "$choice" in
     ;;
   Applications)
     rofi -show drun
+    ;;
+  "System Monitor")
+    foot -e dgop top
     ;;
   Install)
     foot --fullscreen -e sudo -EH ~/Scripts/abinstall
