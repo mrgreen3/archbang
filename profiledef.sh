@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
-#
-# Profile modified for ArchBang
-# by Mr Green [mrgreen@archbang.org]
+# ArchBang profile
 
-iso_name="archbang"
+iso_name="archbang-rc"
 iso_label="ARCHBANG_$(date +%d%m%y)"
 iso_publisher="ArchBang <https://www.archbang.org>"
 iso_application="ArchBang Live Iso (Beta)"
-# Version format: DDMMYY (day-month-year). Changes daily for testing/development builds.
-# Chronologically sortable for easy identification of ISO age.
-# For releases, replace with semantic versioning (e.g., "1.0.0") instead of $(date +%d%m%y)
+# DDMMYY dev build date; swap for semantic versioning (e.g. "1.0.0") on release
 iso_version="$(date +%d%m%y)"
 install_dir="arch"
 buildmodes=("iso")

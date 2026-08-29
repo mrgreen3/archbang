@@ -1,5 +1,4 @@
 " Basic Vim config for ArchBang
-" Added by MrGreen
 syntax on
 set number
 set showmode

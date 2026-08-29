@@ -1,13 +1,8 @@
 #!/usr/bin/env bash
 
 # Abinstall ArchBang installer
-# Modified by Mr Green mrgreen(at)archbang(dot)org
-# based on lilo fifo...scripts
-
-#-------------------------------------------------------------------------------
-# Created by helmuthdu mailto: helmuthdu[at]gmail[dot]com
+# Based on lilo fifo scripts, created by helmuthdu (helmuthdu[at]gmail[dot]com)
 # Contribution: flexiondotorg
-#-------------------------------------------------------------------------------
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -295,20 +290,6 @@ done
     arch-chroot $MNT /bin/bash -c "${1}"
   }
   #}}}
-  getkeymap() { #{{{
-    local _keymaps=($(localectl list-keymaps))
-    PS3="(shift+pgup/pgdown) $prompt1"
-    echo "Select keymap:"
-    select KEYMAP in "${_keymaps[@]}"; do
-      if contains_element "$KEYMAP" "${_keymaps[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-    done
-  }
-  #}}}
-
  getxkeymap() { #{{{
     local _xkeymaps=($(localectl list-x11-keymap-layouts))
     PS3="(shift+pgup/pgdown) $prompt1"
@@ -374,12 +355,7 @@ configure_mirrors() {
 }
 
 #SELECT LOCATION (derives timezone + xkb layout + mirror country) {{{
-# A few countries are named differently in the bundled mirrorlist than in
-# tzdata's iso3166.tab (confirmed against the real pacman-mirrorlist package:
-# "Czechia"/"South Korea"/"Türkiye"/"United Kingdom" vs iso3166's "Czech
-# Republic"/"Korea (South)"/"Turkey"/"Britain (UK)"). This alias table is only
-# used to resolve the country CODE for timezone/xkb derivation — the mirrorlist
-# country name itself (used by configure_mirrors) is never touched.
+# Maps mirrorlist country names to tzdata's iso3166.tab names, for timezone/xkb lookup only
 declare -A MIRROR_NAME_ALIASES=(
   ["Czechia"]="Czech Republic"
   ["South Korea"]="Korea (South)"
@@ -391,9 +367,7 @@ select_location() {
   print_title "LOCATION - ${WIKI}/Timezone"
   print_info "Select your country. Timezone, mirrors and desktop keyboard layout will be derived automatically where possible."
 
-  # Reuse getmirror()'s own country list (the "## Country" headers already in
-  # the bundled mirrorlist) so the selected LOCATION always matches what
-  # configure_mirrors expects later — no separate country dataset to keep in sync.
+  # Reuse getmirror()'s own country list so LOCATION stays in sync with configure_mirrors
   OPTION=n
   while [[ $OPTION != y ]]; do
     getmirror
@@ -550,13 +524,14 @@ WIKI="https://wiki.archlinux.org/index.php"
 #CONFIGURE VCONSOLE {{{
 configure_vconsole(){
   print_title "CONSOLE KEYMAP"
-  print_info "Select the keyboard layout for the virtual console (tty)."
-  OPTION=n
-  while [[ $OPTION != y ]]; do
-    getkeymap
-    read_input_text "Confirm keymap: $KEYMAP"
-  done
-  echo "KEYMAP=${KEYMAP}" > ${MNT}/etc/vconsole.conf
+  # Fixed to "us" rather than prompted: this only affects the raw tty
+  # console (rescue/recovery, before a desktop is running), and almost
+  # every user is on mango/Wayland day to day, whose own keyboard layout
+  # is set separately in select_xkeymap below (derived from location).
+  # Documents/Guide covers editing /etc/vconsole.conf post-install for
+  # anyone who actually needs a different console layout.
+  print_info "Using 'us' for the console (tty) layout — see Documents/Guide to change it later."
+  echo "KEYMAP=us" > ${MNT}/etc/vconsole.conf
 }
 #}}}
 #SELECT KEYMAP {{{
@@ -1213,9 +1188,7 @@ install_archbang(){
     error_msg "ERROR: Failed to copy system files"
   fi
 
-  # The live squashfs never carries vmlinuz-linux under its own /boot —
-  # archiso keeps the boot kernel separate, on the ISO media itself, so
-  # mkinitcpio has nothing to point -k at after the copy above. Pull it in.
+  # archiso keeps the boot kernel on the ISO media, not in the squashfs — pull it in
   mkdir -p "${MNT}/boot"
   cp -a /run/archiso/bootmnt/arch/boot/x86_64/vmlinuz-linux "${MNT}/boot/vmlinuz-linux"
 
@@ -1224,6 +1197,14 @@ install_archbang(){
   if [[ -n "$UPPERDIR" && -d "$UPPERDIR" ]]; then
     print_info "Syncing live session changes..."
     rsync -av "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1 || print_warning "Cowspace sync had errors (non-fatal)"
+  fi
+
+  # Copy the current wallpaper to a fixed path for greetd's login theme, before
+  # /etc/skel is deleted later in this function
+  WALLPAPER_NAME=$(sed -n 's#.*swaybg -i [^ ]*/\([^ ]*\) .*#\1#p' "${MNT}/etc/skel/.config/mango/config.conf" 2>/dev/null | head -1)
+  if [[ -n "$WALLPAPER_NAME" && -f "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" ]]; then
+    mkdir -p "${MNT}/usr/share/backgrounds/archbang"
+    cp -a "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" "${MNT}/usr/share/backgrounds/archbang/current"
   fi
 
   # Generate unique machine id
@@ -1401,27 +1382,17 @@ vt = 1
 [default_session]
 command = "cage -s -- gtkgreet -s /etc/greetd/gtkgreet.css"
 user = "greeter"
-# greetd's built-in default service name (greetd-greeter) has no matching
-# /etc/pam.d file, so real-user auth through gtkgreet silently fails PAM
-# and loops back to the login screen. Reuse the "greetd" PAM service
-# (a full system-local-login stack, shipped by the greetd package) instead.
+# greetd-greeter has no matching /etc/pam.d file; reuse the "greetd" PAM service instead
 service = "greetd"
 EOF
 
-    # Session options for gtkgreet's dropdown come from this flat list, not
-    # .desktop files.
+    # gtkgreet's session dropdown reads this flat list, not .desktop files
     echo "mango" > ${MNT}/etc/greetd/environments
 
-    # gtkgreet.css itself is NOT written here — it was already brought over
-    # by the airootfs copy earlier in install_archbang, and is kept current
-    # with the rest of the desktop palette by the archbang-theme skill.
-    # Writing a hardcoded copy here would clobber whatever palette is
-    # actually live and silently drift out of sync with it.
+    # gtkgreet.css is not written here — already copied by install_archbang and
+    # kept current by the archbang-theme skill; writing it here would clobber that
 
-    # GTK_THEME via /etc/environment (read by pam_env in every session,
-    # including the greeter's) so gtkgreet picks up the same adw-gtk3-dark
-    # theme the desktop itself uses instead of falling back to bare default
-    # GTK styling.
+    # GTK_THEME via /etc/environment so gtkgreet matches the desktop's adw-gtk3-dark
     echo "GTK_THEME=adw-gtk3-dark" >> ${MNT}/etc/environment
 
     arch_chroot "systemctl enable greetd.service"
@@ -1483,11 +1454,8 @@ configure_bootloader(){
       print_info "Detected LUKS UUID: $LUKS_UUID"
   fi
 
-  # --- Determine BOOT_DEV (top-level disk of ROOT_PART) up front; needed for
-  #     BIOS-target grub-install, standalone or as part of a hybrid install.
-  #     ROOT_PART can be several layers deep (e.g. an LVM LV on a LUKS
-  #     container on a partition), so walk up parents until we hit a
-  #     device of TYPE "disk" rather than stopping after one hop. ---
+  # Determine BOOT_DEV (top-level disk of ROOT_PART) for BIOS-target grub-install;
+  # walk up parents since ROOT_PART can be several layers deep (e.g. LVM on LUKS)
   if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
       _walk_dev="$ROOT_PART"
       for _walk_hop in 1 2 3 4 5; do
@@ -1508,18 +1476,15 @@ configure_bootloader(){
 
   # --- Install GRUB ---
   if [[ $PORTABLE_INSTALL -eq 1 ]]; then
-      # Portable USB target: install both GRUB targets to the same disk so
-      # it boots on UEFI and legacy-BIOS machines alike (#5).
+      # Portable USB target: install both GRUB targets so it boots UEFI and BIOS alike
       if [[ -z "$BIOS_GRUB_PART" ]]; then
           print_error "Portable install requested but no bios_grub partition was recorded — re-run Auto partitioning."
           return 1
       fi
       print_info "Installing hybrid GRUB (UEFI + BIOS) for portable USB target"
 
-      # --removable: write the ESP fallback path (EFI/BOOT/BOOTX64.EFI)
-      # instead of registering an NVRAM entry on this build machine — the
-      # drive needs to boot on whatever machine it ends up in, and the
-      # build machine may not even be UEFI (no efivars to register into).
+      # --removable writes the ESP fallback path instead of an NVRAM entry on this
+      # build machine, since the drive needs to boot on whatever machine it ends up in
       arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable --recheck"
       if [[ $? -ne 0 ]]; then
           print_error "GRUB installation failed for UEFI target!"
@@ -1640,9 +1605,7 @@ setup_user(){
   print_info "Renaming home directory..."
   arch_chroot "mv /home/${LIVE_USER} /home/${new_username}"
 
-  # Ensure a dedicated group matching the new username exists and is the
-  # user's primary group, rather than relying on whatever group the live
-  # user happened to carry over (e.g. a shared "users" group).
+  # Ensure a dedicated group matching the new username, not the shared "users" group
   arch_chroot "getent group \"${new_username}\" >/dev/null || groupadd \"${new_username}\""
   arch_chroot "usermod -g \"${new_username}\" \"${new_username}\""
   arch_chroot "chown -R ${new_username}:${new_username} /home/${new_username}"
@@ -1722,11 +1685,8 @@ run_step() {
   print_line
   echo ""
 
-  # Retry/skip operates per sub-step, not by restarting the whole chain from
-  # fns[0] — restarting from the top re-ran expensive/destructive earlier
-  # sub-steps (e.g. install_archbang's full filesystem copy) and could
-  # silently clobber work a later sub-step (e.g. configure_greeter) had
-  # already done, without that later sub-step ever running again.
+  # Retry/skip operates per sub-step, not by restarting the whole chain — restarting
+  # from fns[0] would re-run expensive/destructive earlier sub-steps
   local i=0
   while [[ $i -lt ${#fns[@]} ]]; do
     local fn="${fns[$i]}"
