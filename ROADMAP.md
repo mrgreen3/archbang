@@ -3,7 +3,7 @@
 ## Done
 
 - [x] Arch live ISO based on ArchBang
-- [x] MangoWM Wayland stack (waybar, foot, rofi-wayland, swaybg)
+- [x] MangoWC Wayland stack (waybar, foot, rofi-wayland, swaybg)
 - [x] NetworkManager with networkmanager-dmenu
 - [x] Full desktop config (waybar colours, keybindings, menu, wallpaper)
 - [x] archbang.install:7777 hostname alias for installer

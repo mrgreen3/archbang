@@ -4,9 +4,8 @@ ArchBang: About
 What is ArchBang?
 ------------------
 
-ArchBang is a lightweight, Arch Linux-based live ISO forked from ArchBang. It swaps
-labwc for MangoWM — a custom Wayland compositor built around a warm brown and yellow
-palette. Same lean philosophy, different compositor and visual identity.
+ArchBang is a lightweight, Arch Linux-based live ISO built around MangoWC, a Wayland
+compositor, with a warm brown and yellow palette.
 
 
 Origin
@@ -22,22 +21,22 @@ MrGreen has maintained ArchBang for years — through window manager changes, th
 Wayland, and the shift to labwc.
 
 ArchBang is MrGreen's personal spin: the same base, the same installer, but built around
-MangoWM and a warm dark theme rather than the stock ArchBang configuration.
+MangoWC and a warm dark theme rather than the stock ArchBang configuration.
 
 
 Design Philosophy
 -----------------
 
   * Lightweight - Minimal base, runs well on modest hardware
-  * Wayland-first - MangoWM compositor, no Xorg
+  * Wayland-first - MangoWC compositor, no Xorg
   * Coherent - Warm brown/yellow palette throughout (waybar, mako, rofi)
   * Arch underneath - Full pacman access, rolling release
 
 
-Why MangoWM?
+Why MangoWC?
 ------------
 
-MangoWM is a custom Wayland compositor written by MrGreen. It provides a tiling and
+MangoWC (github.com/DreamMaoMao/mango) is a Wayland compositor providing a tiling and
 floating hybrid layout with a minimal footprint. ArchBang bundles the AUR packages
 (mangowm-git, scenefx) directly in the ISO so no network access is needed to boot a
 working desktop.
@@ -47,7 +46,7 @@ Features
 --------
 
 Desktop
-  - MangoWM Wayland compositor
+  - MangoWC Wayland compositor
   - waybar panel with workspace indicators
   - foot terminal
   - rofi launcher (Super+Space)
@@ -66,7 +65,7 @@ Getting Help
 
 For Arch-related questions: https://wiki.archlinux.org
 
-ArchBang is not affiliated with Arch Linux or ArchBang.
+ArchBang is not affiliated with Arch Linux.
 
 ---
 
