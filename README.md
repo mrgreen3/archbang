@@ -1,17 +1,17 @@
 # ArchBang
 
-ArchBang is a minimal Arch Linux-based distribution featuring the MangoWM Wayland compositor. Lean, keyboard-driven, dark warm palette.
+ArchBang is a minimal Arch Linux-based distribution featuring the MangoWC Wayland compositor. Lean, keyboard-driven, dark warm palette.
 
 ## About
 
 - **Minimal Design**: Lightweight, no unnecessary packages
 - **Arch Linux Based**: archiso build system
-- **MangoWM**: Wayland compositor with warm yellow/brown theme
+- **MangoWC**: Wayland compositor with warm yellow/brown theme
 - **live user**: live session user, wheel group, passwordless sudo
 
 ## Features
 
-- Pure Wayland environment with MangoWM compositor
+- Pure Wayland environment with MangoWC compositor
 - Waybar panel with workspace indicators
 - Rofi launcher (Super+Space)
 - Mako notification daemon

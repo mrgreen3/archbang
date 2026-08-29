@@ -1631,7 +1631,7 @@ welcome_screen(){
   print_title "Welcome to ArchBang!"
 
   echo -e "${Bold}What is ArchBang?${Reset}"
-  echo -e "\tArch Linux with the MangoWM Wayland compositor."
+  echo -e "\tArch Linux with the MangoWC Wayland compositor."
   echo -e "\tA lean, keyboard-driven Arch-based live ISO.\n"
 
   echo -e "${Bold}System Requirements:${Reset}"
