@@ -39,17 +39,6 @@ if [[ -n "$log_file" ]]; then
   echo "Logging to $log_file"
 fi
 
-# --- Parse simple key=value or -i flags ---
-for arg in "$@"; do
-  case $arg in
-    -i|--install) INTERACTIVE=0 ;;
-    hostname=*)   host_name="${arg#*=}" ;;
-    locale=*)     LOCALE_VALUE="${arg#*=}" ;;
-    keymap=*)     KEYMAP_VALUE="${arg#*=}" ;;
-  esac
-done
-
-
 #GLOBAL VARIABLES {{{
   checklist=( 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 )
   # COLORS {{{
@@ -106,11 +95,7 @@ done
   DERIVED_XKB=""     # e.g. "gb"
   DERIVED_LOCALE=""  # e.g. "en_GB"
   cpu_id=""
-  # --- Optional installer variables (can be overridden by args) ---
-  host_name=""          # For hostname
-  LOCALE_VALUE=""       # For locale
-  KEYMAP_VALUE=""       # For keyboard layout
-  INTERACTIVE=1         # 1 = ask, 0 = skip prompts
+  INTERACTIVE=1      # 1 = ask, 0 = skip prompts
 
 #}}}
 #COMMON FUNCTIONS {{{
