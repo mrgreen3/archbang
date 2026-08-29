@@ -62,6 +62,19 @@ Install:  sudo pacman -S <package-name>
 
 ---
 
+CONSOLE KEYBOARD LAYOUT
+
+The installer sets the raw tty console (rescue mode, before mango starts) to
+a "us" keymap regardless of your location — only mango's own desktop keymap
+is set to match where you are. To change the console layout afterwards:
+
+sudo nano /etc/vconsole.conf   # set KEYMAP=<layout>, e.g. KEYMAP=uk
+sudo mkinitcpio -P             # regenerate initramfs to pick it up
+
+List available layouts with: localectl list-keymaps
+
+---
+
 MICROCODE
 
 ArchBang includes both intel-ucode and amd-ucode. You only need one.

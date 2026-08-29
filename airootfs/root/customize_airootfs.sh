@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Configure live iso
-# 
 set -e -u -x
 shopt -s extglob
 
@@ -14,7 +13,7 @@ locale-gen
 # Remove local build-time repo — path won't exist on live system
 sed -i '/^\[aur_repo\]/,/^$/d' /etc/pacman.conf
 
-# Un-comment mirrorlist to allow pacman to work live....
+# Un-comment mirrorlist to allow pacman to work live
 [[ -f /etc/pacman.d/mirrorlist ]] && sed -i "s/#Server/Server/g" /etc/pacman.d/mirrorlist
 
 # Sudo to allow no password
@@ -45,13 +44,10 @@ hwclock --systohc --utc
 # Timezone
 ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
 
-# Target directory where systemd user service symlinks will be created
 TARGET_DIR="/etc/skel/.config/systemd/user/default.target.wants"
-
-# Source directory for official systemd user service files
 UNIT_SRC="/usr/lib/systemd/user"
 
-# List of user services to be auto-enabled at login
+# User services to auto-enable at login
 SERVICES=(
   "wireplumber.service"
   "pipewire.service"
@@ -59,10 +55,8 @@ SERVICES=(
   "xdg-user-dirs.service"
 )
 
-# Create target directory if it doesn't exist
 mkdir -p "$TARGET_DIR"
 
-# Loop through the list and create symlinks for each service
 # Only symlink services that actually exist to prevent broken links
 for service in "${SERVICES[@]}"; do
   if [[ -f "$UNIT_SRC/$service" ]]; then
