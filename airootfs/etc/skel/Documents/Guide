@@ -91,6 +91,17 @@ No additional Intel drivers needed — built-in kernel drivers handle accelerati
 
 ---
 
+BROADCOM WIFI
+
+Some older Broadcom wireless chips need the proprietary broadcom-wl driver
+instead of the in-kernel b43/brcmsmac/brcmfmac drivers. This package has been
+dropped from Arch repos before and later reappeared, and is not currently in
+the AUR either. If your wifi chip needs it, check the AUR and Arch wiki
+(Broadcom wireless) for current availability before assuming it's missing
+permanently.
+
+---
+
 LIVE SESSION DISK SPACE
 
 If the live session runs out of space:
