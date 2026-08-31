@@ -1173,9 +1173,20 @@ install_archbang(){
     error_msg "ERROR: Failed to copy system files"
   fi
 
-  # archiso keeps the boot kernel on the ISO media, not in the squashfs — pull it in
+  # The build relocates the kernel to /usr/lib/archbang/vmlinuz-linux (see
+  # _cleanup_pacstrap_dir in the archbang `build` script) specifically so this
+  # doesn't depend on /run/archiso/bootmnt, which the archiso initcpio hook
+  # unmounts once copytoram has copied the squashfs to RAM (the common case on
+  # modern hardware — copytoram defaults to auto). Stock mkarchiso wipes /boot
+  # itself from the squashfs, so it can't live there.
+  #
+  # The copy_progress above already synced it onto the target at
+  # ${MNT}/usr/lib/archbang/vmlinuz-linux, so relocate it from there rather
+  # than copying a second time from the live source — otherwise the installed
+  # system ends up with two permanent copies of the kernel on disk.
   mkdir -p "${MNT}/boot"
-  cp -a /run/archiso/bootmnt/arch/boot/x86_64/vmlinuz-linux "${MNT}/boot/vmlinuz-linux"
+  mv "${MNT}/usr/lib/archbang/vmlinuz-linux" "${MNT}/boot/vmlinuz-linux"
+  rmdir "${MNT}/usr/lib/archbang" 2>/dev/null || true
 
   # Sync changes made during live session
   UPPERDIR=$(find /run/archiso/cowspace -type d -path "*/persistent_*/x86_64/upperdir" 2>/dev/null | head -1)
