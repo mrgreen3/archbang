@@ -158,6 +158,15 @@ _show_config() {
 _cleanup_pacstrap_dir() {
     _msg_info "Cleaning up in pacstrap location..."
 
+    # ArchBang: relocate the kernel outside /boot before it's wiped below, so
+    # abinstall can pull it from the squashfs instead of /run/archiso/bootmnt
+    # (which copytoram unmounts on most modern hardware - see issue #6). mv,
+    # not a copy - it's about to be deleted from /boot regardless.
+    if [[ -f "${pacstrap_dir}/boot/vmlinuz-linux" ]]; then
+        _unshare install -d -m 0755 -- "${pacstrap_dir}/usr/lib/archbang"
+        _unshare mv -- "${pacstrap_dir}/boot/vmlinuz-linux" "${pacstrap_dir}/usr/lib/archbang/vmlinuz-linux"
+    fi
+
     # Delete all files in /boot
     [[ -d "${pacstrap_dir}/boot" ]] && _unshare find "${pacstrap_dir}/boot" -mindepth 1 -delete
     # Delete pacman database sync cache files (*.tar.gz)
