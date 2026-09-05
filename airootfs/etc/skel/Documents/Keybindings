@@ -15,6 +15,7 @@ Super + s               System Monitor (dgop)
 Super + p               Screenshot (full)
 Super + Shift + s       Screenshot (region)
 Super + k               Show Keybindings
+Super + Shift + t       Theme Switcher (themebang)
 
 
 WINDOW CONTROLS
@@ -77,3 +78,5 @@ Super + m               Quit MangoWC
 Vol Up (XF86)           Increase Volume
 Vol Down (XF86)         Decrease Volume
 Mute (XF86)             Toggle Mute
+Brightness Up (XF86)    Increase Brightness
+Brightness Down (XF86)  Decrease Brightness
