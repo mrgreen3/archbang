@@ -20,13 +20,15 @@ GTKGREET_CSS = Path("/etc/greetd/gtkgreet.css")
 
 
 def pick_wallpaper():
-    names = sorted(
-        p.name for p in BG_DIR.iterdir()
+    paths = sorted(
+        p for p in BG_DIR.iterdir()
         if p.is_file() and p.suffix.lower() in (".jpg", ".jpeg", ".png")
     )
+    entries = "\n".join(f"{p.name}\0icon\x1f{p}" for p in paths)
     proc = subprocess.run(
-        ["rofi", "-dmenu", "-p", "Wallpaper", "-theme", str(ROFI_RASI)],
-        input="\n".join(names), capture_output=True, text=True,
+        ["rofi", "-dmenu", "-show-icons", "-p", "Wallpaper", "-theme", str(ROFI_RASI),
+         "-theme-str", f"listview {{ lines: {len(paths)}; }}"],
+        input=entries, capture_output=True, text=True,
     )
     choice = proc.stdout.strip()
     return BG_DIR / choice if choice else None
