@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ArchBang profile
 
-iso_name="archbang-rc"
+iso_name="archbang"
 iso_label="ARCHBANG_$(date +%d%m%y)"
 iso_publisher="ArchBang <https://www.archbang.org>"
 iso_application="ArchBang Live Iso (Beta)"

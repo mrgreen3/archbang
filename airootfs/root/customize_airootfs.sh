@@ -67,7 +67,7 @@ for service in "${SERVICES[@]}"; do
 done
 
 # Add live user
-useradd -m -p "" -G "wheel" -s /bin/bash -g users live
+useradd -m -p "" -G "wheel,video" -s /bin/bash -g users live
 chown live /home/live
 
 # Start required systemd services

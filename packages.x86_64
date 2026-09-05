@@ -66,7 +66,8 @@ ntfs-3g
 networkmanager
 networkmanager-dmenu-git
 usb_modeswitch
-broadcom-wl
+# Will not ship broadcom-wl-dkms in the live ISO...for now....
+#broadcom-wl-dkms
 
 ## === DESKTOP UTILITIES ===
 polkit
@@ -86,6 +87,10 @@ curl
 pacman-contrib
 fzf
 eza
+jq
+
+## === THEMING (themebang) ===
+matugen
 
 ## === MEDIA APPLICATIONS ===
 firefox
