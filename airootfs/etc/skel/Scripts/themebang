@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+# themebang — pick a wallpaper from ~/Backgrounds and re-theme mango/
+# waybar/rofi/mako/greetd to match it live, using matugen for the palette.
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+HOME = Path.home()
+BG_DIR = HOME / "Backgrounds"
+MANGO_CONF = HOME / ".config/mango/config.conf"
+WAYBAR_CSS = HOME / ".config/waybar/style.css"
+ROFI_RASI = HOME / ".config/rofi/theme.rasi"
+MAKO_CONF = HOME / ".config/mako/config"
+GREETD_BG = Path("/usr/share/backgrounds/archbang/current")
+GTKGREET_CSS = Path("/etc/greetd/gtkgreet.css")
+
+
+def pick_wallpaper():
+    names = sorted(
+        p.name for p in BG_DIR.iterdir()
+        if p.is_file() and p.suffix.lower() in (".jpg", ".jpeg", ".png")
+    )
+    proc = subprocess.run(
+        ["rofi", "-dmenu", "-p", "Wallpaper", "-theme", str(ROFI_RASI)],
+        input="\n".join(names), capture_output=True, text=True,
+    )
+    choice = proc.stdout.strip()
+    return BG_DIR / choice if choice else None
+
+
+def get_palette(wallpaper):
+    out = subprocess.run(
+        ["matugen", "image", str(wallpaper), "--json", "hex", "--dry-run",
+         "--mode", "dark", "--prefer", "saturation"],
+        capture_output=True, text=True,
+    ).stdout
+    if not out.strip():
+        return None
+    data = json.loads(out)
+
+    def role(name):
+        return data["colors"][name]["dark"]["color"].lstrip("#")
+
+    return {
+        "bg": role("background"),
+        "surface": role("surface_variant"),
+        "fg": role("on_surface"),
+        "fgdim": role("on_surface_variant"),
+        "accent": role("primary"),
+        "onaccent": role("on_primary"),
+        "urgent": role("error"),
+        "green": role("tertiary"),
+        "yellow": role("secondary"),
+    }
+
+
+def theme_mango(p, wallpaper):
+    conf = MANGO_CONF.read_text()
+    mapping = {
+        "rootcolor": p["bg"], "focuscolor": p["accent"], "maximizescreencolor": p["surface"],
+        "urgentcolor": p["urgent"], "scratchpadcolor": p["surface"], "globalcolor": p["fgdim"],
+        "overlaycolor": p["fg"],
+    }
+    for key, val in mapping.items():
+        conf = re.sub(
+            rf"(?m)^{re.escape(key)}=0x[0-9a-fA-F]{{6}}([0-9a-fA-F]{{2}})$",
+            lambda m, val=val: f"{key}=0x{val}{m.group(1)}",
+            conf, count=1,
+        )
+    conf = re.sub(
+        r"(?m)^exec-once=swaybg -i .* -m fill",
+        f"exec-once=swaybg -i {wallpaper} -m fill",
+        conf, count=1,
+    )
+    MANGO_CONF.write_text(conf)
+
+
+def theme_waybar(p):
+    css = WAYBAR_CSS.read_text()
+    mapping = {
+        "bg": p["bg"], "surface": p["surface"], "fg": p["fg"], "fg-dim": p["fgdim"],
+        "accent": p["accent"], "red": p["urgent"], "green": p["green"],
+        "yellow": p["yellow"], "on-accent": p["onaccent"],
+    }
+    for name, val in mapping.items():
+        css = re.sub(
+            rf"(@define-color\s+{re.escape(name)}\s+)#[0-9a-fA-F]{{6}};",
+            rf"\1#{val};", css, count=1,
+        )
+    WAYBAR_CSS.write_text(css)
+
+
+def theme_rofi(p):
+    rasi = ROFI_RASI.read_text()
+    mapping = {
+        "bg": p["bg"], "bg-alt": p["surface"], "fg": p["fg"], "fg-dim": p["fgdim"],
+        "accent": p["accent"], "urgent": p["urgent"], "selected-fg": p["onaccent"],
+    }
+    for name, val in mapping.items():
+        rasi = re.sub(
+            rf"(?m)^(\s*{re.escape(name)}:\s*)#[0-9a-fA-F]{{6}}([0-9a-fA-F]{{2}});",
+            rf"\1#{val}\2;", rasi, count=1,
+        )
+    ROFI_RASI.write_text(rasi)
+
+
+def theme_mako(p):
+    conf = MAKO_CONF.read_text()
+    mapping = {
+        "background-color": p["bg"], "text-color": p["fg"], "border-color": p["accent"],
+    }
+    for key, val in mapping.items():
+        conf = re.sub(
+            rf"(?m)^{re.escape(key)}=#[0-9a-fA-F]{{6}}([0-9a-fA-F]{{2}})?",
+            lambda m, val=val: f"{key}=#{val}{m.group(1) or ''}",
+            conf, count=1,
+        )
+    MAKO_CONF.write_text(conf)
+
+
+def sub_block(pattern, repl, text):
+    return re.sub(pattern, repl, text, count=1, flags=re.S)
+
+
+def theme_greetd(wallpaper, bg, surface, fg, fgdim, accent, onaccent):
+    GREETD_BG.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(wallpaper, GREETD_BG)
+    os.chmod(GREETD_BG, 0o644)
+
+    sr, sg, sb = int(surface[0:2], 16), int(surface[2:4], 16), int(surface[4:6], 16)
+    css = GTKGREET_CSS.read_text()
+    css = sub_block(r'(window \{.*?background-color:) #[0-9a-fA-F]{6};', rf'\1 #{bg};', css)
+    css = sub_block(r'(box#body \{.*?background-color: )rgba\(\d+, \d+, \d+', rf'\1rgba({sr}, {sg}, {sb}', css)
+    css = sub_block(r'(box#body \{.*?border: 2px solid) #[0-9a-fA-F]{6};', rf'\1 #{accent};', css)
+    css = sub_block(r'(label \{.*?color:) #[0-9a-fA-F]{6};', rf'\1 #{fg};', css)
+    css = sub_block(r'(entry \{.*?background-color:) #[0-9a-fA-F]{6};', rf'\1 #{surface};', css)
+    css = sub_block(r'(entry \{.*?\n\s*color:) #[0-9a-fA-F]{6};', rf'\1 #{fg};', css)
+    css = sub_block(r'(entry \{.*?caret-color:) #[0-9a-fA-F]{6};', rf'\1 #{fg};', css)
+    css = sub_block(r'(entry \{.*?border: 1px solid) #[0-9a-fA-F]{6};', rf'\1 #{fgdim};', css)
+    css = sub_block(r'(entry:focus \{.*?border-color:) #[0-9a-fA-F]{6};', rf'\1 #{accent};', css)
+    css = sub_block(r'(button \{.*?background-color:) #[0-9a-fA-F]{6};', rf'\1 #{accent};', css)
+    css = sub_block(r'(button \{.*?\n\s*color:) #[0-9a-fA-F]{6};', rf'\1 #{onaccent};', css)
+    css = sub_block(r'(button:hover \{.*?background-color:) #[0-9a-fA-F]{6};', rf'\1 #{accent};', css)
+    css = sub_block(r'(combobox \{.*?color:) #[0-9a-fA-F]{6};', rf'\1 #{fg};', css)
+    GTKGREET_CSS.write_text(css)
+
+
+def main():
+    wallpaper = pick_wallpaper()
+    if wallpaper is None:
+        return
+    if not wallpaper.is_file():
+        sys.exit(1)
+
+    current = re.search(r"(?m)^exec-once=swaybg -i (.*) -m fill", MANGO_CONF.read_text())
+    if current and Path(current.group(1)) == wallpaper:
+        return
+
+    subprocess.run(["pkill", "-x", "swaybg"])
+    subprocess.Popen(["swaybg", "-i", str(wallpaper), "-m", "fill"], start_new_session=True)
+
+    palette = get_palette(wallpaper)
+    if palette is None:
+        subprocess.run(["notify-send", "themebang", "matugen failed, wallpaper set but colours unchanged"])
+        sys.exit(1)
+
+    theme_mango(palette, wallpaper)
+    theme_waybar(palette)
+    theme_rofi(palette)
+    theme_mako(palette)
+    subprocess.run(["mmsg", "dispatch", "reload_config"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    if subprocess.run(["sudo", "-n", "true"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+        subprocess.run([
+            "sudo", sys.executable, str(Path(__file__).resolve()), "--greetd",
+            str(wallpaper), palette["bg"], palette["surface"], palette["fg"],
+            palette["fgdim"], palette["accent"], palette["onaccent"],
+        ])
+
+    subprocess.run(["pkill", "-x", "waybar"])
+    subprocess.Popen(["waybar"], start_new_session=True)
+    subprocess.run(["makoctl", "reload"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    subprocess.run(["notify-send", "themebang", "Theme Updated"])
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "--greetd":
+        theme_greetd(*sys.argv[2:9])
+    else:
+        main()
