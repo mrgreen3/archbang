@@ -1,12 +1,12 @@
 #!/bin/bash
 # Extended rofi launcher for ArchBang
 
-nol=9
+nol=10
 
-items="Terminal\0icon\x1futilities-terminal\nFirefox\0icon\x1ffirefox\nFiles\0icon\x1fsystem-file-manager\nApplications\0icon\x1fsystem-run\nSystem Monitor\0icon\x1futilities-system-monitor"
+items="Terminal\0icon\x1futilities-terminal\nFirefox\0icon\x1ffirefox\nFiles\0icon\x1fsystem-file-manager\nApplications\0icon\x1fsystem-run\nSystem Monitor\0icon\x1futilities-system-monitor\nTheme\0icon\x1fpreferences-desktop-theme"
 
 # nol drops by one when the installer isn't present
-[[ -x ~/Scripts/abinstall ]] && items="$items\nInstall\0icon\x1fsystem-software-install" || nol=8
+[[ -x ~/Scripts/abinstall ]] && items="$items\nInstall\0icon\x1fsystem-software-install" || nol=9
 
 items="$items\nGuide\0icon\x1fhelp-contents\nKeybinds\0icon\x1finput-keyboard\nExit\0icon\x1fsystem-shutdown"
 
@@ -28,6 +28,9 @@ case "$choice" in
     ;;
   "System Monitor")
     foot -e dgop top
+    ;;
+  Theme)
+    ~/Scripts/themebang
     ;;
   Install)
     foot --maximized -e sudo -EH ~/Scripts/abinstall
