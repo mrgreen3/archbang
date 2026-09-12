@@ -39,9 +39,9 @@ if [[ -n "$log_file" ]]; then
   echo "Logging to $log_file"
 fi
 
-#GLOBAL VARIABLES {{{
+#GLOBAL VARIABLES
   checklist=( 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 )
-  # COLORS {{{
+  # COLORS
     Bold=$(tput bold)
     Underline=$(tput sgr 0 1)
     Reset=$(tput sgr0)
@@ -61,21 +61,17 @@ fi
     BPurple=${Bold}$(tput setaf 5)
     BCyan=${Bold}$(tput setaf 6)
     BWhite=${Bold}$(tput setaf 7)
-  #}}}
-  # PROMPT {{{
+  # PROMPT
     prompt1="Enter your option: "
     prompt2="Enter number of options (ex: 1 2 3 or 1-3): "
     prompt3="You have to manually enter the following commands, then press ${BYellow}ctrl+d${Reset} or type ${BYellow}exit${Reset}:"
-  #}}}
-  # EDITOR {{{
+  # EDITOR
     EDITOR="vim"
-  #}}}
-  # MOUNTPOINTS {{{
+  # MOUNTPOINTS
     MNT="/mnt"
   # MIRRORLIST
     LOG="/tmp/abinstall.log"
   MIRROR=${MNT}/etc/pacman.d/mirrorlist
-  #}}}
   ARCHI=$(uname -m)
   UEFI=0
   LVM=0
@@ -97,24 +93,23 @@ fi
   cpu_id=""
   INTERACTIVE=1      # 1 = ask, 0 = skip prompts
 
-#}}}
-#COMMON FUNCTIONS {{{
-  error_msg() { #{{{
+#COMMON FUNCTIONS
+  error_msg() {
     local _msg="${1}"
     echo -e "${_msg}"
     exit 1
-  } #}}}
-  cecho() { #{{{
+  }
+  cecho() {
     echo -e "$1"
     echo -e "$1" >>"$LOG"
     tput sgr0;
-  } #}}}
-  ncecho() { #{{{
+  }
+  ncecho() {
     echo -ne "$1"
     echo -ne "$1" >>"$LOG"
     tput sgr0
-  } #}}}
-  check_boot_system() { #{{{
+  }
+  check_boot_system() {
     if [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Inc.' ]] || [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Computer, Inc.' ]]; then
       modprobe -r -q efivars || true  # if MAC
     else
@@ -132,8 +127,7 @@ fi
       echo "BIOS Mode detected"
     fi
   }
-  #}}}
-   check_trim() { #{{{
+   check_trim() {
     # Check if any block device supports TRIM/discard
     TRIM=0
     for device in /sys/block/*/queue/discard_granularity; do
@@ -146,8 +140,7 @@ fi
       fi
     done
   }
-   #}}}
-   detect_cpu() { #{{{
+   detect_cpu() {
     if grep -q "GenuineIntel" /proc/cpuinfo; then
       cpu_id="intel"
     elif grep -q "AuthenticAMD" /proc/cpuinfo; then
@@ -156,25 +149,24 @@ fi
       cpu_id=""
     fi
   }
-  #}}}
-  check_root() { #{{{
+  check_root() {
     if [[ "$(id -u)" != "0" ]]; then
       error_msg "ERROR! You must execute the script as the 'root' user."
     fi
-  } #}}}
-  check_archiso() { #{{{
+  }
+  check_archiso() {
     if [[ ! -d "/run/archiso/airootfs" ]]; then
       error_msg "ERROR! Not running from ArchBang live environment"
     fi
-  } #}}}
-  read_input() { #{{{
+  }
+  read_input() {
     if [[ $AUTOMATIC_MODE -eq 1 ]]; then
       OPTION=$1
     else
       read -p "$prompt1" OPTION
     fi
-  } #}}}
-  read_input_text() { #{{{
+  }
+  read_input_text() {
     if [[ $AUTOMATIC_MODE -eq 1 ]]; then
       OPTION=$2
     else
@@ -182,8 +174,8 @@ fi
       echo ""
     fi
     OPTION=`echo "$OPTION" | tr '[:upper:]' '[:lower:]'`
-  } #}}}
-  read_input_options() { #{{{
+  }
+  read_input_options() {
     local line
     local packages
     if [[ $AUTOMATIC_MODE -eq 1 ]]; then
@@ -202,48 +194,48 @@ fi
       fi
     done
     OPTIONS=("${packages[@]}")
-  } #}}}
-  print_line() { #{{{
+  }
+  print_line() {
     printf "%$(tput cols)s\n"|tr ' ' '-'
-  } #}}}
-  print_title() { #{{{
+  }
+  print_title() {
     clear
     print_line
     echo -e "# ${Bold}$1${Reset}"
     print_line
     echo ""
-  } #}}}
-  print_info() { #{{{
+  }
+  print_info() {
     #Console width number
     T_COLS=`tput cols`
     echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
-  } #}}}
-  print_success() { #{{{
+  }
+  print_success() {
     #Console width number
     T_COLS=`tput cols`
     echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
-  } #}}}
+  }
 
-  print_warning() { #{{{
+  print_warning() {
     T_COLS=`tput cols`
     echo -e "${BYellow}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
-  } #}}}
-  print_danger() { #{{{
+  }
+  print_danger() {
     T_COLS=`tput cols`
     echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
-  } #}}}
-  print_error() { #{{{
+  }
+  print_error() {
     T_COLS=`tput cols`
     echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
-  } #}}}
-  add_line() { #{{{
+  }
+  add_line() {
     local _add_line=${1}
     local _filepath=${2}
 
     local _has_line=`grep -ci "${_add_line}" ${_filepath}`
     [[ $_has_line -eq 0 ]] && echo "${_add_line}" >> ${_filepath}
-  } #}}}
-  replace_line() { #{{{
+  }
+  replace_line() {
     local _search=${1}
     local _replace=${2}
     local _filepath=${3}
@@ -255,27 +247,26 @@ fi
     else
       cecho "failed: ${_search} - ${_filepath}"
     fi
-  } #}}}
-  contains_element() { #{{{
+  }
+  contains_element() {
     #check if an element exist in a string
     for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
-  } #}}}
-  invalid_option() { #{{{
+  }
+  invalid_option() {
     print_line
     echo "Invalid option. Try another one."
     pause_function
-  } #}}}
-  pause_function() { #{{{
+  }
+  pause_function() {
     print_line
     if [[ $AUTOMATIC_MODE -eq 0 ]]; then
       read -e -sn 1 -p "Press enter to continue..."
     fi
-  } #}}}
-  arch_chroot() { #{{{
+  }
+  arch_chroot() {
     arch-chroot $MNT /bin/bash -c "${1}"
   }
-  #}}}
- getxkeymap() { #{{{
+ getxkeymap() {
     local _xkeymaps=($(localectl list-x11-keymap-layouts))
     PS3="(shift+pgup/pgdown) $prompt1"
     echo "Select keymap:"
@@ -339,7 +330,7 @@ configure_mirrors() {
   sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
 }
 
-#SELECT LOCATION (derives timezone + xkb layout + mirror country) {{{
+#SELECT LOCATION (derives timezone + xkb layout + mirror country)
 # Maps mirrorlist country names to tzdata's iso3166.tab names, for timezone/xkb lookup only
 declare -A MIRROR_NAME_ALIASES=(
   ["Czechia"]="Czech Republic"
@@ -389,9 +380,8 @@ select_location() {
     DERIVED_XKB=""
   fi
 }
-#}}}
 
-  setlocale() { #{{{
+  setlocale() {
     local _locale_list=(`cat /etc/locale.gen | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
     PS3="$prompt1"
     echo "Select locale:"
@@ -404,8 +394,7 @@ select_location() {
       fi
     done
   }
-  #}}}
-  settimezone() { #{{{
+  settimezone() {
     local _zones=($(timedatectl list-timezones | sed 's/\/.*$//' | uniq))
     PS3="$prompt1"
     echo "Select zone:"
@@ -426,9 +415,9 @@ select_location() {
         invalid_option
       fi
     done
-  } #}}}
+  }
 
-#SELECT LANGUAGE (derives locale) {{{
+#SELECT LANGUAGE (derives locale)
 # Curated common languages -> locale code. "More languages..." falls back to the
 # full locale.gen-derived list in setlocale().
 declare -A CURATED_LOCALES=(
@@ -500,13 +489,11 @@ select_language() {
     DERIVED_LOCALE="${CURATED_LOCALES[$LANG_CHOICE]}"
   fi
 }
-#}}}
-#}}}
 
 WIKI="https://wiki.archlinux.org/index.php"
 
-#ARCHLINUX INSTALL SCRIPTS MODE {{{
-#CONFIGURE VCONSOLE {{{
+#ARCHLINUX INSTALL SCRIPTS MODE
+#CONFIGURE VCONSOLE
 configure_vconsole(){
   print_title "CONSOLE KEYMAP"
   # Fixed to "us" rather than prompted: this only affects the raw tty
@@ -518,8 +505,7 @@ configure_vconsole(){
   print_info "Using 'us' for the console (tty) layout — see Documents/Guide to change it later."
   echo "KEYMAP=us" > ${MNT}/etc/vconsole.conf
 }
-#}}}
-#SELECT KEYMAP {{{
+#SELECT KEYMAP
 select_xkeymap(){
   print_title "MANGO DESKTOP KEYBOARD LAYOUT"
   print_info "Setting keyboard layout for mango compositor"
@@ -535,9 +521,8 @@ select_xkeymap(){
   fi
    sed -i "s/xkb_rules_layout=.*/xkb_rules_layout=${XKEYMAP}/" $MNT/home/${LIVE_USER}/.config/mango/config.conf
 }
-#}}}
 
-#UMOUNT PARTITIONS {{{
+#UMOUNT PARTITIONS
 umount_partitions(){
   mounted_partitions=(`lsblk | grep ${MNT} | awk '{print $7}' | sort -r`)
   swapoff -a
@@ -545,8 +530,7 @@ umount_partitions(){
     umount $i
   done
 }
-#}}}
-#SELECT DEVICE {{{
+#SELECT DEVICE
 select_device(){
   local NAME SIZE MODEL TRAN path label
   devices_list=()
@@ -590,8 +574,7 @@ select_device(){
   done
   BOOT_MNT=$device
 }
-#}}}
-#CREATE PARTITION SCHEME {{{
+#CREATE PARTITION SCHEME
 create_partition_scheme(){
   LUKS=0
   LVM=0
@@ -636,8 +619,7 @@ create_partition_scheme(){
     [[ -n $OPT ]] && break
   done
 }
-#}}}
-#AUTO PARTITION{{{
+#AUTO PARTITION
 partition_suffix() {
   [[ "$1" =~ (nvme|mmcblk) ]] && echo "p" || echo ""
 }
@@ -779,8 +761,7 @@ auto_partition_disk() {
   print_success "Auto-partitioning of ${device} complete."
   pause_function
 }
-#}}}
-#SETUP PARTITION{{{
+#SETUP PARTITION
 create_partition() {
   print_title "SELECT PARTITION TOOL"
   apps_list=("gparted" "cfdisk" "cgdisk" "fdisk" "gdisk" "parted")
@@ -810,8 +791,7 @@ create_partition() {
     fi
   done
 }
-#}}}
-#SETUP LUKS {{{
+#SETUP LUKS
 setup_luks() {
   print_title "LUKS - ${WIKI}/LUKS"
   print_info "The Linux Unified Key Setup (LUKS) provides full-disk encryption for Linux."
@@ -861,8 +841,7 @@ setup_luks() {
   done
 }
 
-#}}}
-#SETUP LVM {{{
+#SETUP LVM
 setup_lvm() {
   print_title "LVM - ${WIKI}/LVM"
   print_info "LVM manages logical volumes inside your selected device."
@@ -931,8 +910,7 @@ setup_lvm() {
   export LVM VG_NAME
 }
 
-#}}}
-#SELECT|FORMAT PARTITIONS {{{
+#SELECT|FORMAT PARTITIONS
 format_partitions(){
   if [[ $AUTO_PARTITIONED -eq 1 ]]; then
     print_info "Disk already partitioned and formatted (auto)."
@@ -1064,7 +1042,7 @@ format_partitions(){
     fi
   }
 
-#SET EFI PARTITION {{{
+#SET EFI PARTITION
 set_efi_partition() {
   # Automatically mount EFI System Partition to /boot for UEFI installs
   if [[ $UEFI -eq 1 ]]; then
@@ -1075,7 +1053,6 @@ set_efi_partition() {
     print_info "BIOS mode detected — no EFI mount required."
   fi
 }
-#}}}
 
   while true; do
     PS3="$prompt1"
@@ -1159,8 +1136,7 @@ copy_progress() {
     fi
 }
 
-#}}}
-#INSTALL ARCHBANG {{{
+#INSTALL ARCHBANG
 install_archbang(){
   print_title "INSTALL ARCHBANG"
   print_info "Installing please wait..."
@@ -1251,15 +1227,13 @@ EOF
   sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' ${MNT}/etc/sudoers
 
 }
-#}}}
 
-#CONFIGURE FSTAB {{{
+#CONFIGURE FSTAB
 configure_fstab(){
   genfstab -U "$MNT" > "${MNT}/etc/fstab"
 }
-#}}}
 
-#CONFIGURE HOSTNAME {{{
+#CONFIGURE HOSTNAME
 configure_hostname() {
   print_title "HOSTNAME - ${WIKI}/hostname"
   print_info "A host name identifies your machine on a network (max 63 chars)."
@@ -1280,8 +1254,7 @@ configure_hostname() {
 EOF"
 }
 
-#}}}
-#CONFIGURE TIMEZONE {{{
+#CONFIGURE TIMEZONE
 configure_timezone(){
   print_title "TIMEZONE - ${WIKI}/Timezone"
   print_info "In an operating system the time (clock) is determined by four parts: Time value, Time standard, Time Zone, and DST (Daylight Saving Time if applicable)."
@@ -1298,8 +1271,7 @@ configure_timezone(){
   fi
   arch_chroot "ln -sf /usr/share/zoneinfo/${ZONE}/${SUBZONE} /etc/localtime"
 }
-#}}}
-#CONFIGURE HARDWARECLOCK {{{
+#CONFIGURE HARDWARECLOCK
 configure_hardwareclock(){
 #  print_title "HARDWARE CLOCK - ${WIKI}/Hardware_Clock"
 #  print_info "Setting hardware clock to UTC (default Arch convention)."
@@ -1309,8 +1281,7 @@ configure_hardwareclock(){
 
 #  print_success "Hardware clock set to UTC."
 }
-#}}}
-#CONFIGURE LOCALE {{{
+#CONFIGURE LOCALE
 configure_locale(){
   print_title "LOCALE - ${WIKI}/Locale"
   print_info "Locales are used in Linux to define which language the user uses & character sets."
@@ -1330,24 +1301,20 @@ configure_locale(){
   arch_chroot "sed -i '/'${LOCALE_UTF8}'/s/^#//' /etc/locale.gen"
   arch_chroot "locale-gen"
 }
-#}}}
-#CONFIGURE MKINITCPIO {{{
+#CONFIGURE MKINITCPIO
 configure_mkinitcpio(){
     print_title "Configuring mkinitcpio"
     print_info "Setting up initramfs hooks based on your system configuration."
 
     # Determine hooks based on setup (systemd-based modern configuration)
-    # No 'autodetect': it trims the initramfs to only the drivers loaded on
-    # the installing machine, which breaks booting an install on different
-    # hardware (e.g. a portable USB install moved to another machine).
     if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block lvm2 filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block lvm2 filesystems fsck"
     elif [[ $LUKS -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block filesystems fsck"
     elif [[ $LVM -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole block lvm2 filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block lvm2 filesystems fsck"
     else
-        MKINITCPIO_HOOKS="base systemd microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
+        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
     fi
 
     # Update mkinitcpio.conf with hooks
@@ -1363,8 +1330,7 @@ configure_mkinitcpio(){
     print_info "Initramfs configuration complete."
     pause_function
 }
-#}}}
-#CONFIGURE GREETER {{{
+#CONFIGURE GREETER
 configure_greeter(){
     print_title "Configuring login screen"
     print_info "Setting up greetd (cage + gtkgreet) as the installed system's graphical login manager. The live ISO keeps its own autologin and is unaffected."
@@ -1397,11 +1363,8 @@ EOF
     print_info "Greeter configuration complete."
     pause_function
 }
-#}}}
 
-#CONFIGURE BOOTLOADER {{{
-# {{{ CONFIGURE BOOTLOADER
-# # {{{ CONFIGURE BOOTLOADER
+#CONFIGURE BOOTLOADER
 configure_bootloader(){
   print_title "GRUB2 configuration"
   print_info "Installing GRUB bootloader with support for LUKS, LVM, and microcode."
@@ -1548,11 +1511,9 @@ configure_bootloader(){
   print_success "GRUB2 installation and configuration complete."
   pause_function
 }
-# }}}
 
-# }}}
 
-#ROOT PASSWORD {{{
+#ROOT PASSWORD
 root_password(){
   print_title "ROOT PASSWORD"
   print_warning "Enter your new root password"
@@ -1560,7 +1521,7 @@ root_password(){
   pause_function
 }
 
-# SETUP NEW USER {{{
+# SETUP NEW USER
 setup_user(){
   print_title "CREATE NEW USER"
   echo
@@ -1609,8 +1570,7 @@ setup_user(){
   pause_function
 }
 
-#}}}
-#FINISH {{{
+#FINISH
 finish(){
   print_title "ARCHBANG INSTALL COMPLETED..."
   read_input_text "Reboot system"
@@ -1620,9 +1580,8 @@ finish(){
   fi
   exit 0
 }
-#}}}
 
-#WELCOME SCREEN {{{
+#WELCOME SCREEN
 welcome_screen(){
   print_title "Welcome to ArchBang!"
 
@@ -1662,9 +1621,8 @@ welcome_screen(){
     exit 0
   fi
 }
-#}}}
 
-#RUN STEP {{{
+#RUN STEP
 run_step() {
   local step_num="$1"
   local step_label="$2"
@@ -1710,7 +1668,6 @@ run_step() {
   checklist[$step_num]=1
   return 0
 }
-#}}}
 
 check_root
 check_boot_system
@@ -1728,4 +1685,3 @@ run_step 6 "Keyboard Layout"         configure_vconsole select_xkeymap
 run_step 7 "Bootloader"              configure_bootloader
 run_step 8 "Root and User Setup"     root_password setup_user
 finish
-#}}}

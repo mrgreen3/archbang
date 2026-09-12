@@ -19,9 +19,5 @@ sudo pacman-key --populate archlinux
 echo "Updating archlinux-keyring package..."
 sudo pacman -Sy --noconfirm archlinux-keyring
 
-# Optional: refresh keys if you suspect stale ones
-# echo "Refreshing pacman keys..."
-# pacman-key --refresh-keys
-
 echo "Pacman keyring setup complete."
 
