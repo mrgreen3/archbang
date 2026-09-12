@@ -71,7 +71,7 @@ fi
     MNT="/mnt"
   # MIRRORLIST
     LOG="/tmp/abinstall.log"
-  MIRROR=${MNT}/etc/pacman.d/mirrorlist
+  MIRROR="${MNT}/etc/pacman.d/mirrorlist"
   ARCHI=$(uname -m)
   UEFI=0
   LVM=0
@@ -249,8 +249,12 @@ fi
     fi
   }
   contains_element() {
-    #check if an element exist in a string
-    for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
+    # check if $1 is present among the remaining args (exact match, not glob)
+    local _match="$1" e
+    for e in "${@:2}"; do
+      [[ "$e" == "$_match" ]] && return 0
+    done
+    return 1
   }
   invalid_option() {
     print_line
@@ -264,7 +268,7 @@ fi
     fi
   }
   arch_chroot() {
-    arch-chroot $MNT /bin/bash -c "${1}"
+    arch-chroot "$MNT" /bin/bash -c "${1}"
   }
  getxkeymap() {
     local _xkeymaps=($(localectl list-x11-keymap-layouts))
@@ -311,9 +315,6 @@ configure_mirrors() {
   else
     cp ${MIRROR}.backup ${MIRROR}
   fi
-
-  # Remove everything before Albania
-  sed -i '1,/^## Albania/{/^## Albania/!d}' ${MIRROR}
 
   if [[ -n "$LOCATION" ]] && grep -q "^## ${LOCATION}$" ${MIRROR}; then
     print_success "Using mirrors for ${LOCATION} (derived from location)."
@@ -382,7 +383,7 @@ select_location() {
 }
 
   setlocale() {
-    local _locale_list=(`cat /etc/locale.gen | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
+    local _locale_list=(`cat "${MNT}/etc/locale.gen" | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
     PS3="$prompt1"
     echo "Select locale:"
     select LOCALE in "${_locale_list[@]}"; do
@@ -503,7 +504,7 @@ configure_vconsole(){
   # Documents/Guide covers editing /etc/vconsole.conf post-install for
   # anyone who actually needs a different console layout.
   print_info "Using 'us' for the console (tty) layout — see Documents/Guide to change it later."
-  echo "KEYMAP=us" > ${MNT}/etc/vconsole.conf
+  echo "KEYMAP=us" > "${MNT}/etc/vconsole.conf"
 }
 #SELECT KEYMAP
 select_xkeymap(){
@@ -519,15 +520,16 @@ select_xkeymap(){
       read_input_text "Confirm keymap: $XKEYMAP"
     done
   fi
-   sed -i "s/xkb_rules_layout=.*/xkb_rules_layout=${XKEYMAP}/" $MNT/home/${LIVE_USER}/.config/mango/config.conf
+   sed -i "s/xkb_rules_layout=.*/xkb_rules_layout=${XKEYMAP}/" "${MNT}/home/${LIVE_USER}/.config/mango/config.conf"
 }
 
 #UMOUNT PARTITIONS
 umount_partitions(){
-  mounted_partitions=(`lsblk | grep ${MNT} | awk '{print $7}' | sort -r`)
+  local mounted_partitions mp
+  mapfile -t mounted_partitions < <(lsblk -nrpo MOUNTPOINT | grep "^${MNT}" | sort -r)
   swapoff -a
-  for i in ${mounted_partitions[@]}; do
-    umount $i
+  for mp in "${mounted_partitions[@]}"; do
+    umount "$mp"
   done
 }
 #SELECT DEVICE
@@ -583,41 +585,51 @@ create_partition_scheme(){
   read_input_text "I understand my data will be lost. Continue"
   if [[ $OPTION != y ]]; then
     print_info "Partitioning cancelled."
-    return 1
+    return 2
   fi
   print_info "Partitioning a hard drive allows one to logically divide the available space into sections that can be accessed independently of one another."
   print_warning "Maintain Current does not work with LUKS"
   partition_layout=("Auto (erase disk)" "Default" "LVM" "LVM+LUKS" "Maintain Current")
   PS3="$prompt1"
   echo -e "Select partition scheme:"
+  local _sub_rc=0
   select OPT in "${partition_layout[@]}"; do
     case "$REPLY" in
       1)
         auto_partition_disk
+        _sub_rc=$?
         ;;
       2)
         create_partition
+        _sub_rc=$?
         ;;
       3)
         create_partition
         setup_lvm
+        _sub_rc=$?
         ;;
       4)
         create_partition
         setup_luks
-        setup_lvm
+        _sub_rc=$?
+        [[ $_sub_rc -eq 0 ]] && { setup_lvm; _sub_rc=$?; }
         ;;
       5)
         modprobe dm-mod
         vgscan &> /dev/null
         vgchange -ay &> /dev/null
+        _sub_rc=0
         ;;
       *)
         invalid_option
+        _sub_rc=1
         ;;
     esac
     [[ -n $OPT ]] && break
   done
+  # propagate a deliberate cancel (rc 2) from auto_partition_disk/setup_luks so
+  # run_step can skip the retry prompt instead of treating it as an error
+  [[ $_sub_rc -eq 2 ]] && return 2
 }
 #AUTO PARTITION
 partition_suffix() {
@@ -633,7 +645,7 @@ auto_partition_disk() {
   read_input_text "This will erase ALL data on ${device}. Continue"
   if [[ $OPTION != y ]]; then
     print_info "Auto-partitioning cancelled."
-    return 1
+    return 2
   fi
 
   if [[ "$DEVICE_TRAN" == "usb" ]]; then
@@ -834,7 +846,7 @@ setup_luks() {
 
     elif [[ "$OPT" == "Cancel" ]]; then
       print_warning "LUKS setup cancelled."
-      return 1
+      return 2
     else
       invalid_option
     fi
@@ -1015,10 +1027,10 @@ format_partitions(){
           ;;
         2)
           total_memory=`grep MemTotal /proc/meminfo | awk '{print $2/1024}' | sed 's/\..*//'`
-          fallocate -l ${total_memory}M ${MNT}/swapfile
-          chmod 600 ${MNT}/swapfile
-          mkswap ${MNT}/swapfile
-          swapon ${MNT}/swapfile
+          fallocate -l "${total_memory}M" "${MNT}/swapfile"
+          chmod 600 "${MNT}/swapfile"
+          mkswap "${MNT}/swapfile"
+          swapon "${MNT}/swapfile"
           i=$(( i + 1 ))
           break
           ;;
@@ -1091,8 +1103,8 @@ set_efi_partition() {
               else
                 read_input_text "Confirm fs="${filesystem}" part="${partition}" dir="${directory}""
                 if [[ $OPTION == y ]]; then
-                  mkdir -p ${MNT}${directory}
-                  mount -t ${filesystem} ${partition} ${MNT}${directory}
+                  mkdir -p "${MNT}${directory}"
+                  mount -t "${filesystem}" "${partition}" "${MNT}${directory}"
                   check_mountpoint "${partition}" "${MNT}${directory}"
                 fi
               fi
@@ -1122,17 +1134,27 @@ copy_progress() {
     
     [[ -d "$SRC_DIR" ]] || { echo "Error: Source '$SRC_DIR' missing"; return 1; }
     [[ -d "$DEST_DIR" ]] || { echo "Error: Destination '$DEST_DIR' missing"; return 1; }
-    
-    local TOTAL_SIZE=$(du -sb "$SRC_DIR" | awk '{print $1}')
-    echo "Total size: $(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)"
-    echo
-    
-    if tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"; then
-        echo -e "\n✅ Copy Complete!"
-        return 0
+
+    if command -v pv &>/dev/null && command -v numfmt &>/dev/null; then
+        local TOTAL_SIZE=$(du -sb "$SRC_DIR" | awk '{print $1}')
+        echo "Total size: $(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)"
+        echo
+        if tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"; then
+            echo -e "\n✅ Copy Complete!"
+            return 0
+        else
+            echo -e "\n❌ Copy Failed!"
+            return 1
+        fi
     else
-        echo -e "\n❌ Copy Failed!"
-        return 1
+        echo "pv/numfmt not available — copying without a progress bar..."
+        if tar cf - -C "$SRC_DIR" . | tar xpf - -C "$DEST_DIR"; then
+            echo -e "\n✅ Copy Complete!"
+            return 0
+        else
+            echo -e "\n❌ Copy Failed!"
+            return 1
+        fi
     fi
 }
 
@@ -1183,7 +1205,7 @@ install_archbang(){
   arch_chroot "systemd-machine-id-setup"
 
   # Convert mkinitcpio preset from archiso to standard for installed system
-  cat > ${MNT}/etc/mkinitcpio.d/linux.preset <<'EOF'
+  cat > "${MNT}/etc/mkinitcpio.d/linux.preset" <<'EOF'
 # SPDX-License-Identifier: GPL-3.0-or-later
 # mkinitcpio preset file for the 'linux' package
 
@@ -1197,34 +1219,34 @@ fallback_options="-S autodetect"
 EOF
 
   # Remove abinstall from target device
-  rm -f ${MNT}/home/${LIVE_USER}/Scripts/abinstall &> /dev/null
+  rm -f "${MNT}/home/${LIVE_USER}/Scripts/abinstall" &> /dev/null
 
   # remove autologin from install
-  rm -r ${MNT}/etc/systemd/system/getty@tty1.service.d &>/dev/null
+  rm -r "${MNT}/etc/systemd/system/getty@tty1.service.d" &>/dev/null
 
   # systemd journald configuration
-  rm ${MNT}/etc/systemd/system/default.target &> /dev/null
-  sed -i 's/volatile/auto/g' ${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf
-  mv ${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf ${MNT}/etc/systemd/journald.conf.d/auto-storage.conf
+  rm "${MNT}/etc/systemd/system/default.target" &> /dev/null
+  sed -i 's/volatile/auto/g' "${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf"
+  mv "${MNT}/etc/systemd/journald.conf.d/volatile-storage.conf" "${MNT}/etc/systemd/journald.conf.d/auto-storage.conf"
 
   # remove pacman-init.service link
-  unlink ${MNT}/etc/systemd/system/multi-user.target.wants/pacman-init.service &>/dev/null
-  rm -f ${MNT}/etc/systemd/system/pacman-init.service
+  unlink "${MNT}/etc/systemd/system/multi-user.target.wants/pacman-init.service" &>/dev/null
+  rm -f "${MNT}/etc/systemd/system/pacman-init.service"
 
-  rm -f ${MNT}/etc/systemd/system/etc-pacman.d-gnupg.mount
+  rm -f "${MNT}/etc/systemd/system/etc-pacman.d-gnupg.mount"
 
   # clean out live user overlay files from /etc/skel on new install
-  rm -r ${MNT}/etc/skel &>/dev/null
+  rm -r "${MNT}/etc/skel" &>/dev/null
 
   # Revert gparted to stock version without sudo
   #sed -i 's|^Exec=sudo /usr/bin/gparted|Exec=/usr/bin/gparted|' ${MNT}/usr/share/applications/gparted.desktop
 
   # Restore gparted visibility in menus
-  sed -i '/^Hidden=true/d' ${MNT}/usr/share/applications/gparted.desktop
+  sed -i '/^Hidden=true/d' "${MNT}/usr/share/applications/gparted.desktop"
 
   # Revert live NOPASSWD sudo — require password on installed system
-  sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' ${MNT}/etc/sudoers
-  sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' ${MNT}/etc/sudoers
+  sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' "${MNT}/etc/sudoers"
+  sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' "${MNT}/etc/sudoers"
 
 }
 
@@ -1239,7 +1261,13 @@ configure_hostname() {
   print_info "A host name identifies your machine on a network (max 63 chars)."
 
   if [[ $INTERACTIVE -eq 1 && -z "$host_name" ]]; then
-    read -p "Hostname [ex: arch]: " host_name
+    while true; do
+      read -p "Hostname [ex: arch]: " host_name
+      [[ -z "$host_name" ]] && break
+      echo "$host_name" | grep -qE '^[a-zA-Z0-9-]{1,63}$' && break
+      print_danger "Invalid hostname. Use letters, digits, or hyphens (max 63 chars)."
+      host_name=""
+    done
   fi
 
   host_name="${host_name:-archbang}"
@@ -1285,7 +1313,7 @@ configure_hardwareclock(){
 configure_locale(){
   print_title "LOCALE - ${WIKI}/Locale"
   print_info "Locales are used in Linux to define which language the user uses & character sets."
-  if [[ -n "$DERIVED_LOCALE" ]] && grep -q "^#\{0,1\}${DERIVED_LOCALE}.*UTF-8" /etc/locale.gen; then
+  if [[ -n "$DERIVED_LOCALE" ]] && grep -q "^#\{0,1\}${DERIVED_LOCALE}.*UTF-8" "${MNT}/etc/locale.gen"; then
     LOCALE="$DERIVED_LOCALE"
     LOCALE_UTF8="${LOCALE}.UTF-8"
     print_success "Using locale ${LOCALE_UTF8}."
@@ -1296,7 +1324,7 @@ configure_locale(){
       read_input_text "Confirm locale ($LOCALE)"
     done
   fi
-  echo 'LANG="'$LOCALE_UTF8'"' > ${MNT}/etc/locale.conf
+  echo 'LANG="'$LOCALE_UTF8'"' > "${MNT}/etc/locale.conf"
   arch_chroot "sed -i '/en_US\.UTF-8/ s/^#*/#/'  /etc/locale.gen"
   arch_chroot "sed -i '/'${LOCALE_UTF8}'/s/^#//' /etc/locale.gen"
   arch_chroot "locale-gen"
@@ -1335,9 +1363,9 @@ configure_greeter(){
     print_title "Configuring login screen"
     print_info "Setting up greetd (cage + gtkgreet) as the installed system's graphical login manager. The live ISO keeps its own autologin and is unaffected."
 
-    mkdir -p ${MNT}/etc/greetd
+    mkdir -p "${MNT}/etc/greetd"
 
-    cat > ${MNT}/etc/greetd/config.toml <<'EOF'
+    cat > "${MNT}/etc/greetd/config.toml" <<'EOF'
 [terminal]
 vt = 1
 
@@ -1349,13 +1377,14 @@ service = "greetd"
 EOF
 
     # gtkgreet's session dropdown reads this flat list, not .desktop files
-    echo "mango" > ${MNT}/etc/greetd/environments
+    echo "mango" > "${MNT}/etc/greetd/environments"
 
     # gtkgreet.css is not written here — already copied by install_archbang and
     # kept current by the archbang-theme skill; writing it here would clobber that
 
-    # GTK_THEME via /etc/environment so gtkgreet matches the desktop's adw-gtk3-dark
-    echo "GTK_THEME=adw-gtk3-dark" >> ${MNT}/etc/environment
+    # GTK_THEME via /etc/environment so gtkgreet matches the desktop's adw-gtk3-dark.
+    # Step 2 is retryable, so guard against appending a duplicate line each retry.
+    grep -q '^GTK_THEME=' "${MNT}/etc/environment" 2>/dev/null || echo "GTK_THEME=adw-gtk3-dark" >> "${MNT}/etc/environment"
 
     arch_chroot "systemctl enable greetd.service"
     arch_chroot "systemctl set-default graphical.target"
@@ -1450,7 +1479,7 @@ configure_bootloader(){
           return 1
       fi
 
-      grub-install --target=i386-pc --boot-directory=${MNT}/boot ${BOOT_DEV}
+      grub-install --target=i386-pc --boot-directory="${MNT}/boot" "${BOOT_DEV}"
       if [[ $? -ne 0 ]]; then
           print_error "GRUB installation failed for BIOS target!"
           lsblk -f
@@ -1461,12 +1490,17 @@ configure_bootloader(){
   elif [[ $UEFI -eq 1 ]]; then
       print_info "Installing GRUB (UEFI mode) to /boot/EFI/GRUB/"
       arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck"
+      if [[ $? -ne 0 ]]; then
+          print_error "GRUB installation failed for UEFI mode!"
+          return 1
+      fi
+      print_success "GRUB successfully installed (UEFI mode)"
 
   else
       print_info "Installing GRUB (BIOS mode)"
 
       # --- Run grub-install outside chroot (BIOS) ---
-      grub-install --target=i386-pc --boot-directory=${MNT}/boot ${BOOT_DEV}
+      grub-install --target=i386-pc --boot-directory="${MNT}/boot" "${BOOT_DEV}"
       if [[ $? -ne 0 ]]; then
           print_error "GRUB installation failed for BIOS mode!"
           lsblk -f
@@ -1476,11 +1510,15 @@ configure_bootloader(){
   fi
 
   # --- Build kernel parameters ---
+  # mkinitcpio (configure_mkinitcpio) uses the systemd/sd-encrypt hooks for LUKS,
+  # which read rd.luks.name=/rd.luks.uuid=, not the legacy encrypt hook's
+  # cryptdevice= parameter — cryptdevice= is silently ignored under sd-encrypt,
+  # so the root device would never get unlocked at boot.
   if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
       ROOT_LV="${VG_NAME}-${LV_ROOT}"
-      CMDLINE="cryptdevice=UUID=${LUKS_UUID}:${LUKS_NAME} root=/dev/mapper/${ROOT_LV} rw"
+      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME} root=/dev/mapper/${ROOT_LV} rw"
   elif [[ $LUKS -eq 1 ]]; then
-      CMDLINE="cryptdevice=UUID=${LUKS_UUID}:${LUKS_NAME} root=/dev/mapper/${LUKS_NAME} rw"
+      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME} root=/dev/mapper/${LUKS_NAME} rw"
   elif [[ $LVM -eq 1 ]]; then
       ROOT_LV="${VG_NAME}-${LV_ROOT}"
       CMDLINE="root=/dev/mapper/${ROOT_LV} rw"
@@ -1527,7 +1565,7 @@ setup_user(){
   echo
   
   # Guard: if live user home is already gone, rename was already done
-  if [[ ! -d ${MNT}/home/${LIVE_USER} ]]; then
+  if [[ ! -d "${MNT}/home/${LIVE_USER}" ]]; then
     print_info "Live user already renamed — skipping."
     return 0
   fi
@@ -1542,11 +1580,14 @@ setup_user(){
     print_danger "Invalid username. Use lowercase letters, digits, - or _. Cannot start with a digit."
   done
 
-  # Set password on the live user account (becomes the renamed user's password)
+  # Set password on the live user account (becomes the renamed user's password).
+  # Return on failure instead of looping forever — run_step already offers
+  # retry/skip for a failed sub-step.
   print_info "Set password for ${new_username}:"
-  while true; do
-    arch_chroot "passwd ${LIVE_USER}" && break
-  done
+  if ! arch_chroot "passwd ${LIVE_USER}"; then
+    print_danger "Failed to set password for ${new_username}."
+    return 1
+  fi
 
   # Rewrite occurrences of old username inside config files
   print_info "Updating config files..."
@@ -1644,9 +1685,22 @@ run_step() {
   local i=0
   while [[ $i -lt ${#fns[@]} ]]; do
     local fn="${fns[$i]}"
-    if "$fn"; then
+    "$fn"
+    local rc=$?
+    if [[ $rc -eq 0 ]]; then
       i=$((i + 1))
       continue
+    fi
+
+    # rc 2 = the user deliberately cancelled this sub-step (not a real error) —
+    # go straight to the skip decision instead of offering a pointless retry
+    if [[ $rc -eq 2 ]]; then
+      read_input_text "Skip '${fn}' and continue with the rest of this step"
+      if [[ $OPTION == y ]]; then
+        i=$((i + 1))
+        continue
+      fi
+      error_msg "Installation aborted."
     fi
 
     print_danger "Step '${step_label}' failed at '${fn}'."
