@@ -64,6 +64,21 @@ Install:  sudo pacman -S <package-name>
 
 ---
 
+OPENCODE (AI CODING AGENT)
+
+OpenCode is an AI coding assistant, launched from the launcher
+(Super+Space > OpenCode, or type OpenCode in the launcher search box).
+It is NOT included on the ISO image. On first launch, if you are online, the
+launcher installs it automatically (sudo pacman -S opencode). It is about a
+170 MB download, so allow a moment the first time; the terminal shows a
+message making that clear while it installs.
+
+- Requires network on first run. If you are offline it won't install, and
+  it will tell you to run:  sudo pacman -S opencode
+- After the first install it launches like any other app.
+
+---
+
 CONSOLE KEYBOARD LAYOUT
 
 The installer sets the raw tty console (rescue mode, before mango starts) to

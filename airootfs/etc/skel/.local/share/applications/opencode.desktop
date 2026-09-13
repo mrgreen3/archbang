@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=OpenCode
+GenericName=AI coding agent
+Comment=Launch the OpenCode AI coding agent in foot (installs on first run)
+Exec=foot -e /home/live/Scripts/opencode-bootstrap
+Icon=utilities-terminal
+Categories=Development;Utility;
+Terminal=false
+NoDisplay=false

@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+#
+# opencode-bootstrap — launch the opencode TUI (run inside foot). If opencode
+# isn't installed, check for network, notify the user, install it via pacman,
+# then start it. Idempotent: if already installed it just runs opencode.
+#
+#   foot /home/mrgreen/.local/bin/opencode-bootstrap
+#
+set -uo pipefail
+
+notify() { command -v notify-send >/dev/null 2>&1 && notify-send -a OpenCode "$@" || true; }
+
+have_net() {
+  ping -c1 -W2 8.8.8.8 >/dev/null 2>&1 \
+    || ping -c1 -W2 1.1.1.1 >/dev/null 2>&1 \
+    || curl -fsSL --max-time 6 -o /dev/null https://one.one.one.one 2>/dev/null \
+    || curl -fsSL --max-time 6 -o /dev/null https://example.com 2>/dev/null
+}
+
+# --- Installed? launch immediately --------------------------------------
+if command -v opencode >/dev/null 2>&1; then
+  exec opencode "$@"
+fi
+
+# --- Not installed -------------------------------------------------------
+if ! have_net; then
+  notify -u critical "OpenCode" \
+"opencode isn't installed and there's no network to install it.
+Once online, run:  sudo pacman -S opencode"
+  clear
+  printf '\n'
+  printf '  ⚠ opencode is not installed and there is no network connection.\n'
+  printf '    Once you are online, install it with:\n'
+  printf '      sudo pacman -S opencode\n'
+  printf '\nPress Enter to close… '
+  read -r _
+  exit 1
+fi
+
+printf '\n'
+printf '  ~ opencode is not part of ArchBang — installing it now via pacman\n'
+printf '    (~170 MB download). This only happens on first launch.\n'
+printf '\n'
+
+
+sudo pacman -S --noconfirm --needed opencode
+
+if ! command -v opencode >/dev/null 2>&1; then
+  notify -u critical "OpenCode" "Install failed. See the terminal for details."
+  printf '\n  ✖ Install of opencode failed. Check the output above.\n\nPress Enter to close… '
+  read -r _
+  exit 1
+fi
+
+notify -u normal "OpenCode" "opencode installed — launching."
+exec opencode "$@"
