@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Install ArchBang
+Comment=Install ArchBang to disk
+Exec=foot --fullscreen -e sh -c "sudo -EH ~/Scripts/abinstall"
+Icon=system-software-install
+Categories=System;
+Terminal=false
+NoDisplay=false
