@@ -99,36 +99,20 @@ auto_hide        = false
 reserve_space    = true
 capsule          = false
 
-start  = ["workspaces", "terminal_launch", "browser_launch", "files_launch"]
+start  = ["app_launcher", "workspaces"]
 center = ["active_window"]
 end    = ["tray", "network", "battery", "clock"]
 
+[widget.app_launcher]
+type = "custom_button"
+glyph = "layout-grid"
+tooltip = "Launcher"
+
+[widget.app_launcher.actions]
+left = "exec noctalia msg panel-toggle launcher"
+
 [widget.taskbar]
 show_workspace_label = false
-
-[widget.terminal_launch]
-type = "custom_button"
-glyph = "terminal"
-tooltip = "Terminal"
-
-[widget.terminal_launch.actions]
-left = "exec foot"
-
-[widget.browser_launch]
-type = "custom_button"
-glyph = "brand-firefox"
-tooltip = "Firefox"
-
-[widget.browser_launch.actions]
-left = "exec firefox"
-
-[widget.files_launch]
-type = "custom_button"
-glyph = "folder"
-tooltip = "Files"
-
-[widget.files_launch.actions]
-left = "exec thunar"
 
 [widget.network]
 show_label = false
