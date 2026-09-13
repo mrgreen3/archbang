@@ -1,4 +1,4 @@
-/* gtkgreet theme — matches the ArchBang desktop palette (mango/waybar/rofi/mako).
+/* gtkgreet theme — static fallback (mango palette); overwritten at runtime by apply-gtkgreet-css.
    background-color is a fallback for if the image below fails to load; the
    image itself is copied to this fixed, extension-less path at install time
    (abinstall's install_archbang) since greetd's "greeter" user has no home

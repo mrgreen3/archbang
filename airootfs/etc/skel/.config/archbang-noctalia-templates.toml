@@ -1,0 +1,9 @@
+[templates.mango]
+input_path = "/home/live/.config/noctalia/templates/mango-colors.conf"
+output_path = "/tmp/archbang-mango-colors.conf"
+post_hook = "/home/live/Scripts/apply-mango-colors"
+
+[templates.gtkgreet]
+input_path = "/home/live/.config/noctalia/templates/gtkgreet.css"
+output_path = "/tmp/archbang-gtkgreet.css"
+post_hook = "/home/live/Scripts/apply-gtkgreet-css"

@@ -1,0 +1,102 @@
+[widget.workspaces]
+style = "regular"
+capsule_radius = 0.0
+active_pill_size = 1.0
+font_scale = 1.2
+hide_when_empty = true
+focused_color = "primary"
+occupied_color = "surface_variant"
+
+[dock]
+shadow = false
+
+[shell.panel]
+shadow = false
+transparency_mode = "soft"
+borders = true
+open_near_click_control_center = true
+
+[shell]
+setup_wizard_enabled = false
+
+# Palette comes from the wallpaper (default is "builtin"): when the wallpaper
+# changes (picker, shuffle/rotation) the palette re-derives and the
+# colors_changed hook re-renders mango colors + greetd theme.
+[theme]
+source = "wallpaper"
+wallpaper_scheme = "m3-fruit-salad"
+
+[notification]
+background_opacity = 0.7
+border = false
+
+[location]
+address = "London, UK"
+
+[wallpaper]
+directory = "/home/live/Backgrounds"
+
+[shell.launcher]
+categories = false
+show_icons = true
+compact = true
+
+[shell.launcher.dmenu.entry.apps]
+label   = "Apps"
+prefix  = "apps"
+glyph   = "apps"
+global  = false
+command = "printf '%s\\n' foot thunar firefox l3afpad dgop"
+exec    = "{selection}"
+
+[shell.launcher.dmenu.entry.install]
+label   = "Install ArchBang"
+prefix  = "install"
+glyph   = "terminal"
+global  = false
+command = "printf 'Install ArchBang\\n'"
+exec    = "foot --fullscreen -e sudo -EH ~/Scripts/abinstall"
+
+[hooks]
+colors_changed = "/home/live/Scripts/noctalia-theme-sync"
+
+[bar.default]
+position         = "bottom"
+thickness        = 24
+background_opacity = 0.75
+radius           = 2
+margin_ends      = 0
+padding          = 4
+widget_spacing   = 12
+scale            = 1.0
+font_weight      = 400
+shadow           = false
+auto_hide        = false
+reserve_space    = true
+capsule          = false
+
+start  = ["workspaces"]
+center = ["media"]
+end    = ["tray", "network", "battery", "clock"]
+
+[widget.taskbar]
+show_workspace_label = false
+
+[widget.media]
+max_length = 260
+title_scroll = "on_hover"
+hide_album_art = true
+hide_when_no_media = true
+
+[idle]
+behavior_order = ["lock", "screen-off"]
+
+[idle.behavior.lock]
+timeout = 300
+action = "lock"
+enabled = true
+
+[idle.behavior.screen-off]
+timeout = 600
+action = "screen_off"
+enabled = true

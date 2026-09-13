@@ -8,13 +8,18 @@ APPLICATIONS
 ───────────────────────
 
 Super + Return          Terminal (foot)
-Super + Space           Launcher (rofi)
+Super + Space           Launcher (noctalia)
 Super + w               Web Browser (firefox)
 Super + f               File Manager (thunar)
-Super + s               System Monitor (dgop)
+Super + s               Control Center (noctalia)
+Super + d               System Monitor (dgop)
 Super + p               Screenshot (full)
 Super + Shift + s       Screenshot (region)
-Super + k               Show Keybindings
+Super + ,               Settings (noctalia)
+Super + v               Media / Audio panel (noctalia)
+Super + Shift + Space   Window Switcher (noctalia)
+Super + b               Wallpaper picker (noctalia)
+Super + k               Open Keybindings (l3afpad)
 
 
 WINDOW CONTROLS
@@ -71,11 +76,12 @@ Super + Ctrl + Alt + Left/Right Send to Monitor
 SYSTEM
 ───────────────────────
 
-Super + l               Lock Screen
+Super + l               Lock Screen (noctalia)
+Super + Shift + e       Power panel (noctalia)
 Super + r               Reload Config
 Super + m               Quit MangoWC
-Vol Up (XF86)           Increase Volume
-Vol Down (XF86)         Decrease Volume
-Mute (XF86)             Toggle Mute
-Brightness Up (XF86)    Increase Brightness
-Brightness Down (XF86)  Decrease Brightness
+Vol Up (XF86)           Increase Volume (O.S.D.)
+Vol Down (XF86)         Decrease Volume (O.S.D.)
+Mute (XF86)             Toggle Mute (O.S.D.)
+Brightness Up (XF86)    Increase Brightness (O.S.D.)
+Brightness Down (XF86)  Decrease Brightness (O.S.D.)

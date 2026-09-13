@@ -1,0 +1,13 @@
+#!/bin/sh
+# noctalia colors_changed hook post_hook: install the rendered gtkgreet
+# theme to its system path. /etc/greetd is root-owned, so this relies on
+# the passwordless wheel sudo rule customize_airootfs.sh sets up.
+set -e
+
+SRC="/tmp/archbang-gtkgreet.css"
+DEST="/etc/greetd/gtkgreet.css"
+
+[ -f "$SRC" ] || exit 0
+[ -d /etc/greetd ] || exit 0
+
+sudo -n cp "$SRC" "$DEST" 2>/dev/null || true

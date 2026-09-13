@@ -23,3 +23,4 @@
 - [ ] Installer option: offline vs online install mode
 - [ ] rofi-wayland launcher theming
 - [ ] Accessibility options (font size, contrast)
+- [x] Switch to noctalia shell (bar/launcher/control-center/notifications/OSD/wallpapers); retire waybar/mako/rofi/swaybg/networkmanager-dmenu

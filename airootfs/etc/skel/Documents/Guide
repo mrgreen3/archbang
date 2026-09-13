@@ -11,7 +11,7 @@ PACMAN (LIVE SESSION)
 Network required for pacman or browser use in the live session.
 
 - Wired connections work automatically.
-- Wireless: left-click the network icon in waybar, select network, enter password.
+- Wireless: press Super+S (noctalia control-center) > Network, select a network, enter the password.
 
 ---
 
@@ -23,16 +23,18 @@ Tag 1 is floating — windows behave like a traditional floating desktop.
 Tags 2–9 are tiling — windows are arranged automatically.
 
 Switch tags with Super+1 through Super+9.
-Toggle a window between floating and tiling with Super+S.
+Toggle a window between floating and tiling with Super+Ctrl+S.
 
 ---
 
 INSTALLATION
 
-1. Right-click on the desktop (or Super+Space for rofi)
-2. Select Install from the menu
+1. Press Super+Space (noctalia launcher), type "install", choose "Install ArchBang"
+2. Or run it from a terminal: sudo ~/Scripts/abinstall
 
 The installer (abinstall) is menu-driven.
+
+Alternatively, Super+Space launcher > Apps > Terminal gives you a shell.
 
 ---
 

@@ -29,7 +29,7 @@ Design Philosophy
 
   * Lightweight - Minimal base, runs well on modest hardware
   * Wayland-first - MangoWC compositor, no Xorg
-  * Coherent - Warm brown/yellow palette throughout (waybar, mako, rofi)
+  * Coherent - Warm palette synced from the wallpaper via noctalia
   * Arch underneath - Full pacman access, rolling release
 
 
@@ -47,11 +47,8 @@ Features
 
 Desktop
   - MangoWC Wayland compositor
-  - waybar panel with workspace indicators
+  - noctalia shell: bar, launcher, control-center, notifications, OSD, wallpapers
   - foot terminal
-  - rofi launcher (Super+Space)
-  - mako notification daemon
-  - swaybg wallpaper
 
 Installation
   - Menu-driven installer (abinstall)
