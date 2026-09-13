@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# themebang — pick a wallpaper from ~/Backgrounds and re-theme mango/
+# shellbang — pick a wallpaper from ~/Backgrounds and re-theme mango/
 # waybar/rofi/mako/greetd to match it live, using matugen for the palette.
 # Also offers automatic wallpaper rotation via a systemd user timer
 # (Rotate on/off, and Timer to set the switch interval in minutes).
@@ -20,12 +20,12 @@ ROFI_RASI = HOME / ".config/rofi/theme.rasi"
 ROFI_PICKER = HOME / ".config/rofi/wallpaper.rasi"
 THUMB_DIR = HOME / ".cache" / "wallpaper-thumbs"
 MAKO_CONF = HOME / ".config/mako/config"
-CONF_FILE = HOME / ".config/themebang.conf"
+CONF_FILE = HOME / ".config/shellbang.conf"
 UNIT_DIR = HOME / ".config/systemd/user"
-SERVICE_UNIT = UNIT_DIR / "themebang-rotate.service"
-TIMER_UNIT = UNIT_DIR / "themebang-rotate.timer"
-SERVICE_NAME = "themebang-rotate.service"
-TIMER_NAME = "themebang-rotate.timer"
+SERVICE_UNIT = UNIT_DIR / "shellbang-rotate.service"
+TIMER_UNIT = UNIT_DIR / "shellbang-rotate.timer"
+SERVICE_NAME = "shellbang-rotate.service"
+TIMER_NAME = "shellbang-rotate.timer"
 GREETD_BG = Path("/usr/share/backgrounds/archbang/current")
 GTKGREET_CSS = Path("/etc/greetd/gtkgreet.css")
 
@@ -34,7 +34,7 @@ TIMER_PRESETS = [10, 15, 30, 60, 180, 720]  # minutes
 
 
 def notify(summary, body=""):
-    args = ["notify-send", "themebang"]
+    args = ["notify-send", "shellbang"]
     if summary:
         args.append(summary)
     if body:
@@ -99,7 +99,7 @@ def write_rotate_units(timer_min):
     UNIT_DIR.mkdir(parents=True, exist_ok=True)
     SERVICE_UNIT.write_text(
         "[Unit]\nDescription=Rotate ArchBang wallpaper\n\n"
-        "[Service]\nType=oneshot\nExecStart=%h/Scripts/themebang --rotate\n"
+        "[Service]\nType=oneshot\nExecStart=%h/Scripts/shellbang --rotate\n"
     )
     TIMER_UNIT.write_text(
         "[Unit]\nDescription=Rotate ArchBang wallpaper (timer)\n\n"
