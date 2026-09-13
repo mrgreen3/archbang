@@ -1225,7 +1225,7 @@ EOF
 
   # Remove the "Install ArchBang" desktop launcher too — it points at the
   # script just deleted above and would otherwise dangle on the installed system
-  rm -f "${MNT}/usr/share/applications/archbang-install.desktop" &> /dev/null
+  rm -f "${MNT}/home/${LIVE_USER}/.local/share/applications/archbang-install.desktop" &> /dev/null
 
   # remove autologin from install
   rm -r "${MNT}/etc/systemd/system/getty@tty1.service.d" &>/dev/null
