@@ -100,7 +100,7 @@ reserve_space    = true
 capsule          = false
 
 start  = ["workspaces", "terminal_launch", "browser_launch", "files_launch"]
-center = ["media"]
+center = ["active_window"]
 end    = ["tray", "network", "battery", "clock"]
 
 [widget.taskbar]
