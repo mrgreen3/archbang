@@ -1,0 +1,6 @@
+# Lets apply-gtkgreet-css (noctalia colors_changed hook) install the
+# rendered login-screen theme to /etc/greetd without a full password
+# prompt, even after abinstall reverts blanket wheel NOPASSWD on the
+# installed system. Scoped to this exact command — see
+# etc/skel/Scripts/apply-gtkgreet-css.
+%wheel ALL=(root) NOPASSWD: /usr/bin/cp /tmp/archbang-gtkgreet.css /etc/greetd/gtkgreet.css
