@@ -46,7 +46,7 @@ label   = "Apps"
 prefix  = "apps"
 glyph   = "apps"
 global  = false
-command = "printf '%s\\n' foot thunar firefox l3afpad dgop"
+command = "printf '%s\\n' foot thunar firefox l3afpad"
 exec    = "{selection}"
 
 [shell.launcher.dmenu.entry.install]
@@ -56,6 +56,30 @@ glyph   = "terminal"
 global  = false
 command = "printf 'Install ArchBang\\n'"
 exec    = "foot --fullscreen -e sudo -EH ~/Scripts/abinstall"
+
+[shell.launcher.dmenu.entry.sysmon]
+label   = "System Monitor"
+prefix  = "monitor"
+glyph   = "activity-heartbeat"
+global  = false
+command = "printf 'System Monitor\\n'"
+exec    = "noctalia msg panel-toggle control-center system"
+
+[shell.launcher.dmenu.entry.guide]
+label   = "Guide"
+prefix  = "guide"
+glyph   = "book"
+global  = false
+command = "printf 'Guide\\n'"
+exec    = "l3afpad ~/Documents/Guide"
+
+[shell.launcher.dmenu.entry.keybinds]
+label   = "Keybinds"
+prefix  = "keybinds"
+glyph   = "keyboard"
+global  = false
+command = "printf 'Keybinds\\n'"
+exec    = "l3afpad ~/Documents/Keybindings"
 
 [hooks]
 colors_changed = "/home/live/Scripts/noctalia-theme-sync"
