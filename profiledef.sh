@@ -21,5 +21,6 @@ file_permissions=(
   ["/root"]="0:0:750"
   ["/root/.gnupg"]="0:0:700"
   ["/etc/skel/Scripts/"]="0:0:755"
+  ["/etc/sudoers.d/archbang-gtkgreet-theme"]="0:0:440"
 )
 #bootstrap_tarball_compression=(gzip -cn9)
