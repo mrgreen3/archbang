@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # themebang — pick a wallpaper from ~/Backgrounds and re-theme mango/
 # waybar/rofi/mako/greetd to match it live, using matugen for the palette.
+# Also offers automatic wallpaper rotation via a systemd user timer
+# (Rotate on/off, and Timer to set the switch interval in minutes).
+import hashlib
 import json
 import os
 import re
@@ -14,31 +17,160 @@ BG_DIR = HOME / "Backgrounds"
 MANGO_CONF = HOME / ".config/mango/config.conf"
 WAYBAR_CSS = HOME / ".config/waybar/style.css"
 ROFI_RASI = HOME / ".config/rofi/theme.rasi"
+ROFI_PICKER = HOME / ".config/rofi/wallpaper.rasi"
+THUMB_DIR = HOME / ".cache" / "wallpaper-thumbs"
 MAKO_CONF = HOME / ".config/mako/config"
+CONF_FILE = HOME / ".config/themebang.conf"
+UNIT_DIR = HOME / ".config/systemd/user"
+SERVICE_UNIT = UNIT_DIR / "themebang-rotate.service"
+TIMER_UNIT = UNIT_DIR / "themebang-rotate.timer"
+SERVICE_NAME = "themebang-rotate.service"
+TIMER_NAME = "themebang-rotate.timer"
 GREETD_BG = Path("/usr/share/backgrounds/archbang/current")
 GTKGREET_CSS = Path("/etc/greetd/gtkgreet.css")
 
+WALLPAPER_SUFFIXES = (".jpg", ".jpeg", ".png", ".webp", ".bmp")
+TIMER_PRESETS = [10, 15, 30, 60, 180, 720]  # minutes
+
+
+def notify(summary, body=""):
+    args = ["notify-send", "themebang"]
+    if summary:
+        args.append(summary)
+    if body:
+        args.append(body)
+    subprocess.run(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# ---- state/config -------------------------------------------------------
+
+def load_conf():
+    conf = {}
+    if CONF_FILE.exists():
+        for line in CONF_FILE.read_text().splitlines():
+            if "=" in line:
+                k, v = line.split("=", 1)
+                conf[k.strip()] = v.strip()
+    conf.setdefault("rotate", "off")
+    conf.setdefault("timer", "15")
+    conf.setdefault("current", "")
+    conf.setdefault("greetd", "on")
+    conf.setdefault("display", os.environ.get("WAYLAND_DISPLAY", ""))
+    return conf
+
+
+def save_conf(conf):
+    CONF_FILE.parent.mkdir(parents=True, exist_ok=True)
+    body = "\n".join(
+        f"{k}={conf.get(k, '')}"
+        for k in ("rotate", "timer", "current", "greetd", "display")
+    )
+    CONF_FILE.write_text(body + "\n")
+
+
+def all_wallpapers():
+    return sorted(
+        p for p in BG_DIR.iterdir()
+        if p.is_file() and p.suffix.lower() in WALLPAPER_SUFFIXES
+    )
+
+
+def next_wallpaper(current):
+    lst = all_wallpapers()
+    if not lst:
+        return None
+    cur = Path(current) if current else None
+    if cur in lst:
+        return lst[(lst.index(cur) + 1) % len(lst)]
+    return lst[0]
+
+
+def session_env(conf):
+    """systemd user units don't inherit the session env; inject the display."""
+    env = dict(os.environ)
+    if conf.get("display"):
+        env["WAYLAND_DISPLAY"] = conf["display"]
+    return env
+
+
+# ---- rotation via systemd user timer ------------------------------------
+
+def write_rotate_units(timer_min):
+    UNIT_DIR.mkdir(parents=True, exist_ok=True)
+    SERVICE_UNIT.write_text(
+        "[Unit]\nDescription=Rotate ArchBang wallpaper\n\n"
+        "[Service]\nType=oneshot\nExecStart=%h/Scripts/themebang --rotate\n"
+    )
+    TIMER_UNIT.write_text(
+        "[Unit]\nDescription=Rotate ArchBang wallpaper (timer)\n\n"
+        "[Timer]\nOnBootSec=60\n"
+        f"OnUnitActiveSec={timer_min * 60}\n\n"
+        "[Install]\nWantedBy=timers.target\n"
+    )
+
+
+def reload_and_enable_rotate():
+    write_rotate_units(int(load_conf().get("timer", "15")))
+    subprocess.run(["systemctl", "--user", "daemon-reload"])
+    # Immediate first switch, then let the timer take over on its interval.
+    subprocess.run(["systemctl", "--user", "enable", "--now", TIMER_NAME],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["systemctl", "--user", "start", SERVICE_NAME],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def disable_rotate():
+    subprocess.run(["systemctl", "--user", "disable", "--now", TIMER_NAME],
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def restart_timer():
+    if load_conf().get("rotate") == "on":
+        write_rotate_units(int(load_conf().get("timer", "15")))
+        subprocess.run(["systemctl", "--user", "daemon-reload"])
+        subprocess.run(["systemctl", "--user", "restart", TIMER_NAME],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# ---- the actual theming --------------------------------------------------
+
+def wallpaper_feed():
+    """Thumbnail-grid rofi entries (same as the desktop wallpaper-switch tool)."""
+    THUMB_DIR.mkdir(parents=True, exist_ok=True)
+    lines = []
+    for p in sorted(BG_DIR.glob("*")):
+        if not p.is_file() or p.suffix.lower() not in WALLPAPER_SUFFIXES:
+            continue
+        thumb = THUMB_DIR / (hashlib.md5(str(p).encode()).hexdigest()[:16] + ".png")
+        if not thumb.exists():
+            subprocess.run(
+                ["vipsthumbnail", str(p), "-s", "320x200", "--crop", "centre",
+                 "-o", str(thumb)],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        lines.append(f"{p.stem}\0icon\x1f{thumb}")
+    return lines
+
 
 def pick_wallpaper():
-    paths = sorted(
-        p for p in BG_DIR.iterdir()
-        if p.is_file() and p.suffix.lower() in (".jpg", ".jpeg", ".png")
-    )
-    entries = "\n".join(f"{p.name}\0icon\x1f{p}" for p in paths)
     proc = subprocess.run(
-        ["rofi", "-dmenu", "-show-icons", "-p", "Wallpaper", "-theme", str(ROFI_RASI),
-         "-theme-str", f"listview {{ lines: {len(paths)}; }}"],
-        input=entries, capture_output=True, text=True,
-    )
-    choice = proc.stdout.strip()
-    return BG_DIR / choice if choice else None
+        ["rofi", "-dmenu", "-show-icons", "-theme", str(ROFI_PICKER),
+         "-mesg", "wallpapers — type to filter"],
+        input="\n".join(wallpaper_feed()), capture_output=True, text=True,
+        env=session_env(load_conf()))
+    label = proc.stdout.strip()
+    if not label:
+        return None
+    for p in BG_DIR.glob("*"):
+        if p.is_file() and p.stem == label:
+            return p
+    return None
 
 
 def get_palette(wallpaper):
     out = subprocess.run(
         ["matugen", "image", str(wallpaper), "--json", "hex", "--dry-run",
          "--mode", "dark", "--prefer", "saturation"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, env=session_env(load_conf()),
     ).stdout
     if not out.strip():
         return None
@@ -97,17 +229,18 @@ def theme_waybar(p):
 
 
 def theme_rofi(p):
-    rasi = ROFI_RASI.read_text()
+    # theme both the app-launcher theme and the wallpaper-picker grid
     mapping = {
         "bg": p["bg"], "bg-alt": p["surface"], "fg": p["fg"], "fg-dim": p["fgdim"],
         "accent": p["accent"], "urgent": p["urgent"], "selected-fg": p["onaccent"],
     }
-    for name, val in mapping.items():
-        rasi = re.sub(
-            rf"(?m)^(\s*{re.escape(name)}:\s*)#[0-9a-fA-F]{{6}}([0-9a-fA-F]{{2}});",
-            rf"\1#{val}\2;", rasi, count=1,
-        )
-    ROFI_RASI.write_text(rasi)
+    for path in (ROFI_RASI, ROFI_PICKER):
+        rasi = path.read_text()
+        for name, val in mapping.items():
+            rasi = re.sub(
+                rf"(?m)^(\s*{re.escape(name)}:\s*)#[0-9a-fA-F]{{6}}([0-9a-fA-F]{{2}})?;",
+                rf"\1#{val}\2;", rasi, count=1)
+        path.write_text(rasi)
 
 
 def theme_mako(p):
@@ -151,49 +284,134 @@ def theme_greetd(wallpaper, bg, surface, fg, fgdim, accent, onaccent):
     GTKGREET_CSS.write_text(css)
 
 
-def main():
-    wallpaper = pick_wallpaper()
-    if wallpaper is None:
-        return
+def apply_theme(wallpaper, conf, force=False):
     if not wallpaper.is_file():
-        sys.exit(1)
-
-    current = re.search(r"(?m)^exec-once=swaybg -i (.*) -m fill", MANGO_CONF.read_text())
-    if current and Path(current.group(1)) == wallpaper:
-        return
+        notify("wallpaper not found", str(wallpaper))
+        return False
+    if not force and conf.get("current") == str(wallpaper):
+        notify("already active", wallpaper.name)
+        return False
 
     subprocess.run(["pkill", "-x", "swaybg"])
-    subprocess.Popen(["swaybg", "-i", str(wallpaper), "-m", "fill"], start_new_session=True)
+    subprocess.Popen(["swaybg", "-i", str(wallpaper), "-m", "fill"],
+                     start_new_session=True, env=session_env(conf))
 
     palette = get_palette(wallpaper)
     if palette is None:
-        subprocess.run(["notify-send", "themebang", "matugen failed, wallpaper set but colours unchanged"])
-        sys.exit(1)
+        notify("matugen failed, wallpaper set but colours unchanged")
+        return True
 
     theme_mango(palette, wallpaper)
     theme_waybar(palette)
     theme_rofi(palette)
     theme_mako(palette)
     subprocess.run(["mmsg", "dispatch", "reload_config"],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                   env=session_env(conf))
 
-    if subprocess.run(["sudo", "-n", "true"],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
+    if (conf.get("greetd", "on") == "on"
+            and subprocess.run(["sudo", "-n", "true"], env=session_env(conf),
+                               stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL).returncode == 0):
         subprocess.run([
             "sudo", sys.executable, str(Path(__file__).resolve()), "--greetd",
             str(wallpaper), palette["bg"], palette["surface"], palette["fg"],
             palette["fgdim"], palette["accent"], palette["onaccent"],
-        ])
+        ], env=session_env(conf))
 
-    subprocess.run(["pkill", "-x", "waybar"])
-    subprocess.Popen(["waybar"], start_new_session=True)
-    subprocess.run(["makoctl", "reload"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run(["pkill", "-x", "waybar"], env=session_env(conf))
+    subprocess.Popen(["waybar"], start_new_session=True, env=session_env(conf))
+    subprocess.run(["makoctl", "reload"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    env=session_env(conf))
 
-    subprocess.run(["notify-send", "themebang", "Theme Updated"])
+    conf["current"] = str(wallpaper)
+    save_conf(conf)
+    notify("Theme Updated", wallpaper.name)
+    return True
+
+
+# ---- menu ----------------------------------------------------------------
+
+def rofi_menu(entries, prompt):
+    proc = subprocess.run(
+        ["rofi", "-dmenu", "-show-icons", "-p", prompt, "-theme", str(ROFI_RASI),
+         "-theme-str", f"listview {{ lines: {len(entries)}; }}"],
+        input="\n".join(entries), capture_output=True, text=True,
+        env=session_env(load_conf()),
+    )
+    return proc.stdout.strip()
+
+
+def toggle_rotate(conf):
+    if conf.get("rotate") == "on":
+        disable_rotate()
+        conf["rotate"] = "off"
+        save_conf(conf)
+        notify("Rotation off")
+    else:
+        conf["rotate"] = "on"
+        save_conf(conf)
+        notify("Rotation on",
+               f"switching every {conf.get('timer')} min")
+        reload_and_enable_rotate()
+
+
+def set_timer(conf):
+    labels = [f"{m} min" if m < 60 else f"{m // 60} hour{'s' if m >= 120 else ''}"
+               for m in TIMER_PRESETS]
+    choice = rofi_menu(labels, "Timer")
+    if not choice:
+        return
+    try:
+        minutes = TIMER_PRESETS[labels.index(choice)]
+    except ValueError:
+        return
+    conf["timer"] = str(minutes)
+    save_conf(conf)
+    restart_timer()
+    notify("Rotation timer", f"{minutes} min")
+
+
+def run_menu():
+    conf = load_conf()
+    rotate_on = conf.get("rotate") == "on"
+    timer_min = conf.get("timer", "15")
+    entries = ["Wallpaper\0icon\x1fimage-x-generic"]
+    entries.append("Rotate: on\0icon\x1fmedia-playback-start"
+                   if rotate_on else "Rotate: off\0icon\x1fmedia-playback-stop")
+    if rotate_on:
+        entries.append(f"Timer: {timer_min} min\0icon\x1ftimer")
+    choice = rofi_menu(entries, "Themebang")
+
+    if choice.startswith("Wallpaper"):
+        wp = pick_wallpaper()
+        if wp:
+            apply_theme(wp, conf)
+    elif choice.startswith("Rotate"):
+        toggle_rotate(load_conf())
+    elif choice.startswith("Timer"):
+        set_timer(load_conf())
+
+
+def rotate_once():
+    conf = load_conf()
+    if conf.get("rotate") != "on":
+        return
+    wp = next_wallpaper(conf.get("current", ""))
+    if not wp:
+        notify("no wallpapers found", str(BG_DIR))
+        return
+    apply_theme(wp, conf)
+
+
+def main():
+    run_menu()
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--greetd":
         theme_greetd(*sys.argv[2:9])
+    elif len(sys.argv) > 1 and sys.argv[1] == "--rotate":
+        rotate_once()
     else:
         main()
