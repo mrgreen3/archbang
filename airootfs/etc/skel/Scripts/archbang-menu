@@ -30,7 +30,7 @@ case "$choice" in
     foot -e dgop top
     ;;
   Theme)
-    ~/Scripts/themebang
+    ~/Scripts/shellbang
     ;;
   Install)
     foot --maximized -e sudo -EH ~/Scripts/abinstall

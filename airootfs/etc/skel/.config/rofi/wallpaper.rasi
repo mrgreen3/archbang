@@ -1,4 +1,4 @@
-/* Wallpaper picker grid — themebang (mirrors the desktop wallpaper-switch tool) */
+/* Wallpaper picker grid — shellbang (mirrors the desktop wallpaper-switch tool) */
 * {
     bg:     #0e1514ee;
     bg-alt: #3f4948;
