@@ -1,0 +1,75 @@
+/* Wallpaper picker grid — themebang (mirrors the desktop wallpaper-switch tool) */
+* {
+    bg:     #0e1514ee;
+    bg-alt: #3f4948;
+    fg:     #dde4e3;
+    accent: #80d5d2;
+    urgent: #ffb4ab;
+    font:   "JetBrains Mono 10.5";
+    background-color: transparent;
+    text-color:       @fg;
+    border-color:     @accent;
+}
+
+window {
+    background-color: @bg;
+    border:           2px;
+    border-color:     @accent;
+    border-radius:    8px;
+    width:            62%;
+    padding:          10px;
+    x-offset:         0;
+    y-offset:         0;
+    anchor:           center;
+    location:         center;
+}
+
+mainbox {
+    background-color: transparent;
+    children:         [ inputbar, listview ];
+    spacing:          10px;
+}
+
+inputbar {
+    background-color: @bg-alt;
+    border-radius:    4px;
+    padding:          8px 12px;
+    spacing:          6px;
+}
+
+prompt { text-color: @accent; }
+
+listview {
+    columns:         4;
+    fixed-columns:   true;
+    lines:           3;
+    scrollbar:       false;
+    spacing:         6px;
+    padding:         4px;
+    background-color: transparent;
+}
+
+element {
+    orientation:      vertical;
+    border-radius:    4px;
+    padding:          4px;
+    background-color: transparent;
+}
+
+element selected.normal {
+    background-color: @bg-alt;
+    text-color:       @accent;
+    border:           2px;
+    border-color:     @accent;
+}
+
+element-icon {
+    size:              150px;
+    background-color:  transparent;
+    vertical-align:    0.5;
+}
+
+element-text {
+    background-color: transparent;
+    vertical-align:   0.5;
+}
