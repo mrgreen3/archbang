@@ -2,11 +2,12 @@
 # ArchBang profile
 
 iso_name="archbang"
-iso_label="ARCHBANG_$(date +%d%m%y)"
+iso_label="ARCHBANG_RC_$(date +%d%m%y)"
 iso_publisher="ArchBang <https://www.archbang.org>"
-iso_application="ArchBang Live Iso (Beta)"
-# DDMMYY dev build date; swap for semantic versioning (e.g. "1.0.0") on release
-iso_version="$(date +%d%m%y)"
+iso_application="ArchBang Live Iso (RC)"
+# DDMMYY dev build date with an rc suffix for release-candidate builds; swap
+# for semantic versioning (e.g. "1.0.0") on final release
+iso_version="$(date +%d%m%y)-rc"
 install_dir="arch"
 buildmodes=("iso")
 bootmodes=('bios.syslinux'
