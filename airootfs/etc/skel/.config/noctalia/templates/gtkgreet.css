@@ -1,0 +1,53 @@
+/* gtkgreet theme — generated live from noctalia's colors_changed hook.
+   Background image is copied to this fixed path at install time
+   (abinstall). */
+
+window {
+    background-color: {{ colors.background.default.hex }};
+    background-image: url("/usr/share/backgrounds/archbang/current");
+    background-size: cover;
+    background-position: center;
+    font-family: "Inter", sans-serif;
+    font-size: 14px;
+}
+
+box#body {
+    background-color: rgba({{ colors.surface_container.default.red }}, {{ colors.surface_container.default.green }}, {{ colors.surface_container.default.blue }}, 0.9);
+    border: 2px solid {{ colors.primary.default.hex }};
+    border-radius: 6px;
+    padding: 32px;
+}
+
+label {
+    color: {{ colors.on_surface.default.hex }};
+}
+
+entry {
+    background-color: {{ colors.surface_variant.default.hex }};
+    color: {{ colors.on_surface.default.hex }};
+    caret-color: {{ colors.on_surface.default.hex }};
+    border: 1px solid {{ colors.outline.default.hex }};
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+entry:focus {
+    border-color: {{ colors.primary.default.hex }};
+}
+
+button {
+    background-color: {{ colors.primary.default.hex }};
+    color: {{ colors.on_primary.default.hex }};
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-weight: bold;
+}
+
+button:hover {
+    background-color: {{ colors.primary_container.default.hex }};
+}
+
+combobox {
+    color: {{ colors.on_surface.default.hex }};
+}

@@ -1,0 +1,19 @@
+#!/bin/sh
+# noctalia colors_changed hook post_hook: copy rendered key=value lines
+# into mango's config.conf (no include directive) and reload.
+set -e
+
+SRC="/tmp/archbang-mango-colors.conf"
+DEST="$HOME/.config/mango/config.conf"
+
+[ -f "$SRC" ] || exit 0
+[ -f "$DEST" ] || exit 0
+
+while IFS='=' read -r key value; do
+  [ -n "$key" ] || continue
+  if grep -q "^${key}=" "$DEST"; then
+    sed -i "s#^${key}=.*#${key}=${value}#" "$DEST"
+  fi
+done < "$SRC"
+
+command -v mmsg >/dev/null 2>&1 && mmsg dispatch reload_config >/dev/null 2>&1 || true

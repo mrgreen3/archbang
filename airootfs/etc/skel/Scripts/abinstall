@@ -1193,10 +1193,12 @@ install_archbang(){
     rsync -av "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1 || print_warning "Cowspace sync had errors (non-fatal)"
   fi
 
-  # Copy the current wallpaper to a fixed path for greetd's login theme, before
-  # /etc/skel is deleted later in this function
-  WALLPAPER_NAME=$(sed -n 's#.*swaybg -i [^ ]*/\([^ ]*\) .*#\1#p' "${MNT}/etc/skel/.config/mango/config.conf" 2>/dev/null | head -1)
-  if [[ -n "$WALLPAPER_NAME" && -f "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" ]]; then
+  # Copy a default background to the fixed path the noctalia gtkgreet login
+  # theme references (noctalia manages wallpapers live from ~/Backgrounds;
+  # this just seeds greetd's login background), before /etc/skel is deleted
+  # later in this function.
+  WALLPAPER_NAME="aesthetic.jpg"
+  if [[ -f "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" ]]; then
     mkdir -p "${MNT}/usr/share/backgrounds/archbang"
     cp -a "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" "${MNT}/usr/share/backgrounds/archbang/current"
   fi

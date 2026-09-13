@@ -1,6 +1,7 @@
 ## === AUDIO ===
 pipewire
 pipewire-pulse
+wireplumber
 
 ## === ARCHIVE TOOLS ===
 zip
@@ -13,8 +14,7 @@ foot
 
 ## === WAYLAND DESKTOP ENVIRONMENT (mango stack) ===
 mangowm
-swaybg
-waybar
+noctalia
 xorg-xwayland
 wlr-randr
 grim
@@ -22,9 +22,7 @@ slurp
 wl-clipboard
 brightnessctl
 swaylock
-mako
 reflector
-rofi
 
 ## === GREETER (installed-system login only, configured/enabled by
 ## abinstall — not used or started on the live ISO itself) ===
@@ -64,7 +62,6 @@ ntfs-3g
 
 ## === NETWORK MANAGEMENT ===
 networkmanager
-networkmanager-dmenu-git
 usb_modeswitch
 # Will not ship broadcom-wl-dkms in the live ISO...for now....
 #broadcom-wl-dkms
@@ -88,10 +85,6 @@ pacman-contrib
 fzf
 eza
 jq
-
-## === THEMING (shellbang) ===
-matugen
-libvips
 
 ## === MEDIA APPLICATIONS ===
 firefox
