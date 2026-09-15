@@ -95,6 +95,7 @@ widget_spacing   = 12
 scale            = 1.0
 font_weight      = 400
 shadow           = false
+contact_shadow   = false
 auto_hide        = false
 reserve_space    = true
 capsule          = false
