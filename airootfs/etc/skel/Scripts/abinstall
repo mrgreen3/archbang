@@ -588,8 +588,7 @@ create_partition_scheme(){
     return 2
   fi
   print_info "Partitioning a hard drive allows one to logically divide the available space into sections that can be accessed independently of one another."
-  print_warning "Maintain Current does not work with LUKS"
-  partition_layout=("Auto (erase disk)" "Default" "LVM" "LVM+LUKS" "Maintain Current")
+  partition_layout=("Auto (erase disk)" "Default" "LVM" "LVM+LUKS")
   PS3="$prompt1"
   echo -e "Select partition scheme:"
   local _sub_rc=0
@@ -613,12 +612,6 @@ create_partition_scheme(){
         setup_luks
         _sub_rc=$?
         [[ $_sub_rc -eq 0 ]] && { setup_lvm; _sub_rc=$?; }
-        ;;
-      5)
-        modprobe dm-mod
-        vgscan &> /dev/null
-        vgchange -ay &> /dev/null
-        _sub_rc=0
         ;;
       *)
         invalid_option
