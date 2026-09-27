@@ -1,0 +1,5 @@
+# One PATH-resolvable command per line = one Noctalia Apps-menu entry.
+# Add a web app: create an executable on PATH (e.g. ~/.local/bin/<name>)
+# and append its name here. `exec="{selection}"` runs the picked line.
+duck-ai
+oc-install

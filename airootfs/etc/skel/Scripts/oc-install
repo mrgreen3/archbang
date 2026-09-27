@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# opencode-bootstrap — launch the opencode TUI (run inside foot). If opencode
+# oc-install — launch the opencode TUI (run inside foot). If opencode
 # isn't installed, check for network, notify the user, install it via pacman,
 # then start it. Idempotent: if already installed it just runs opencode.
 #
-#   foot /home/mrgreen/.local/bin/opencode-bootstrap
+#   foot ~/Scripts/oc-install
 #
 set -uo pipefail
 
@@ -43,7 +43,7 @@ printf '    (~170 MB download). This only happens on first launch.\n'
 printf '\n'
 
 
-sudo pacman -S --noconfirm --needed opencode
+sudo pacman -Sy --noconfirm --needed opencode
 
 if ! command -v opencode >/dev/null 2>&1; then
   notify -u critical "OpenCode" "Install failed. See the terminal for details."
