@@ -46,7 +46,7 @@ label   = "Apps"
 prefix  = "apps"
 glyph   = "apps"
 global  = false
-command = "printf '%s\\n' foot thunar firefox l3afpad"
+command = "sed '/^#/d;/^$/d' ~/.config/noctalia/apps.list"
 exec    = "{selection}"
 
 [shell.launcher.dmenu.entry.install]
@@ -102,7 +102,7 @@ capsule          = false
 
 start  = ["app_launcher", "workspaces"]
 center = ["active_window"]
-end    = ["tray", "network", "battery", "clock"]
+end    = ["tray", "network", "battery", "clock", "session"]
 
 [widget.app_launcher]
 type = "custom_button"

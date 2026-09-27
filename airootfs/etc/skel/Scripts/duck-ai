@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# duck-ai — open Duck.ai in a Firefox window (Noctalia launcher entry).
+exec firefox --new-window https://duck.ai
