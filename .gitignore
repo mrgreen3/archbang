@@ -2,7 +2,6 @@ todo
 .venv-test/
 out/
 work/
-aur_repo/
 docs/
 __pycache__/
 *.pyc
