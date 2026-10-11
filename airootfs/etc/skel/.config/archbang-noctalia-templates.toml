@@ -7,3 +7,7 @@ post_hook = "/home/live/Scripts/apply-mango-colors"
 input_path = "/home/live/.config/noctalia/templates/gtkgreet.css"
 output_path = "/tmp/archbang-gtkgreet.css"
 post_hook = "/home/live/Scripts/apply-gtkgreet-css"
+
+[templates.foot]
+input_path = "/home/live/.config/noctalia/templates/foot"
+output_path = "/home/live/.config/foot/themes/noctalia"

@@ -24,7 +24,7 @@ setup_wizard_enabled = false
 # colors_changed hook re-renders mango colors + greetd theme.
 [theme]
 source = "wallpaper"
-wallpaper_scheme = "m3-fruit-salad"
+wallpaper_scheme = "m3-tonal-spot"
 
 [notification]
 background_opacity = 0.7

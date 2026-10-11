@@ -1,5 +1,5 @@
 #!/bin/sh
-# Re-renders archbang-noctalia-templates.toml (mango's border colors + the
+# Re-renders archbang-noctalia-templates.toml (mango border colors, foot, and the
 # gtkgreet login theme) against noctalia's currently active wallpaper/
 # scheme/mode. Triggered by noctalia's [hooks] colors_changed.
 SETTINGS="$HOME/.local/state/noctalia/settings.toml"
@@ -10,5 +10,5 @@ mode=$(awk -F'"' '/^\[theme\]/{f=1;next} /^\[/{f=0} f && /^mode *=/{print $2; ex
 
 [ -n "$wp" ] || exit 0
 
-noctalia theme "$wp" --scheme "${scheme:-m3-fruit-salad}" --"${mode:-dark}" \
+noctalia theme "$wp" --scheme "${scheme:-m3-tonal-spot}" --"${mode:-dark}" \
   -c "$HOME/.config/archbang-noctalia-templates.toml"

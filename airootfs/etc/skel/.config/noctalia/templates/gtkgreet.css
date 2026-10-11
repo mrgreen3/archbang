@@ -7,7 +7,7 @@ window {
     background-image: url("/usr/share/backgrounds/archbang/current");
     background-size: cover;
     background-position: center;
-    font-family: "Inter", sans-serif;
+    font-family: "JetBrains Mono", monospace;
     font-size: 14px;
 }
 
