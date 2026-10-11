@@ -33,6 +33,7 @@ cage
 ## === FILE MANAGER & UTILITIES ===
 thunar
 thunar-volman
+tumbler
 gvfs
 udisks2
 
