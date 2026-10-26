@@ -35,9 +35,6 @@ echo "FONT=Lat2-Terminus16" >> /etc/vconsole.conf
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 echo "LC_COLLATE=C" >> /etc/locale.conf
 
-# Set clock to UTC
-hwclock --systohc --utc
-
 # Timezone
 ln -sf /usr/share/zoneinfo/America/Montreal /etc/localtime
 
