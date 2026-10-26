@@ -1190,7 +1190,7 @@ install_archbang(){
   # theme references (noctalia manages wallpapers live from ~/Backgrounds;
   # this just seeds greetd's login background), before /etc/skel is deleted
   # later in this function.
-  WALLPAPER_NAME="aesthetic.jpg"
+  WALLPAPER_NAME="winter-gold.jpg"
   if [[ -f "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" ]]; then
     mkdir -p "${MNT}/usr/share/backgrounds/archbang"
     cp -a "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" "${MNT}/usr/share/backgrounds/archbang/current"

@@ -3,7 +3,7 @@
    (abinstall). */
 
 window {
-    background-color: #151218;
+    background-color: #18120c;
     background-image: url("/usr/share/backgrounds/archbang/current");
     background-size: cover;
     background-position: center;
@@ -12,32 +12,32 @@ window {
 }
 
 box#body {
-    background-color: rgba(33, 31, 36, 0.9);
-    border: 2px solid #d3bcfd;
+    background-color: rgba(37, 30, 23, 0.9);
+    border: 2px solid #f9ba72;
     border-radius: 6px;
     padding: 32px;
 }
 
 label {
-    color: #e7e0e8;
+    color: #eee0d5;
 }
 
 entry {
-    background-color: #49454e;
-    color: #e7e0e8;
-    caret-color: #e7e0e8;
-    border: 1px solid #948f99;
+    background-color: #50453a;
+    color: #eee0d5;
+    caret-color: #eee0d5;
+    border: 1px solid #9d8e81;
     border-radius: 4px;
     padding: 6px 10px;
 }
 
 entry:focus {
-    border-color: #d3bcfd;
+    border-color: #f9ba72;
 }
 
 button {
-    background-color: #d3bcfd;
-    color: #38265c;
+    background-color: #f9ba72;
+    color: #482a00;
     border: none;
     border-radius: 4px;
     padding: 6px 14px;
@@ -45,9 +45,9 @@ button {
 }
 
 button:hover {
-    background-color: #503d74;
+    background-color: #673d00;
 }
 
 combobox {
-    color: #e7e0e8;
+    color: #eee0d5;
 }
