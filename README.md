@@ -12,10 +12,9 @@ ArchBang is a minimal Arch Linux-based distribution featuring the MangoWC Waylan
 ## Features
 
 - Pure Wayland environment with MangoWC compositor
-- Waybar panel with workspace indicators
 - noctalia shell: bar, launcher, control-center, notifications, OSD, wallpapers
 - Foot terminal emulator
-- AUR repo bundled: mangowm, scenefx
+- mangowm and noctalia from the Arch repos
 
 ## Building
 

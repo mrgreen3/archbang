@@ -6,5 +6,5 @@ BUILD_ID=rolling
 
 ANSI_COLOR="0;32"
 HOME_URL="https://archbang.org/"
-DOCUMENTATION_URL="https://archbang.org/guides"
+DOCUMENTATION_URL="https://archbang.org/guide/"
 SUPPORT_URL="https://archbang.org/contact"

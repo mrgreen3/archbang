@@ -20,6 +20,7 @@ Super + v               Media / Audio panel (noctalia)
 Super + Shift + Space   Window Switcher (noctalia)
 Super + b               Wallpaper picker (noctalia)
 Super + k               Open Keybindings (l3afpad)
+Super + h               Open Guide (l3afpad)
 
 
 WINDOW CONTROLS
@@ -43,7 +44,7 @@ Super + Tab             Next Window
 Super + Ctrl + ←/→/↑/↓   Focus Direction
 Super + Shift + ←/→/↑/↓  Swap Window Direction
 Ctrl + Shift + ←/→/↑/↓   Move Window (50px)
-Ctrl + Super + ←/→/↑/↓   Resize Window (50px)
+Alt + Shift + ←/→/↑/↓    Resize Window (50px)
 
 
 WORKSPACES

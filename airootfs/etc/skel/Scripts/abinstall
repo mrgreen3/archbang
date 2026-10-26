@@ -111,7 +111,7 @@ fi
   }
   check_boot_system() {
     if [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Inc.' ]] || [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Computer, Inc.' ]]; then
-      modprobe -r -q efivars || true  # if MAC
+      :                               # Mac: leave efivarfs alone
     else
       modprobe -q efivarfs            # all others
     fi
@@ -401,7 +401,7 @@ select_location() {
     echo "Select zone:"
     select ZONE in "${_zones[@]}"; do
       if contains_element "$ZONE" "${_zones[@]}"; then
-        local _subzones=($(timedatectl list-timezones | grep ${ZONE} | sed 's/^.*\///'))
+        local _subzones=($(timedatectl list-timezones | grep "^${ZONE}/" | sed 's|^[^/]*/||'))
         PS3="$prompt1"
         echo "Select subzone:"
         select SUBZONE in "${_subzones[@]}"; do
@@ -504,7 +504,8 @@ configure_vconsole(){
   # Documents/Guide covers editing /etc/vconsole.conf post-install for
   # anyone who actually needs a different console layout.
   print_info "Using 'us' for the console (tty) layout — see Documents/Guide to change it later."
-  echo "KEYMAP=us" > "${MNT}/etc/vconsole.conf"
+  sed -i 's/^KEYMAP=.*/KEYMAP=us/' "${MNT}/etc/vconsole.conf" 2>/dev/null \
+    || echo "KEYMAP=us" > "${MNT}/etc/vconsole.conf"
 }
 #SELECT KEYMAP
 select_xkeymap(){
@@ -531,6 +532,8 @@ umount_partitions(){
   for mp in "${mounted_partitions[@]}"; do
     umount "$mp"
   done
+  vgchange -an "$VG_NAME" &>/dev/null || true
+  cryptsetup close "$LUKS_NAME" &>/dev/null || true
 }
 #SELECT DEVICE
 select_device(){
@@ -910,6 +913,7 @@ setup_lvm() {
     fi
     i=$((i+1))
   done
+  [[ $extra_count -eq 0 ]] && lvextend -l +100%FREE "$VG_NAME/root"
 
   LVM=1
   export LVM VG_NAME
@@ -931,7 +935,7 @@ format_partitions(){
   # loop below can prepend /dev/ or /dev/mapper/ as appropriate. A bare
   # substr()-based prefix strip (the old approach) truncated NVMe/mmcblk
   # names, which use a longer "nvme0n1p1"/"mmcblk0p1" naming scheme.
-  block_list=($(lsblk -nrpo NAME,TYPE | awk '$2=="part" || $2=="lvm" {sub(/^.*\//,"",$1); print $1}'))
+  block_list=($(lsblk -nrpo NAME,TYPE,FSTYPE | awk '($2=="part" || $2=="lvm") && $3!="LVM2_member" && $3!="crypto_LUKS" {sub(/^.*\//,"",$1); print $1}'))
 
   # check if there is no partition
   if [[ ${#block_list[@]} -eq 0 ]]; then
@@ -1216,9 +1220,11 @@ EOF
   # Remove abinstall from target device
   rm -f "${MNT}/home/${LIVE_USER}/Scripts/abinstall" &> /dev/null
 
-  # Remove the "Install ArchBang" desktop launcher too — it points at the
+  # Remove the "Install ArchBang" launcher entry too — it points at the
   # script just deleted above and would otherwise dangle on the installed system
-  rm -f "${MNT}/home/${LIVE_USER}/.local/share/applications/archbang-install.desktop" &> /dev/null
+  sed -i '/^\[shell\.launcher\.dmenu\.entry\.install\]/,/^$/d' "${MNT}/home/${LIVE_USER}/.config/noctalia/config.toml"
+  # Drop the live-only install instructions from the Guide
+  sed -i '/^INSTALLATION$/,/^---$/d' "${MNT}/home/${LIVE_USER}/Documents/Guide"
 
   # remove autologin from install
   rm -r "${MNT}/etc/systemd/system/getty@tty1.service.d" &>/dev/null
@@ -1513,11 +1519,13 @@ configure_bootloader(){
   # which read rd.luks.name=/rd.luks.uuid=, not the legacy encrypt hook's
   # cryptdevice= parameter — cryptdevice= is silently ignored under sd-encrypt,
   # so the root device would never get unlocked at boot.
+  LUKS_OPTS=""
+  [[ $TRIM -eq 1 ]] && LUKS_OPTS=" rd.luks.options=discard"
   if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
       ROOT_LV="${VG_NAME}-${LV_ROOT}"
-      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME} root=/dev/mapper/${ROOT_LV} rw"
+      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME}${LUKS_OPTS} root=/dev/mapper/${ROOT_LV} rw"
   elif [[ $LUKS -eq 1 ]]; then
-      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME} root=/dev/mapper/${LUKS_NAME} rw"
+      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME}${LUKS_OPTS} root=/dev/mapper/${LUKS_NAME} rw"
   elif [[ $LVM -eq 1 ]]; then
       ROOT_LV="${VG_NAME}-${LV_ROOT}"
       CMDLINE="root=/dev/mapper/${ROOT_LV} rw"
@@ -1590,13 +1598,13 @@ setup_user(){
 
   # Rewrite occurrences of old username inside config files
   print_info "Updating config files..."
-  arch_chroot "grep -rlI \"${LIVE_USER}\" /home/${LIVE_USER} | xargs -r sed -i \"s/${LIVE_USER}/${new_username}/g\""
+  arch_chroot "grep -rlI \"${LIVE_USER}\" /home/${LIVE_USER} | xargs -r sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\""
 
   # Update system account files
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/group"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/gshadow"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/passwd"
-  arch_chroot "sed -i \"s/${LIVE_USER}/${new_username}/g\" /etc/shadow"
+  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/group"
+  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/gshadow"
+  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/passwd"
+  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/shadow"
 
   # Rename home directory and fix ownership
   print_info "Renaming home directory..."

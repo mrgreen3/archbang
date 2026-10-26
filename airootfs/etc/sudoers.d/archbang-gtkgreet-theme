@@ -3,4 +3,4 @@
 # prompt, even after abinstall reverts blanket wheel NOPASSWD on the
 # installed system. Scoped to this exact command — see
 # etc/skel/Scripts/apply-gtkgreet-css.
-%wheel ALL=(root) NOPASSWD: /usr/bin/cp /tmp/archbang-gtkgreet.css /etc/greetd/gtkgreet.css
+%wheel ALL=(root) NOPASSWD: /usr/bin/cp /var/lib/archbang-greeter/gtkgreet.css /etc/greetd/gtkgreet.css

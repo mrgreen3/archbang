@@ -34,7 +34,7 @@ INSTALLATION
 
 The installer (abinstall) is menu-driven.
 
-Alternatively, Super+Space launcher > Apps > Terminal gives you a shell.
+Super+Return opens a terminal.
 
 ---
 
@@ -67,7 +67,7 @@ Install:  sudo pacman -S <package-name>
 OPENCODE (AI CODING AGENT)
 
 OpenCode is an AI coding assistant, launched from the launcher
-(Super+Space > OpenCode, or type OpenCode in the launcher search box).
+(Super+Space > Apps > oc-install).
 It is NOT included on the ISO image. On first launch, if you are online, the
 launcher installs it automatically (sudo pacman -S opencode). It is about a
 170 MB download, so allow a moment the first time; the terminal shows a

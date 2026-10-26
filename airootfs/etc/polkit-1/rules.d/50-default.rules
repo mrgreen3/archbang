@@ -3,7 +3,8 @@ polkit.addAdminRule(function(action, subject) {
 });
 
 polkit.addRule(function(action, subject) {
-        if (action.id.indexOf("org.freedesktop.udisks") == 0) {
+        if (action.id.indexOf("org.freedesktop.udisks") == 0 &&
+            subject.local && subject.active && subject.isInGroup("wheel")) {
                 return polkit.Result.YES;
         }
 })

@@ -14,7 +14,7 @@
 ## Near-term
 
 - [ ] Branding pass — logo, colours consistent across ISO
-- [ ] Audio (pipewire/wireplumber)
+- [x] Audio (pipewire/wireplumber)
 - [ ] nm-applet wired up in waybar
 
 ## Backlog / Ideas

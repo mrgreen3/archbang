@@ -36,9 +36,9 @@ Design Philosophy
 Why MangoWC?
 ------------
 
-MangoWC (github.com/DreamMaoMao/mango) is a Wayland compositor providing a tiling and
-floating hybrid layout with a minimal footprint. ArchBang bundles the AUR packages
-(mangowm-git, scenefx) directly in the ISO so no network access is needed to boot a
+MangoWC (github.com/mangowm/mango) is a Wayland compositor providing a tiling and
+floating hybrid layout with a minimal footprint. ArchBang ships mangowm and noctalia
+from the Arch repos directly in the ISO so no network access is needed to boot a
 working desktop.
 
 
