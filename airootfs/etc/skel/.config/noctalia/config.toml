@@ -5,7 +5,7 @@ active_pill_size = 1.0
 font_scale = 1.2
 hide_when_empty = true
 focused_color = "primary"
-occupied_color = "surface_variant"
+occupied_color = "surface_container"
 
 [dock]
 shadow = false
