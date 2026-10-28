@@ -1219,6 +1219,7 @@ EOF
 
   # Remove abinstall from target device
   rm -f "${MNT}/home/${LIVE_USER}/Scripts/abinstall" &> /dev/null
+  sed -i "/Scripts\/abinstall/d" "${MNT}/home/${LIVE_USER}/.config/mango/config.conf" &> /dev/null
 
   # Remove the "Install ArchBang" launcher entry too — it points at the
   # script just deleted above and would otherwise dangle on the installed system

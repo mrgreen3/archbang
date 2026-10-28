@@ -37,7 +37,7 @@ Super+K shows all keybindings.
 
 INSTALLATION
 
-1. Press Super+Space (noctalia launcher), type "install", choose "Install ArchBang"
+1. Press Super+I, or Super+Space (noctalia launcher), type "install", choose "Install ArchBang"
 2. Or run it from a terminal: sudo ~/Scripts/abinstall
 
 The installer (abinstall) is menu-driven.

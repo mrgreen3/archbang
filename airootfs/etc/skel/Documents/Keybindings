@@ -12,6 +12,7 @@ Super + Space           Launcher (noctalia)
 Super + w               Web Browser (firefox)
 Super + f               File Manager (thunar)
 Super + e               Text Editor (l3afpad)
+Super + i               Install ArchBang (live only)
 Super + s               Control Center (noctalia)
 Super + d               System Monitor (noctalia)
 Super + p               Screenshot (full)
@@ -32,8 +33,6 @@ Super + Ctrl + s        Toggle Float
 Super + F11             Fullscreen
 Super + Shift + f       Fake Fullscreen
 Super + a               Maximise
-Super + i               Minimise
-Super + Shift + I       Restore Minimised
 Super + z               Scratchpad
 Super + o               Toggle Overlay
 
