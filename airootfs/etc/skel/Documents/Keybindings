@@ -11,6 +11,7 @@ Super + Return          Terminal (foot)
 Super + Space           Launcher (noctalia)
 Super + w               Web Browser (firefox)
 Super + f               File Manager (thunar)
+Super + e               Text Editor (l3afpad)
 Super + s               Control Center (noctalia)
 Super + d               System Monitor (noctalia)
 Super + p               Screenshot (full)
@@ -60,7 +61,6 @@ LAYOUT
 ───────────────────────
 
 Super + n               Switch Layout Mode
-Super + e               Set Proportion Full
 Super + x               Cycle Proportion Preset
 Super + g               Toggle Gaps
 Super + Shift + X       Increase Gaps
