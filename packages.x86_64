@@ -2,6 +2,7 @@
 pipewire
 pipewire-pulse
 wireplumber
+sound-theme-freedesktop
 
 ## === ARCHIVE TOOLS ===
 zip
