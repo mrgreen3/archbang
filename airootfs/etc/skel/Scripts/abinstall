@@ -625,7 +625,7 @@ create_partition_scheme(){
   done
   # propagate a deliberate cancel (rc 2) from auto_partition_disk/setup_luks so
   # run_step can skip the retry prompt instead of treating it as an error
-  [[ $_sub_rc -eq 2 ]] && return 2
+  return $_sub_rc
 }
 #AUTO PARTITION
 partition_suffix() {
