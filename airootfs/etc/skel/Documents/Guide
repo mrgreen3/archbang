@@ -19,11 +19,19 @@ TAGS AND LAYOUTS
 
 MangoWC uses tags (1–9) instead of workspaces.
 
-Tag 1 is floating — windows behave like a traditional floating desktop.
-Tags 2–9 are tiling — windows are arranged automatically.
+Tag 1 is tiling — one window fills the screen, more windows split it.
+Tag 2 is floating — windows behave like a traditional floating desktop.
+Tag 3 is scroller — windows open full width side by side; Super+X cycles widths.
+Tag 4 is monocle — one window at a time, full screen.
+Tags 5–9 are tiling.
 
 Switch tags with Super+1 through Super+9.
 Toggle a window between floating and tiling with Super+Ctrl+S.
+Change the current tag's layout with Super+N.
+
+Focus follows clicks: click a window to focus it and bring it to the front.
+
+Super+K shows all keybindings.
 
 ---
 
