@@ -267,6 +267,12 @@ fi
       read -e -sn 1 -p "Press enter to continue..."
     fi
   }
+  # Timed pause after a successful step: readable, but never blocks
+  brief_pause() {
+    [[ $AUTOMATIC_MODE -eq 1 ]] && return
+    read -t 3 -s -n 1 -p "Continuing in 3s (any key to skip)..." || true
+    echo
+  }
   arch_chroot() {
     arch-chroot "$MNT" /bin/bash -c "${1}"
   }
@@ -789,7 +795,7 @@ auto_partition_disk() {
   AUTO_PARTITIONED=1
 
   print_success "Auto-partitioning of ${device} complete."
-  pause_function
+  brief_pause
 }
 #SETUP PARTITION
 create_partition() {
@@ -1439,6 +1445,7 @@ configure_mkinitcpio(){
     arch_chroot "mkinitcpio -p linux"
 
     print_info "Initramfs configuration complete."
+    brief_pause
 }
 #CONFIGURE GREETER
 configure_greeter(){
@@ -1636,6 +1643,7 @@ configure_bootloader(){
   arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
 
   print_success "GRUB2 installation and configuration complete."
+  brief_pause
 }
 
 
@@ -1693,7 +1701,9 @@ setup_user(){
   # Dedicated group matching the new username, not the shared "users" group
   arch_chroot "groupadd '${new_username}' && usermod -g '${new_username}' '${new_username}'" || return 1
   arch_chroot "chown -R '${new_username}:${new_username}' '/home/${new_username}'"
-  
+
+  print_success "User ${new_username} created."
+  brief_pause
 }
 
 #FINISH
