@@ -325,10 +325,11 @@ configure_mirrors() {
       echo ""
       read_input_text "Confirm Location: $LOCATION"
     done
+    LOCATION="${LOCATION# }"
   fi
 
   # magic happens here....
-  sed -i -n -r "/${LOCATION}/,/^\s*$/p" ${MIRROR}
+  sed -i -n -r "/^## ${LOCATION}$/,/^\s*$/p" ${MIRROR}
 }
 
 #SELECT LOCATION (derives timezone + xkb layout + mirror country)
@@ -535,8 +536,24 @@ umount_partitions(){
   vgchange -an "$VG_NAME" &>/dev/null || true
   cryptsetup close "$LUKS_NAME" &>/dev/null || true
 }
+#LIVE MEDIUM
+# Top-level disk the ISO booted from, so it can't be picked as a target.
+# bootmnt is gone after copytoram, so fall back to the archisolabel.
+live_disk(){
+  local _src _label
+  _src=$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null)
+  if [[ -z "$_src" ]]; then
+    _label=$(sed -n 's/.*archisolabel=\([^ ]*\).*/\1/p' /proc/cmdline)
+    [[ -n "$_label" ]] && _src=$(blkid -L "$_label" 2>/dev/null)
+  fi
+  [[ -n "$_src" ]] || return 1
+  # ISO 9660 on the whole disk has no parent; pkname is empty then
+  local _parent=$(lsblk -no PKNAME "$_src" 2>/dev/null | head -1)
+  echo "/dev/${_parent:-${_src#/dev/}}"
+}
 #SELECT DEVICE
 select_device(){
+  local _live=$(live_disk)
   local NAME SIZE MODEL TRAN path label
   devices_list=()
   local display_list=()
@@ -557,6 +574,7 @@ select_device(){
     done
     [[ "$NAME" =~ ^(mmc|nvme|sd|hd|vd) ]] || continue
     path="/dev/${NAME}"
+    [[ "$path" == "$_live" ]] && continue
     label="${path}  ${SIZE}  ${MODEL:-unknown}  [${TRAN:-?}]"
     if [[ "$TRAN" == "usb" ]]; then
       label="${BGreen}${label}  <-- USB / EXTERNAL${Reset}"
@@ -565,6 +583,11 @@ select_device(){
     display_list+=("$label")
     tran_list+=("$TRAN")
   done < <(lsblk -Pdo NAME,SIZE,MODEL,TRAN)
+
+  if [[ ${#devices_list[@]} -eq 0 ]]; then
+    print_error "No target drives found (the live medium is excluded)."
+    return 1
+  fi
 
   PS3="$prompt1"
   echo -e "Select drive:\n"
@@ -606,13 +629,11 @@ create_partition_scheme(){
         _sub_rc=$?
         ;;
       3)
-        create_partition
-        setup_lvm
+        create_partition && setup_lvm
         _sub_rc=$?
         ;;
       4)
-        create_partition
-        setup_luks
+        create_partition && setup_luks
         _sub_rc=$?
         [[ $_sub_rc -eq 0 ]] && { setup_lvm; _sub_rc=$?; }
         ;;
@@ -635,7 +656,7 @@ partition_suffix() {
 auto_partition_disk() {
   print_title "AUTO PARTITION - ${WIKI}/Partitioning"
   print_danger "WARNING: This will ERASE ALL DATA on the selected device."
-  select_device
+  select_device || return 1
   device="${BOOT_MNT}"
 
   read_input_text "This will erase ALL data on ${device}. Continue"
@@ -777,7 +798,7 @@ create_partition() {
   echo -e "Select partition program:"
   select OPT in "${apps_list[@]}"; do
     if contains_element "$OPT" "${apps_list[@]}"; then
-      select_device
+      select_device || return 1
 
       case "$OPT" in
         gparted)
@@ -804,6 +825,9 @@ setup_luks() {
   print_title "LUKS - ${WIKI}/LUKS"
   print_info "The Linux Unified Key Setup (LUKS) provides full-disk encryption for Linux."
   print_danger "\tDo not use this for /boot or EFI partitions."
+  if [[ $UEFI -eq 0 ]]; then
+    print_warning "BIOS mode: /boot must be a separate unencrypted partition (~1GiB) so GRUB can load the kernel. Create it now if you haven't — you'll be asked for it after root."
+  fi
 
   # list available partitions, skipping EFI/boot and existing mapper devices
   block_list=($(lsblk -nrpo NAME,TYPE,MOUNTPOINT | awk '$2=="part" && $3=="" {print $1}'))
@@ -856,20 +880,39 @@ setup_lvm() {
   print_warning "Last logical volume will take 100% of remaining space."
 
   # Determine target device
+  TARGET_DEV=""
   if [[ $LUKS -eq 1 ]]; then
     TARGET_DEV="/dev/mapper/${LUKS_NAME}"
   else
-    block_list=($(lsblk -nrpo NAME,TYPE | awk '$2=="part"{print $1}'))
+    # unmounted, non-vfat partitions not on the live medium
+    local _live=$(live_disk)
+    block_list=()
+    local _p _t
+    while read -r _p _t; do
+      [[ "$_t" == "part" ]] || continue
+      [[ -n "$(lsblk -no MOUNTPOINT "$_p" | tr -d '[:space:]')" ]] && continue
+      [[ "$(blkid -s TYPE -o value "$_p" 2>/dev/null)" == "vfat" ]] && continue
+      [[ -n "$_live" && "/dev/$(lsblk -no PKNAME "$_p" | head -1)" == "$_live" ]] && continue
+      block_list+=("$_p")
+    done < <(lsblk -nrpo NAME,TYPE)
+    if [[ ${#block_list[@]} -eq 0 ]]; then
+      print_error "No suitable partition found for LVM."
+      return 1
+    fi
     PS3="$prompt1"
     echo -e "Select partition:"
-    select OPT in "${block_list[@]}"; do
+    select OPT in "${block_list[@]}" "Cancel"; do
       if contains_element "$OPT" "${block_list[@]}"; then
         TARGET_DEV="$OPT"
         break
+      elif [[ "$OPT" == "Cancel" ]]; then
+        return 2
       else
         invalid_option
       fi
     done
+    read_input_text "All data on ${TARGET_DEV} will be lost. Continue"
+    [[ $OPTION == y ]] || return 2
   fi
 
   # Safety check
@@ -878,9 +921,14 @@ setup_lvm() {
     return 1
   fi
 
+  # A retry finds the VG from the previous attempt on this same device; only
+  # remove a VG that lives on TARGET_DEV, never one elsewhere on the machine
+  local _old_vg=$(pvs --noheadings -o vg_name "$TARGET_DEV" 2>/dev/null | tr -d ' ')
+  [[ -n "$_old_vg" ]] && vgremove -ff -y "$_old_vg"
+
   # Initialise LVM
-  pvcreate "$TARGET_DEV"
-  vgcreate "$VG_NAME" "$TARGET_DEV"
+  pvcreate -ff -y "$TARGET_DEV" || return 1
+  vgcreate "$VG_NAME" "$TARGET_DEV" || return 1
 
   # Ask only for root + extras
   while true; do
@@ -888,7 +936,7 @@ setup_lvm() {
     [[ "$ROOT_SIZE" =~ ^[0-9]+(\.[0-9]+)?[KkMmGgTt][Ii]?[Bb]?$ ]] && break
     print_danger "Invalid size. Use a number followed by a unit, e.g. 25G or 500M."
   done
-  lvcreate -L "${ROOT_SIZE}" "$VG_NAME" -n root
+  lvcreate -y -L "${ROOT_SIZE}" "$VG_NAME" -n "$LV_ROOT" || return 1
 
   echo
   print_info "Now you can add extra volumes such as home, var, swap..."
@@ -900,20 +948,26 @@ setup_lvm() {
 
   i=1
   while [[ $i -le $extra_count ]]; do
-    read -p "Name for volume $i (e.g. home): " lvname
+    while true; do
+      read -p "Name for volume $i (e.g. home): " lvname
+      [[ "$lvname" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.+-]*$ && "$lvname" != "$LV_ROOT" ]] && break
+      print_danger "Invalid or duplicate name. Use letters, digits, _ . + -"
+    done
     if [[ $i -eq $extra_count ]]; then
-      lvcreate -l 100%FREE "$VG_NAME" -n "$lvname"
+      lvcreate -y -l 100%FREE "$VG_NAME" -n "$lvname" || return 1
     else
       while true; do
         read -p "Size for $lvname (e.g. 10G): " lvsize
         [[ "$lvsize" =~ ^[0-9]+(\.[0-9]+)?[KkMmGgTt][Ii]?[Bb]?$ ]] && break
         print_danger "Invalid size. Use a number followed by a unit, e.g. 10G or 500M."
       done
-      lvcreate -L "$lvsize" "$VG_NAME" -n "$lvname"
+      lvcreate -y -L "$lvsize" "$VG_NAME" -n "$lvname" || return 1
     fi
     i=$((i+1))
   done
-  [[ $extra_count -eq 0 ]] && lvextend -l +100%FREE "$VG_NAME/root"
+  if [[ $extra_count -eq 0 ]]; then
+    lvextend -l +100%FREE "$VG_NAME/$LV_ROOT" || return 1
+  fi
 
   LVM=1
   export LVM VG_NAME
@@ -939,8 +993,8 @@ format_partitions(){
 
   # check if there is no partition
   if [[ ${#block_list[@]} -eq 0 ]]; then
-    echo "No partition found"
-    exit 0
+    print_error "No partition found."
+    return 1
   fi
 
   partitions_list=()
@@ -957,7 +1011,12 @@ format_partitions(){
   if [[ $UEFI -eq 1 ]]; then
     partition_name=("root" "EFI" "swap" "another")
   else
-    partition_name=("root" "swap" "another")
+    if [[ $LUKS -eq 1 ]]; then
+      # GRUB can't unlock argon2id LUKS2, so BIOS+LUKS keeps /boot outside it
+      partition_name=("root" "boot" "swap" "another")
+    else
+      partition_name=("root" "swap" "another")
+    fi
   fi
 
   select_filesystem(){
@@ -1079,6 +1138,16 @@ set_efi_partition() {
              ROOT_MNT="${partition}"
              format_partition "${partition}" "${MNT}"
               ;;
+            boot)
+              read_input_text "Format ${partition} as ext4 for /boot"
+              if [[ $OPTION == y ]]; then
+                format_partition "${partition}" "${MNT}/boot" ext4
+              else
+                mkdir -p "${MNT}/boot"
+                mount "${partition}" "${MNT}/boot"
+                check_mountpoint "${partition}" "${MNT}/boot"
+              fi
+              ;;
             EFI)
               set_efi_partition
               read_input_text "Format ${partition} partition"
@@ -1092,7 +1161,6 @@ set_efi_partition() {
               ;;
             another)
               read -p "Mountpoint [ex: /home]:" directory
-              [[ $directory == "/boot" ]] && BOOT_MNT=`echo ${partition} | sed 's/[0-9]//'`
               select_filesystem
               read_input_text "Format ${partition} partition"
               if [[ $OPTION == y ]]; then
@@ -1121,6 +1189,10 @@ set_efi_partition() {
       [[ $OPTION != y ]] && break
     fi
   done
+  if [[ $UEFI -eq 0 && $LUKS -eq 1 ]] && ! findmnt "${MNT}/boot" &>/dev/null; then
+    print_error "BIOS+LUKS needs a separate unencrypted /boot partition, but none was mounted."
+    return 1
+  fi
   pause_function
 }
 
@@ -1180,7 +1252,9 @@ install_archbang(){
   # than copying a second time from the live source — otherwise the installed
   # system ends up with two permanent copies of the kernel on disk.
   mkdir -p "${MNT}/boot"
-  mv "${MNT}/usr/lib/archbang/vmlinuz-linux" "${MNT}/boot/vmlinuz-linux"
+  if ! mv "${MNT}/usr/lib/archbang/vmlinuz-linux" "${MNT}/boot/vmlinuz-linux"; then
+    error_msg "ERROR: Failed to move kernel into ${MNT}/boot"
+  fi
   rmdir "${MNT}/usr/lib/archbang" 2>/dev/null || true
 
   # Sync changes made during live session
@@ -1241,8 +1315,11 @@ EOF
 
   rm -f "${MNT}/etc/systemd/system/etc-pacman.d-gnupg.mount"
 
-  # clean out live user overlay files from /etc/skel on new install
-  rm -r "${MNT}/etc/skel" &>/dev/null
+  # clean out live user overlay files from /etc/skel, keeping the bash
+  # package's dotfiles so later `useradd -m` users get a working shell
+  find "${MNT}/etc/skel" -mindepth 1 -maxdepth 1 \
+    ! -name .bashrc ! -name .bash_profile ! -name .bash_logout \
+    -exec rm -rf {} + &>/dev/null
 
   # Revert gparted to stock version without sudo
   #sed -i 's|^Exec=sudo /usr/bin/gparted|Exec=/usr/bin/gparted|' ${MNT}/usr/share/applications/gparted.desktop
@@ -1413,6 +1490,16 @@ configure_bootloader(){
       print_info "BIOS (legacy) mode detected"
   fi
 
+  # --- BIOS+LUKS: /boot must be its own unencrypted mount (GRUB can't open argon2id) ---
+  if [[ $UEFI -eq 0 && $LUKS -eq 1 ]]; then
+      _boot_src=$(findmnt -no SOURCE "${MNT}/boot" 2>/dev/null)
+      if [[ -z "$_boot_src" ]] || lsblk -nso TYPE "$_boot_src" 2>/dev/null | grep -qx crypt; then
+          print_error "BIOS+LUKS needs a separate unencrypted /boot partition mounted at ${MNT}/boot — restart the installer and create one."
+          lsblk -f
+          return 1
+      fi
+  fi
+
   # --- Verify EFI partition is mounted if UEFI ---
   if [[ $UEFI -eq 1 ]]; then
       if ! mount | grep -q "${MNT}/boot"; then
@@ -1544,12 +1631,8 @@ configure_bootloader(){
   # --- Update /etc/default/grub inside chroot ---
   arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub && rm -f /etc/default/grub.bak"
 
-  # --- Enable GRUB cryptodisk if using LUKS ---
-  if [[ $LUKS -eq 1 ]]; then
-      arch_chroot "grep -q '^GRUB_ENABLE_CRYPTODISK' /etc/default/grub \
-          && sed -i 's/^#GRUB_ENABLE_CRYPTODISK=.*/GRUB_ENABLE_CRYPTODISK=y/' /etc/default/grub \
-          || echo 'GRUB_ENABLE_CRYPTODISK=y' >> /etc/default/grub"
-  fi
+  # No GRUB_ENABLE_CRYPTODISK: /boot is never inside LUKS (ESP on UEFI,
+  # separate /boot on BIOS), so the initramfs does the only unlock
 
   # --- Generate GRUB configuration ---
   arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
@@ -1582,10 +1665,13 @@ setup_user(){
   local new_username
   while true; do
     read -p "Enter the new username: " new_username
-    if [[ -n "$new_username" ]] && echo "$new_username" | grep -qE '^[a-z_][a-z0-9_-]*[$]?$'; then
+    if [[ ! "$new_username" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+      print_danger "Invalid username. Use lowercase letters, digits, - or _ (max 32). Cannot start with a digit."
+    elif [[ "$new_username" != "$LIVE_USER" ]] && arch_chroot "getent passwd '${new_username}' >/dev/null || getent group '${new_username}' >/dev/null"; then
+      print_danger "'${new_username}' already exists on the system. Pick another name."
+    else
       break
     fi
-    print_danger "Invalid username. Use lowercase letters, digits, - or _. Cannot start with a digit."
   done
 
   # Set password on the live user account (becomes the renamed user's password).
@@ -1597,24 +1683,20 @@ setup_user(){
     return 1
   fi
 
-  # Rewrite occurrences of old username inside config files
+  [[ "$new_username" == "$LIVE_USER" ]] && { pause_function; return 0; }
+
+  # Rewrite home paths inside config files — paths only, so prose such as
+  # "live ISO" in Documents/ is left alone
   print_info "Updating config files..."
-  arch_chroot "grep -rlI \"${LIVE_USER}\" /home/${LIVE_USER} | xargs -r sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\""
+  arch_chroot "grep -rlIF '/home/${LIVE_USER}' /home/${LIVE_USER} | xargs -r sed -i 's|/home/${LIVE_USER}\\b|/home/${new_username}|g'"
 
-  # Update system account files
-  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/group"
-  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/gshadow"
-  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/passwd"
-  arch_chroot "sed -i \"s/\\b${LIVE_USER}\\b/${new_username}/g\" /etc/shadow"
+  # Rename account (also updates group member lists) and move home
+  print_info "Renaming user and home directory..."
+  arch_chroot "usermod -l '${new_username}' -d '/home/${new_username}' -m '${LIVE_USER}'" || return 1
 
-  # Rename home directory and fix ownership
-  print_info "Renaming home directory..."
-  arch_chroot "mv /home/${LIVE_USER} /home/${new_username}"
-
-  # Ensure a dedicated group matching the new username, not the shared "users" group
-  arch_chroot "getent group \"${new_username}\" >/dev/null || groupadd \"${new_username}\""
-  arch_chroot "usermod -g \"${new_username}\" \"${new_username}\""
-  arch_chroot "chown -R ${new_username}:${new_username} /home/${new_username}"
+  # Dedicated group matching the new username, not the shared "users" group
+  arch_chroot "groupadd '${new_username}' && usermod -g '${new_username}' '${new_username}'" || return 1
+  arch_chroot "chown -R '${new_username}:${new_username}' '/home/${new_username}'"
   
   pause_function
 }
