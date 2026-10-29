@@ -1193,7 +1193,6 @@ set_efi_partition() {
     print_error "BIOS+LUKS needs a separate unencrypted /boot partition, but none was mounted."
     return 1
   fi
-  pause_function
 }
 
 # Function: copy with progress bar
@@ -1439,7 +1438,6 @@ configure_mkinitcpio(){
     arch_chroot "mkinitcpio -p linux"
 
     print_info "Initramfs configuration complete."
-    pause_function
 }
 #CONFIGURE GREETER
 configure_greeter(){
@@ -1473,7 +1471,6 @@ EOF
     arch_chroot "systemctl set-default graphical.target"
 
     print_info "Greeter configuration complete."
-    pause_function
 }
 
 #CONFIGURE BOOTLOADER
@@ -1638,7 +1635,6 @@ configure_bootloader(){
   arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
 
   print_success "GRUB2 installation and configuration complete."
-  pause_function
 }
 
 
@@ -1647,7 +1643,6 @@ root_password(){
   print_title "ROOT PASSWORD"
   print_warning "Enter your new root password"
   arch_chroot "passwd"
-  pause_function
 }
 
 # SETUP NEW USER
@@ -1683,7 +1678,7 @@ setup_user(){
     return 1
   fi
 
-  [[ "$new_username" == "$LIVE_USER" ]] && { pause_function; return 0; }
+  [[ "$new_username" == "$LIVE_USER" ]] && return 0
 
   # Rewrite home paths inside config files — paths only, so prose such as
   # "live ISO" in Documents/ is left alone
@@ -1698,7 +1693,6 @@ setup_user(){
   arch_chroot "groupadd '${new_username}' && usermod -g '${new_username}' '${new_username}'" || return 1
   arch_chroot "chown -R '${new_username}:${new_username}' '/home/${new_username}'"
   
-  pause_function
 }
 
 #FINISH

@@ -55,7 +55,7 @@ prefix  = "install"
 glyph   = "terminal"
 global  = true
 command = "printf 'Install ArchBang\\n'"
-exec    = "foot --fullscreen -e sudo -EH ~/Scripts/abinstall"
+exec    = "foot -e sudo -EH ~/Scripts/abinstall"
 
 [shell.launcher.dmenu.entry.sysmon]
 label   = "System Monitor"
