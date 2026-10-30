@@ -76,11 +76,7 @@ fi
     exit 1
   }
   check_boot_system() {
-    if [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Inc.' ]] || [[ "$(cat /sys/class/dmi/id/sys_vendor)" == 'Apple Computer, Inc.' ]]; then
-      :                               # Mac: leave efivarfs alone
-    else
-      modprobe -q efivarfs            # all others
-    fi
+    modprobe -q efivarfs
     if [[ -d "/sys/firmware/efi/" ]]; then
       ## Mount efivarfs if it is not already mounted
       if [[ -z $(mount | grep /sys/firmware/efi/efivars) ]]; then
@@ -136,21 +132,11 @@ fi
     T_COLS=`tput cols`
     echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
   }
-  print_success() {
-    #Console width number
-    T_COLS=`tput cols`
-    echo -e "${Bold}$1${Reset}\n" | fold -sw $(( $T_COLS - 18 )) | sed 's/^/\t/'
-  }
-
   print_warning() {
     T_COLS=`tput cols`
     echo -e "${BYellow}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
   }
   print_danger() {
-    T_COLS=`tput cols`
-    echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
-  }
-  print_error() {
     T_COLS=`tput cols`
     echo -e "${BRed}$1${Reset}\n" | fold -sw $(( $T_COLS - 1 ))
   }
@@ -161,6 +147,18 @@ fi
       [[ "$e" == "$_match" ]] && return 0
     done
     return 1
+  }
+  # pick VAR "label" items... — numbered menu, stores the chosen item in VAR
+  pick() {
+    local _var=$1 _label=$2 _o; shift 2
+    PS3="$prompt1"
+    (( $# > 20 )) && PS3="(shift+pgup/pgdown) $prompt1"
+    [[ -n $_label ]] && echo -e "$_label"
+    select _o in "$@"; do
+      [[ -n $_o ]] && break
+      invalid_option
+    done
+    printf -v "$_var" '%s' "$_o"
   }
   invalid_option() {
     print_line
@@ -181,15 +179,7 @@ fi
   }
  getxkeymap() {
     local _xkeymaps=($(localectl list-x11-keymap-layouts))
-    PS3="(shift+pgup/pgdown) $prompt1"
-    echo "Select keymap:"
-    select XKEYMAP in "${_xkeymaps[@]}"; do
-      if contains_element "$XKEYMAP" "${_xkeymaps[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-    done
+    pick XKEYMAP "Select keymap:" "${_xkeymaps[@]}"
   }
 
 getmirror() {
@@ -202,15 +192,7 @@ getmirror() {
 
   done < "$input"
 
-  PS3="(shift+pgup/pgdown) $prompt1"
-  echo "Select location:"
-  select LOCATION in "${location[@]}"; do
-  if contains_element "$LOCATION" "${location[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-  done
+  pick LOCATION "Select location:" "${location[@]}"
   }
 
 configure_mirrors() {
@@ -226,7 +208,7 @@ configure_mirrors() {
   fi
 
   if [[ -n "$LOCATION" ]] && grep -q "^## ${LOCATION}$" ${MIRROR}; then
-    print_success "Using mirrors for ${LOCATION} (derived from location)."
+    print_info "Using mirrors for ${LOCATION} (derived from location)."
   else
     OPTION=n
     while [[ $OPTION != y ]]; do
@@ -271,14 +253,7 @@ select_location() {
     DERIVED_TZ="${_tz_matches[0]}"
   elif [[ ${#_tz_matches[@]} -gt 1 ]]; then
     print_info "Multiple timezones found for ${LOCATION}:"
-    PS3="$prompt1"
-    select DERIVED_TZ in "${_tz_matches[@]}"; do
-      if contains_element "$DERIVED_TZ" "${_tz_matches[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-    done
+    pick DERIVED_TZ "" "${_tz_matches[@]}"
   else
     DERIVED_TZ=""
   fi
@@ -294,38 +269,14 @@ select_location() {
 
   setlocale() {
     local _locale_list=(`cat "${MNT}/etc/locale.gen" | grep UTF-8 | sed 's/\..*$//' | sed '/@/d' | awk '{print $1}' | uniq | sed 's/#//g'`);
-    PS3="$prompt1"
-    echo "Select locale:"
-    select LOCALE in "${_locale_list[@]}"; do
-      if contains_element "$LOCALE" "${_locale_list[@]}"; then
-        LOCALE_UTF8="${LOCALE}.UTF-8"
-        break
-      else
-        invalid_option
-      fi
-    done
+    pick LOCALE "Select locale:" "${_locale_list[@]}"
+    LOCALE_UTF8="${LOCALE}.UTF-8"
   }
   settimezone() {
     local _zones=($(timedatectl list-timezones | sed 's/\/.*$//' | uniq))
-    PS3="$prompt1"
-    echo "Select zone:"
-    select ZONE in "${_zones[@]}"; do
-      if contains_element "$ZONE" "${_zones[@]}"; then
-        local _subzones=($(timedatectl list-timezones | grep "^${ZONE}/" | sed 's|^[^/]*/||'))
-        PS3="$prompt1"
-        echo "Select subzone:"
-        select SUBZONE in "${_subzones[@]}"; do
-          if contains_element "$SUBZONE" "${_subzones[@]}"; then
-            break
-          else
-            invalid_option
-          fi
-        done
-        break
-      else
-        invalid_option
-      fi
-    done
+    pick ZONE "Select zone:" "${_zones[@]}"
+    local _subzones=($(timedatectl list-timezones | grep "^${ZONE}/" | sed 's|^[^/]*/||'))
+    pick SUBZONE "Select subzone:" "${_subzones[@]}"
   }
 
 #SELECT LANGUAGE (derives locale)
@@ -383,15 +334,7 @@ select_language() {
 
   OPTION=n
   while [[ $OPTION != y ]]; do
-    PS3="$prompt1"
-    echo "Select language:"
-    select LANG_CHOICE in "${_lang_list[@]}"; do
-      if contains_element "$LANG_CHOICE" "${_lang_list[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-    done
+    pick LANG_CHOICE "Select language:" "${_lang_list[@]}"
     read_input_text "Confirm language: $LANG_CHOICE"
   done
 
@@ -424,7 +367,7 @@ select_xkeymap(){
   print_info "Setting keyboard layout for mango compositor"
   if [[ -n "$DERIVED_XKB" ]]; then
     XKEYMAP="$DERIVED_XKB"
-    print_success "Using keyboard layout ${XKEYMAP} (derived from ${LOCATION:-your location})."
+    print_info "Using keyboard layout ${XKEYMAP} (derived from ${LOCATION:-your location})."
   else
     OPTION=n
     while [[ $OPTION != y ]]; do
@@ -495,7 +438,7 @@ select_device(){
   done < <(lsblk -Pdo NAME,SIZE,MODEL,TRAN)
 
   if [[ ${#devices_list[@]} -eq 0 ]]; then
-    print_error "No target drives found (the live medium is excluded)."
+    print_danger "No target drives found (the live medium is excluded)."
     return 1
   fi
 
@@ -605,70 +548,27 @@ auto_partition_disk() {
 
   wipefs -af "${device}" &>/dev/null
 
-  BIOS_GRUB_PART=""
-
+  # Portable: GPT + bios_grub + ESP so the drive boots on BIOS and UEFI alike
+  BIOS_GRUB_PART="" EFI_PART="" SWAP_PART=""
+  local _p=1 _start=1 _end _label=msdos _parts=()
+  [[ $PORTABLE_INSTALL -eq 1 || $UEFI -eq 1 ]] && _label=gpt
   if [[ $PORTABLE_INSTALL -eq 1 ]]; then
-    # GPT + ESP + bios_grub, regardless of this machine's own firmware mode,
-    # so the drive boots on both UEFI and legacy-BIOS targets (see
-    # configure_bootloader, which installs GRUB twice for this case).
-    BIOS_GRUB_PART="${device}${suffix}1"
-    EFI_PART="${device}${suffix}2"
-
-    if [[ $swap_gib -gt 0 ]]; then
-      SWAP_PART="${device}${suffix}3"
-      ROOT_PART="${device}${suffix}4"
-
-      parted -s "${device}" mklabel gpt \
-        mkpart primary 1MiB 2MiB set 1 bios_grub on \
-        mkpart primary fat32 2MiB 514MiB set 2 esp on \
-        mkpart primary linux-swap 514MiB "$(( 514 + swap_gib * 1024 ))MiB" \
-        mkpart primary ext4 "$(( 514 + swap_gib * 1024 ))MiB" 100% || return 1
-    else
-      SWAP_PART=""
-      ROOT_PART="${device}${suffix}3"
-
-      parted -s "${device}" mklabel gpt \
-        mkpart primary 1MiB 2MiB set 1 bios_grub on \
-        mkpart primary fat32 2MiB 514MiB set 2 esp on \
-        mkpart primary ext4 514MiB 100% || return 1
-    fi
-  elif [[ $UEFI -eq 1 ]]; then
-    EFI_PART="${device}${suffix}1"
-
-    if [[ $swap_gib -gt 0 ]]; then
-      SWAP_PART="${device}${suffix}2"
-      ROOT_PART="${device}${suffix}3"
-
-      parted -s "${device}" mklabel gpt \
-        mkpart primary fat32 1MiB 513MiB set 1 esp on \
-        mkpart primary linux-swap 513MiB "$(( 513 + swap_gib * 1024 ))MiB" \
-        mkpart primary ext4 "$(( 513 + swap_gib * 1024 ))MiB" 100% || return 1
-    else
-      SWAP_PART=""
-      ROOT_PART="${device}${suffix}2"
-
-      parted -s "${device}" mklabel gpt \
-        mkpart primary fat32 1MiB 513MiB set 1 esp on \
-        mkpart primary ext4 513MiB 100% || return 1
-    fi
-  else
-    EFI_PART=""
-
-    if [[ $swap_gib -gt 0 ]]; then
-      SWAP_PART="${device}${suffix}1"
-      ROOT_PART="${device}${suffix}2"
-
-      parted -s "${device}" mklabel msdos \
-        mkpart primary linux-swap 1MiB "$(( 1 + swap_gib * 1024 ))MiB" \
-        mkpart primary ext4 "$(( 1 + swap_gib * 1024 ))MiB" 100% || return 1
-    else
-      SWAP_PART=""
-      ROOT_PART="${device}${suffix}1"
-
-      parted -s "${device}" mklabel msdos \
-        mkpart primary ext4 1MiB 100% || return 1
-    fi
+    _parts+=(mkpart primary 1MiB 2MiB set $_p bios_grub on)
+    BIOS_GRUB_PART="${device}${suffix}${_p}"; _p=$((_p+1)); _start=2
   fi
+  if [[ $_label == gpt ]]; then
+    _end=$((_start+512))
+    _parts+=(mkpart primary fat32 ${_start}MiB ${_end}MiB set $_p esp on)
+    EFI_PART="${device}${suffix}${_p}"; _p=$((_p+1)); _start=$_end
+  fi
+  if [[ $swap_gib -gt 0 ]]; then
+    _end=$((_start+swap_gib*1024))
+    _parts+=(mkpart primary linux-swap ${_start}MiB ${_end}MiB)
+    SWAP_PART="${device}${suffix}${_p}"; _p=$((_p+1)); _start=$_end
+  fi
+  _parts+=(mkpart primary ext4 ${_start}MiB 100%)
+  ROOT_PART="${device}${suffix}${_p}"
+  parted -s "${device}" mklabel $_label "${_parts[@]}" || return 1
 
   partprobe "${device}" &>/dev/null
   udevadm settle 2>/dev/null || sleep 2
@@ -694,38 +594,22 @@ auto_partition_disk() {
   LVM=0
   AUTO_PARTITIONED=1
 
-  print_success "Auto-partitioning of ${device} complete."
+  print_info "Auto-partitioning of ${device} complete."
   brief_pause
 }
 #SETUP PARTITION
 create_partition() {
   print_title "SELECT PARTITION TOOL"
   apps_list=("gparted" "cfdisk" "cgdisk" "fdisk" "gdisk" "parted")
-  PS3="$prompt1"
-  echo -e "Select partition program:"
-  select OPT in "${apps_list[@]}"; do
-    if contains_element "$OPT" "${apps_list[@]}"; then
-      select_device || return 1
-
-      case "$OPT" in
-        gparted)
-          gparted
-          ;;
-        parted)
-          parted -a opt "${device}"
-          ;;
-        *)
-          $OPT "${device}"
-          ;;
-      esac
-
-      echo "Press ENTER to return to installer..."
-      read
-      break
-    else
-      invalid_option
-    fi
-  done
+  pick OPT "Select partition program:" "${apps_list[@]}"
+  select_device || return 1
+  case "$OPT" in
+    gparted) gparted ;;
+    parted)  parted -a opt "${device}" ;;
+    *)       $OPT "${device}" ;;
+  esac
+  echo "Press ENTER to return to installer..."
+  read
 }
 #SETUP LUKS
 setup_luks() {
@@ -738,46 +622,30 @@ setup_luks() {
 
   # list available partitions, skipping EFI/boot and existing mapper devices
   block_list=($(lsblk -nrpo NAME,TYPE,MOUNTPOINT | awk '$2=="part" && $3=="" {print $1}'))
-  PS3="$prompt1"
-  echo -e "Select partition to encrypt with LUKS:"
-  select OPT in "${block_list[@]}" "Cancel"; do
-    if contains_element "$OPT" "${block_list[@]}"; then
-      # confirm not encrypting an EFI/boot partition — checked by actual
-      # filesystem type, not a "partition name ends in 1" heuristic (which
-      # misfires on e.g. nvme0n1p11 and misses EFI parts numbered >1)
-      _fstype=$(blkid -s TYPE -o value "$OPT" 2>/dev/null)
-      if [[ "$_fstype" == "vfat" ]]; then
-        print_error "$OPT is formatted vfat (likely EFI or /boot); skipping."
-        return 1
-      fi
+  pick OPT "Select partition to encrypt with LUKS:" "${block_list[@]}" "Cancel"
+  if [[ "$OPT" == "Cancel" ]]; then
+    print_warning "LUKS setup cancelled."
+    return 2
+  fi
+  # checked by filesystem type, not partition number
+  if [[ "$(blkid -s TYPE -o value "$OPT" 2>/dev/null)" == "vfat" ]]; then
+    print_danger "$OPT is formatted vfat (likely EFI or /boot); skipping."
+    return 1
+  fi
 
-      print_info "Setting up LUKS on $OPT ..."
-      cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 \
-                 --iter-time 5000 --verify-passphrase luksFormat "$OPT" || return 1
+  print_info "Setting up LUKS on $OPT ..."
+  cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 \
+             --iter-time 5000 --verify-passphrase luksFormat "$OPT" || return 1
 
-      print_info "Opening LUKS container..."
-      if [[ $TRIM -eq 1 ]]; then
-        cryptsetup open --type luks --allow-discards "$OPT" "${LUKS_NAME}"
-      else
-        cryptsetup open --type luks "$OPT" "${LUKS_NAME}"
-      fi
+  print_info "Opening LUKS container..."
+  cryptsetup open --type luks $([[ $TRIM -eq 1 ]] && echo --allow-discards) "$OPT" "${LUKS_NAME}"
 
-      # mark LUKS enabled and record device info
-      LUKS=1
-      LUKS_PART="$OPT"
-      LUKS_MAPPER="/dev/mapper/${LUKS_NAME}"
-      export LUKS LUKS_NAME LUKS_PART LUKS_MAPPER
+  LUKS=1
+  LUKS_PART="$OPT"
+  LUKS_MAPPER="/dev/mapper/${LUKS_NAME}"
+  export LUKS LUKS_NAME LUKS_PART LUKS_MAPPER
 
-      print_success "LUKS container created at ${LUKS_MAPPER}"
-      break
-
-    elif [[ "$OPT" == "Cancel" ]]; then
-      print_warning "LUKS setup cancelled."
-      return 2
-    else
-      invalid_option
-    fi
-  done
+  print_info "LUKS container created at ${LUKS_MAPPER}"
 }
 
 #SETUP LVM
@@ -803,28 +671,19 @@ setup_lvm() {
       block_list+=("$_p")
     done < <(lsblk -nrpo NAME,TYPE)
     if [[ ${#block_list[@]} -eq 0 ]]; then
-      print_error "No suitable partition found for LVM."
+      print_danger "No suitable partition found for LVM."
       return 1
     fi
-    PS3="$prompt1"
-    echo -e "Select partition:"
-    select OPT in "${block_list[@]}" "Cancel"; do
-      if contains_element "$OPT" "${block_list[@]}"; then
-        TARGET_DEV="$OPT"
-        break
-      elif [[ "$OPT" == "Cancel" ]]; then
-        return 2
-      else
-        invalid_option
-      fi
-    done
+    pick OPT "Select partition:" "${block_list[@]}" "Cancel"
+    [[ "$OPT" == "Cancel" ]] && return 2
+    TARGET_DEV="$OPT"
     read_input_text "All data on ${TARGET_DEV} will be lost. Continue"
     [[ $OPTION == y ]] || return 2
   fi
 
   # Safety check
   if [[ -z "$TARGET_DEV" ]]; then
-    print_error "No valid target device selected."
+    print_danger "No valid target device selected."
     return 1
   fi
 
@@ -900,7 +759,7 @@ format_partitions(){
 
   # check if there is no partition
   if [[ ${#block_list[@]} -eq 0 ]]; then
-    print_error "No partition found."
+    print_danger "No partition found."
     return 1
   fi
 
@@ -928,15 +787,7 @@ format_partitions(){
 
   select_filesystem(){
     filesystems_list=( "btrfs" "ext2" "ext3" "ext4" "f2fs" "jfs" "nilfs2" "ntfs" "vfat" "xfs");
-    PS3="$prompt1"
-    echo -e "Select filesystem:\n"
-    select filesystem in "${filesystems_list[@]}"; do
-      if contains_element "${filesystem}" "${filesystems_list[@]}"; then
-        break
-      else
-        invalid_option
-      fi
-    done
+    pick filesystem "Select filesystem:\n" "${filesystems_list[@]}"
   }
 
   disable_partition(){
@@ -1096,40 +947,17 @@ set_efi_partition() {
     fi
   done
   if [[ $UEFI -eq 0 && $LUKS -eq 1 ]] && ! findmnt "${MNT}/boot" &>/dev/null; then
-    print_error "BIOS+LUKS needs a separate unencrypted /boot partition, but none was mounted."
+    print_danger "BIOS+LUKS needs a separate unencrypted /boot partition, but none was mounted."
     return 1
   fi
 }
 
 # Function: copy with progress bar
 copy_progress() {
-    local SRC_DIR="$1"
-    local DEST_DIR="$2"
-    
-    [[ -d "$SRC_DIR" ]] || { echo "Error: Source '$SRC_DIR' missing"; return 1; }
-    [[ -d "$DEST_DIR" ]] || { echo "Error: Destination '$DEST_DIR' missing"; return 1; }
-
-    if command -v pv &>/dev/null && command -v numfmt &>/dev/null; then
-        local TOTAL_SIZE=$(du -sb "$SRC_DIR" | awk '{print $1}')
-        echo "Total size: $(numfmt --to=iec-i --suffix=B $TOTAL_SIZE)"
-        echo
-        if tar cf - -C "$SRC_DIR" . | pv -pterb -s "$TOTAL_SIZE" | tar xpf - -C "$DEST_DIR"; then
-            echo -e "\n✅ Copy Complete!"
-            return 0
-        else
-            echo -e "\n❌ Copy Failed!"
-            return 1
-        fi
-    else
-        echo "pv/numfmt not available — copying without a progress bar..."
-        if tar cf - -C "$SRC_DIR" . | tar xpf - -C "$DEST_DIR"; then
-            echo -e "\n✅ Copy Complete!"
-            return 0
-        else
-            echo -e "\n❌ Copy Failed!"
-            return 1
-        fi
-    fi
+  [[ -d "$1" && -d "$2" ]] || { echo "Error: '$1' or '$2' missing"; return 1; }
+  local _total=$(du -sb "$1" | awk '{print $1}')
+  echo -e "Total size: $(numfmt --to=iec-i --suffix=B "$_total")\n"
+  tar cf - -C "$1" . | pv -pterb -s "$_total" | tar xpf - -C "$2"
 }
 
 #INSTALL ARCHBANG
@@ -1274,7 +1102,7 @@ configure_timezone(){
   if [[ -n "$DERIVED_TZ" && -e "/usr/share/zoneinfo/${DERIVED_TZ}" ]]; then
     ZONE="${DERIVED_TZ%%/*}"
     SUBZONE="${DERIVED_TZ#*/}"
-    print_success "Using timezone ${DERIVED_TZ} (derived from ${LOCATION:-your location})."
+    print_info "Using timezone ${DERIVED_TZ} (derived from ${LOCATION:-your location})."
   else
     OPTION=n
     while [[ $OPTION != y ]]; do
@@ -1295,7 +1123,7 @@ configure_locale(){
   if [[ -n "$DERIVED_LOCALE" ]] && grep -q "^#\{0,1\}${DERIVED_LOCALE}.*UTF-8" "${MNT}/etc/locale.gen"; then
     LOCALE="$DERIVED_LOCALE"
     LOCALE_UTF8="${LOCALE}.UTF-8"
-    print_success "Using locale ${LOCALE_UTF8}."
+    print_info "Using locale ${LOCALE_UTF8}."
   else
     OPTION=n
     while [[ $OPTION != y ]]; do
@@ -1313,16 +1141,10 @@ configure_mkinitcpio(){
     print_title "Configuring mkinitcpio"
     print_info "Setting up initramfs hooks based on your system configuration."
 
-    # Determine hooks based on setup (systemd-based modern configuration)
-    if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block lvm2 filesystems fsck"
-    elif [[ $LUKS -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole sd-encrypt block filesystems fsck"
-    elif [[ $LVM -eq 1 ]]; then
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block lvm2 filesystems fsck"
-    else
-        MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
-    fi
+    local _crypt="" _lvm=""
+    [[ $LUKS -eq 1 ]] && _crypt=" sd-encrypt"
+    [[ $LVM -eq 1 ]] && _lvm=" lvm2"
+    MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole${_crypt} block${_lvm} filesystems fsck"
 
     # Update mkinitcpio.conf with hooks
     arch_chroot "sed -i -E 's|^HOOKS=.*|HOOKS=(${MKINITCPIO_HOOKS})|' /etc/mkinitcpio.conf"
@@ -1376,20 +1198,11 @@ configure_bootloader(){
   print_title "GRUB2 configuration"
   print_info "Installing GRUB bootloader with support for LUKS, LVM, and microcode."
 
-  # --- Detect system mode (UEFI or BIOS) ---
-  if [[ -d /sys/firmware/efi ]]; then
-      UEFI=1
-      print_info "UEFI mode detected"
-  else
-      UEFI=0
-      print_info "BIOS (legacy) mode detected"
-  fi
-
   # --- BIOS+LUKS: /boot must be its own unencrypted mount (GRUB can't open argon2id) ---
   if [[ $UEFI -eq 0 && $LUKS -eq 1 ]]; then
       _boot_src=$(findmnt -no SOURCE "${MNT}/boot" 2>/dev/null)
       if [[ -z "$_boot_src" ]] || lsblk -nso TYPE "$_boot_src" 2>/dev/null | grep -qx crypt; then
-          print_error "BIOS+LUKS needs a separate unencrypted /boot partition mounted at ${MNT}/boot — restart the installer and create one."
+          print_danger "BIOS+LUKS needs a separate unencrypted /boot partition mounted at ${MNT}/boot — restart the installer and create one."
           lsblk -f
           return 1
       fi
@@ -1398,7 +1211,7 @@ configure_bootloader(){
   # --- Verify EFI partition is mounted if UEFI ---
   if [[ $UEFI -eq 1 ]]; then
       if ! mount | grep -q "${MNT}/boot"; then
-          print_error "EFI partition is not mounted at ${MNT}/boot!"
+          print_danger "EFI partition is not mounted at ${MNT}/boot!"
           lsblk -f
           return 1
       fi
@@ -1411,7 +1224,7 @@ configure_bootloader(){
   fi
 
   if [[ -z "$ROOT_PART" || ! -b "$ROOT_PART" ]]; then
-      print_error "Unable to determine root partition for GRUB setup!"
+      print_danger "Unable to determine root partition for GRUB setup!"
       lsblk -f
       return 1
   fi
@@ -1419,12 +1232,12 @@ configure_bootloader(){
   # --- Handle LUKS UUID detection if used ---
   if [[ $LUKS -eq 1 ]]; then
       if [[ -z "$LUKS_PART" ]]; then
-          print_error "LUKS enabled but no partition recorded — run step 1 first."
+          print_danger "LUKS enabled but no partition recorded — run step 1 first."
           return 1
       fi
       LUKS_UUID=$(blkid -s UUID -o value "$LUKS_PART")
       if [[ -z "$LUKS_UUID" ]]; then
-          print_error "Could not read UUID from LUKS partition ${LUKS_PART}!"
+          print_danger "Could not read UUID from LUKS partition ${LUKS_PART}!"
           return 1
       fi
       print_info "Detected LUKS UUID: $LUKS_UUID"
@@ -1445,57 +1258,26 @@ configure_bootloader(){
       print_info "Corrected BOOT_DEV to ${BOOT_DEV} (top-level disk of ${ROOT_PART})"
   fi
   if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
-      print_error "Could not determine valid boot device!"
+      print_danger "Could not determine valid boot device!"
       lsblk -f
       return 1
   fi
 
   # --- Install GRUB ---
-  if [[ $PORTABLE_INSTALL -eq 1 ]]; then
-      # Portable USB target: install both GRUB targets so it boots UEFI and BIOS alike
-      if [[ -z "$BIOS_GRUB_PART" ]]; then
-          print_error "Portable install requested but no bios_grub partition was recorded — re-run Auto partitioning."
-          return 1
-      fi
-      print_info "Installing hybrid GRUB (UEFI + BIOS) for portable USB target"
-
-      # --removable writes the ESP fallback path instead of an NVRAM entry on this
-      # build machine, since the drive needs to boot on whatever machine it ends up in
-      arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --removable --recheck"
-      if [[ $? -ne 0 ]]; then
-          print_error "GRUB installation failed for UEFI target!"
-          return 1
-      fi
-
-      grub-install --target=i386-pc --boot-directory="${MNT}/boot" "${BOOT_DEV}"
-      if [[ $? -ne 0 ]]; then
-          print_error "GRUB installation failed for BIOS target!"
-          lsblk -f
-          return 1
-      fi
-      print_success "Hybrid GRUB successfully installed to ${BOOT_DEV}"
-
-  elif [[ $UEFI -eq 1 ]]; then
-      print_info "Installing GRUB (UEFI mode) to /boot/EFI/GRUB/"
-      arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB --recheck"
-      if [[ $? -ne 0 ]]; then
-          print_error "GRUB installation failed for UEFI mode!"
-          return 1
-      fi
-      print_success "GRUB successfully installed (UEFI mode)"
-
-  else
-      print_info "Installing GRUB (BIOS mode)"
-
-      # --- Run grub-install outside chroot (BIOS) ---
-      grub-install --target=i386-pc --boot-directory="${MNT}/boot" "${BOOT_DEV}"
-      if [[ $? -ne 0 ]]; then
-          print_error "GRUB installation failed for BIOS mode!"
-          lsblk -f
-          return 1
-      fi
-      print_success "GRUB successfully installed to ${BOOT_DEV}"
+  if [[ $PORTABLE_INSTALL -eq 1 && -z "$BIOS_GRUB_PART" ]]; then
+      print_danger "Portable install requested but no bios_grub partition was recorded — re-run Auto partitioning."
+      return 1
   fi
+  # Portable USB: both targets; --removable uses the ESP fallback path, no NVRAM entry
+  if [[ $UEFI -eq 1 || $PORTABLE_INSTALL -eq 1 ]]; then
+      arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB$([[ $PORTABLE_INSTALL -eq 1 ]] && echo ' --removable') --recheck" \
+        || { print_danger "GRUB installation failed for UEFI target!"; return 1; }
+  fi
+  if [[ $UEFI -eq 0 || $PORTABLE_INSTALL -eq 1 ]]; then
+      grub-install --target=i386-pc --boot-directory="${MNT}/boot" "${BOOT_DEV}" \
+        || { print_danger "GRUB installation failed for BIOS target!"; lsblk -f; return 1; }
+  fi
+  print_info "GRUB successfully installed to ${BOOT_DEV}"
 
   # --- Build kernel parameters ---
   # mkinitcpio (configure_mkinitcpio) uses the systemd/sd-encrypt hooks for LUKS,
@@ -1504,14 +1286,10 @@ configure_bootloader(){
   # so the root device would never get unlocked at boot.
   LUKS_OPTS=""
   [[ $TRIM -eq 1 ]] && LUKS_OPTS=" rd.luks.options=discard"
-  if [[ $LUKS -eq 1 && $LVM -eq 1 ]]; then
-      ROOT_LV="${VG_NAME}-${LV_ROOT}"
-      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME}${LUKS_OPTS} root=/dev/mapper/${ROOT_LV} rw"
+  if [[ $LVM -eq 1 ]]; then
+      CMDLINE="root=/dev/mapper/${VG_NAME}-${LV_ROOT} rw"
   elif [[ $LUKS -eq 1 ]]; then
-      CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME}${LUKS_OPTS} root=/dev/mapper/${LUKS_NAME} rw"
-  elif [[ $LVM -eq 1 ]]; then
-      ROOT_LV="${VG_NAME}-${LV_ROOT}"
-      CMDLINE="root=/dev/mapper/${ROOT_LV} rw"
+      CMDLINE="root=/dev/mapper/${LUKS_NAME} rw"
   else
       partuuid=$(blkid -s PARTUUID -o value "$ROOT_PART")
       if [[ -z "$partuuid" ]]; then
@@ -1522,6 +1300,7 @@ configure_bootloader(){
           CMDLINE="root=PARTUUID=${partuuid} rw"
       fi
   fi
+  [[ $LUKS -eq 1 ]] && CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME}${LUKS_OPTS} ${CMDLINE}"
 
   # --- Update /etc/default/grub inside chroot ---
   arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub && rm -f /etc/default/grub.bak"
@@ -1532,7 +1311,7 @@ configure_bootloader(){
   # --- Generate GRUB configuration ---
   arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
 
-  print_success "GRUB2 installation and configuration complete."
+  print_info "GRUB2 installation and configuration complete."
   brief_pause
 }
 
@@ -1592,7 +1371,7 @@ setup_user(){
   arch_chroot "groupadd '${new_username}' && usermod -g '${new_username}' '${new_username}'" || return 1
   arch_chroot "chown -R '${new_username}:${new_username}' '/home/${new_username}'"
 
-  print_success "User ${new_username} created."
+  print_info "User ${new_username} created."
   brief_pause
 }
 
