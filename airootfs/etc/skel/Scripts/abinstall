@@ -590,6 +590,23 @@ create_partition() {
   esac
   echo "Press ENTER to return to installer..."
   read
+  check_boot_partition
+}
+# UEFI needs an ESP; BIOS on GPT needs a bios_grub partition for GRUB
+check_boot_partition() {
+  local _pttype _types
+  _pttype=$(lsblk -dno PTTYPE "${device}")
+  _types=$(lsblk -nro PARTTYPE "${device}")
+  if [[ $UEFI -eq 1 ]]; then
+    grep -qiE '^(c12a7328-f81f-11d2-ba4b-00a0c93ec93b|0xef)$' <<< "$_types" && return 0
+    print_danger "UEFI needs an EFI System partition (~512MiB, FAT32) on ${device}. Create one and try again."
+    return 1
+  fi
+  if [[ $_pttype == gpt ]]; then
+    grep -qi '^21686148-6449-6e6f-744e-656564454649$' <<< "$_types" && return 0
+    print_danger "BIOS on a GPT disk needs a ~1MiB 'BIOS boot' partition for GRUB. Create one, or use a dos (MBR) partition table."
+    return 1
+  fi
 }
 #SELECT|FORMAT PARTITIONS
 format_partitions(){
