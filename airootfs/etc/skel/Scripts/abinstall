@@ -55,12 +55,7 @@ fi
   # MIRRORLIST
   MIRROR="${MNT}/etc/pacman.d/mirrorlist"
   UEFI=0
-  LVM=0
-  LUKS=0
   PORTABLE_INSTALL=0
-  LUKS_NAME="cryptroot"
-  VG_NAME="lvm"
-  LV_ROOT="root"
   LIVE_USER="live"
   TRIM=0
   AUTO_PARTITIONED=0
@@ -386,8 +381,6 @@ umount_partitions(){
   for mp in "${mounted_partitions[@]}"; do
     umount "$mp"
   done
-  vgchange -an "$VG_NAME" &>/dev/null || true
-  cryptsetup close "$LUKS_NAME" &>/dev/null || true
 }
 #LIVE MEDIUM
 # Top-level disk the ISO booted from, so it can't be picked as a target.
@@ -456,8 +449,6 @@ select_device(){
 }
 #CREATE PARTITION SCHEME
 create_partition_scheme(){
-  LUKS=0
-  LVM=0
   print_title "PARTITION DRIVE - ${WIKI}/Partitioning"
   print_danger "WARNING: This step will partition your disk. All data on the selected device will be permanently lost. Make sure you have backed up anything important before continuing."
   read_input_text "I understand my data will be lost. Continue"
@@ -466,7 +457,7 @@ create_partition_scheme(){
     return 2
   fi
   print_info "Partitioning a hard drive allows one to logically divide the available space into sections that can be accessed independently of one another."
-  partition_layout=("Auto (erase disk)" "Default" "LVM" "LVM+LUKS")
+  partition_layout=("Auto (erase disk)" "Manual")
   PS3="$prompt1"
   echo -e "Select partition scheme:"
   local _sub_rc=0
@@ -480,15 +471,6 @@ create_partition_scheme(){
         create_partition
         _sub_rc=$?
         ;;
-      3)
-        create_partition && setup_lvm
-        _sub_rc=$?
-        ;;
-      4)
-        create_partition && setup_luks
-        _sub_rc=$?
-        [[ $_sub_rc -eq 0 ]] && { setup_lvm; _sub_rc=$?; }
-        ;;
       *)
         invalid_option
         _sub_rc=1
@@ -496,7 +478,7 @@ create_partition_scheme(){
     esac
     [[ -n $OPT ]] && break
   done
-  # propagate a deliberate cancel (rc 2) from auto_partition_disk/setup_luks so
+  # propagate a deliberate cancel (rc 2) from auto_partition_disk so
   # run_step can skip the retry prompt instead of treating it as an error
   return $_sub_rc
 }
@@ -590,8 +572,6 @@ auto_partition_disk() {
     swapon "${SWAP_PART}"
   fi
 
-  LUKS=0
-  LVM=0
   AUTO_PARTITIONED=1
 
   print_info "Auto-partitioning of ${device} complete."
@@ -611,134 +591,6 @@ create_partition() {
   echo "Press ENTER to return to installer..."
   read
 }
-#SETUP LUKS
-setup_luks() {
-  print_title "LUKS - ${WIKI}/LUKS"
-  print_info "The Linux Unified Key Setup (LUKS) provides full-disk encryption for Linux."
-  print_danger "\tDo not use this for /boot or EFI partitions."
-  if [[ $UEFI -eq 0 ]]; then
-    print_warning "BIOS mode: /boot must be a separate unencrypted partition (~1GiB) so GRUB can load the kernel. Create it now if you haven't — you'll be asked for it after root."
-  fi
-
-  # list available partitions, skipping EFI/boot and existing mapper devices
-  block_list=($(lsblk -nrpo NAME,TYPE,MOUNTPOINT | awk '$2=="part" && $3=="" {print $1}'))
-  pick OPT "Select partition to encrypt with LUKS:" "${block_list[@]}" "Cancel"
-  if [[ "$OPT" == "Cancel" ]]; then
-    print_warning "LUKS setup cancelled."
-    return 2
-  fi
-  # checked by filesystem type, not partition number
-  if [[ "$(blkid -s TYPE -o value "$OPT" 2>/dev/null)" == "vfat" ]]; then
-    print_danger "$OPT is formatted vfat (likely EFI or /boot); skipping."
-    return 1
-  fi
-
-  print_info "Setting up LUKS on $OPT ..."
-  cryptsetup --cipher aes-xts-plain64 --key-size 512 --hash sha512 \
-             --iter-time 5000 --verify-passphrase luksFormat "$OPT" || return 1
-
-  print_info "Opening LUKS container..."
-  cryptsetup open --type luks $([[ $TRIM -eq 1 ]] && echo --allow-discards) "$OPT" "${LUKS_NAME}"
-
-  LUKS=1
-  LUKS_PART="$OPT"
-  LUKS_MAPPER="/dev/mapper/${LUKS_NAME}"
-  export LUKS LUKS_NAME LUKS_PART LUKS_MAPPER
-
-  print_info "LUKS container created at ${LUKS_MAPPER}"
-}
-
-#SETUP LVM
-setup_lvm() {
-  print_title "LVM - ${WIKI}/LVM"
-  print_info "LVM manages logical volumes inside your selected device."
-  print_warning "Last logical volume will take 100% of remaining space."
-
-  # Determine target device
-  TARGET_DEV=""
-  if [[ $LUKS -eq 1 ]]; then
-    TARGET_DEV="/dev/mapper/${LUKS_NAME}"
-  else
-    # unmounted, non-vfat partitions not on the live medium
-    local _live=$(live_disk)
-    block_list=()
-    local _p _t
-    while read -r _p _t; do
-      [[ "$_t" == "part" ]] || continue
-      [[ -n "$(lsblk -no MOUNTPOINT "$_p" | tr -d '[:space:]')" ]] && continue
-      [[ "$(blkid -s TYPE -o value "$_p" 2>/dev/null)" == "vfat" ]] && continue
-      [[ -n "$_live" && "/dev/$(lsblk -no PKNAME "$_p" | head -1)" == "$_live" ]] && continue
-      block_list+=("$_p")
-    done < <(lsblk -nrpo NAME,TYPE)
-    if [[ ${#block_list[@]} -eq 0 ]]; then
-      print_danger "No suitable partition found for LVM."
-      return 1
-    fi
-    pick OPT "Select partition:" "${block_list[@]}" "Cancel"
-    [[ "$OPT" == "Cancel" ]] && return 2
-    TARGET_DEV="$OPT"
-    read_input_text "All data on ${TARGET_DEV} will be lost. Continue"
-    [[ $OPTION == y ]] || return 2
-  fi
-
-  # Safety check
-  if [[ -z "$TARGET_DEV" ]]; then
-    print_danger "No valid target device selected."
-    return 1
-  fi
-
-  # A retry finds the VG from the previous attempt on this same device; only
-  # remove a VG that lives on TARGET_DEV, never one elsewhere on the machine
-  local _old_vg=$(pvs --noheadings -o vg_name "$TARGET_DEV" 2>/dev/null | tr -d ' ')
-  [[ -n "$_old_vg" ]] && vgremove -ff -y "$_old_vg"
-
-  # Initialise LVM
-  pvcreate -ff -y "$TARGET_DEV" || return 1
-  vgcreate "$VG_NAME" "$TARGET_DEV" || return 1
-
-  # Ask only for root + extras
-  while true; do
-    read -p "Enter root volume size (e.g. 25G): " ROOT_SIZE
-    [[ "$ROOT_SIZE" =~ ^[0-9]+(\.[0-9]+)?[KkMmGgTt][Ii]?[Bb]?$ ]] && break
-    print_danger "Invalid size. Use a number followed by a unit, e.g. 25G or 500M."
-  done
-  lvcreate -y -L "${ROOT_SIZE}" "$VG_NAME" -n "$LV_ROOT" || return 1
-
-  echo
-  print_info "Now you can add extra volumes such as home, var, swap..."
-  while true; do
-    read -p "How many extra volumes? [0-9]: " extra_count
-    [[ "$extra_count" =~ ^[0-9]+$ ]] && break
-    print_danger "Enter a whole number (0 or more)."
-  done
-
-  i=1
-  while [[ $i -le $extra_count ]]; do
-    while true; do
-      read -p "Name for volume $i (e.g. home): " lvname
-      [[ "$lvname" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.+-]*$ && "$lvname" != "$LV_ROOT" ]] && break
-      print_danger "Invalid or duplicate name. Use letters, digits, _ . + -"
-    done
-    if [[ $i -eq $extra_count ]]; then
-      lvcreate -y -l 100%FREE "$VG_NAME" -n "$lvname" || return 1
-    else
-      while true; do
-        read -p "Size for $lvname (e.g. 10G): " lvsize
-        [[ "$lvsize" =~ ^[0-9]+(\.[0-9]+)?[KkMmGgTt][Ii]?[Bb]?$ ]] && break
-        print_danger "Invalid size. Use a number followed by a unit, e.g. 10G or 500M."
-      done
-      lvcreate -y -L "$lvsize" "$VG_NAME" -n "$lvname" || return 1
-    fi
-    i=$((i+1))
-  done
-  if [[ $extra_count -eq 0 ]]; then
-    lvextend -l +100%FREE "$VG_NAME/$LV_ROOT" || return 1
-  fi
-
-  LVM=1
-  export LVM VG_NAME
-}
-
 #SELECT|FORMAT PARTITIONS
 format_partitions(){
   if [[ $AUTO_PARTITIONED -eq 1 ]]; then
@@ -751,38 +603,19 @@ format_partitions(){
   print_danger "\tAll data on the ROOT and SWAP partition will be LOST."
   i=0
 
-  # lsblk -p gives full /dev/... paths; strip to bare device name so the
-  # loop below can prepend /dev/ or /dev/mapper/ as appropriate. A bare
-  # substr()-based prefix strip (the old approach) truncated NVMe/mmcblk
-  # names, which use a longer "nvme0n1p1"/"mmcblk0p1" naming scheme.
-  block_list=($(lsblk -nrpo NAME,TYPE,FSTYPE | awk '($2=="part" || $2=="lvm") && $3!="LVM2_member" && $3!="crypto_LUKS" {sub(/^.*\//,"",$1); print $1}'))
+  partitions_list=($(lsblk -nrpo NAME,TYPE | awk '$2=="part" {print $1}'))
 
   # check if there is no partition
-  if [[ ${#block_list[@]} -eq 0 ]]; then
+  if [[ ${#partitions_list[@]} -eq 0 ]]; then
     print_danger "No partition found."
     return 1
   fi
-
-  partitions_list=()
-  for OPT in ${block_list[@]}; do
-    check_lvm=`echo $OPT | grep lvm`
-    if [[ -z $check_lvm ]]; then
-      partitions_list+=("/dev/$OPT")
-    else
-      partitions_list+=("/dev/mapper/$OPT")
-    fi
-  done
 
   # partitions based on boot system
   if [[ $UEFI -eq 1 ]]; then
     partition_name=("root" "EFI" "swap" "another")
   else
-    if [[ $LUKS -eq 1 ]]; then
-      # GRUB can't unlock argon2id LUKS2, so BIOS+LUKS keeps /boot outside it
-      partition_name=("root" "boot" "swap" "another")
-    else
-      partition_name=("root" "swap" "another")
-    fi
+    partition_name=("root" "swap" "another")
   fi
 
   select_filesystem(){
@@ -895,16 +728,6 @@ set_efi_partition() {
              ROOT_PART="${partition}"     # ✅ keep full path (/dev/…)
              format_partition "${partition}" "${MNT}"
               ;;
-            boot)
-              read_input_text "Format ${partition} as ext4 for /boot"
-              if [[ $OPTION == y ]]; then
-                format_partition "${partition}" "${MNT}/boot" ext4
-              else
-                mkdir -p "${MNT}/boot"
-                mount "${partition}" "${MNT}/boot"
-                check_mountpoint "${partition}" "${MNT}/boot"
-              fi
-              ;;
             EFI)
               set_efi_partition
               read_input_text "Format ${partition} partition"
@@ -946,10 +769,6 @@ set_efi_partition() {
       [[ $OPTION != y ]] && break
     fi
   done
-  if [[ $UEFI -eq 0 && $LUKS -eq 1 ]] && ! findmnt "${MNT}/boot" &>/dev/null; then
-    print_danger "BIOS+LUKS needs a separate unencrypted /boot partition, but none was mounted."
-    return 1
-  fi
 }
 
 # Function: copy with progress bar
@@ -1141,10 +960,7 @@ configure_mkinitcpio(){
     print_title "Configuring mkinitcpio"
     print_info "Setting up initramfs hooks based on your system configuration."
 
-    local _crypt="" _lvm=""
-    [[ $LUKS -eq 1 ]] && _crypt=" sd-encrypt"
-    [[ $LVM -eq 1 ]] && _lvm=" lvm2"
-    MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole${_crypt} block${_lvm} filesystems fsck"
+    MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
 
     # Update mkinitcpio.conf with hooks
     arch_chroot "sed -i -E 's|^HOOKS=.*|HOOKS=(${MKINITCPIO_HOOKS})|' /etc/mkinitcpio.conf"
@@ -1196,17 +1012,7 @@ EOF
 #CONFIGURE BOOTLOADER
 configure_bootloader(){
   print_title "GRUB2 configuration"
-  print_info "Installing GRUB bootloader with support for LUKS, LVM, and microcode."
-
-  # --- BIOS+LUKS: /boot must be its own unencrypted mount (GRUB can't open argon2id) ---
-  if [[ $UEFI -eq 0 && $LUKS -eq 1 ]]; then
-      _boot_src=$(findmnt -no SOURCE "${MNT}/boot" 2>/dev/null)
-      if [[ -z "$_boot_src" ]] || lsblk -nso TYPE "$_boot_src" 2>/dev/null | grep -qx crypt; then
-          print_danger "BIOS+LUKS needs a separate unencrypted /boot partition mounted at ${MNT}/boot — restart the installer and create one."
-          lsblk -f
-          return 1
-      fi
-  fi
+  print_info "Installing GRUB bootloader."
 
   # --- Verify EFI partition is mounted if UEFI ---
   if [[ $UEFI -eq 1 ]]; then
@@ -1229,22 +1035,7 @@ configure_bootloader(){
       return 1
   fi
 
-  # --- Handle LUKS UUID detection if used ---
-  if [[ $LUKS -eq 1 ]]; then
-      if [[ -z "$LUKS_PART" ]]; then
-          print_danger "LUKS enabled but no partition recorded — run step 1 first."
-          return 1
-      fi
-      LUKS_UUID=$(blkid -s UUID -o value "$LUKS_PART")
-      if [[ -z "$LUKS_UUID" ]]; then
-          print_danger "Could not read UUID from LUKS partition ${LUKS_PART}!"
-          return 1
-      fi
-      print_info "Detected LUKS UUID: $LUKS_UUID"
-  fi
-
   # Determine BOOT_DEV (top-level disk of ROOT_PART) for BIOS-target grub-install;
-  # walk up parents since ROOT_PART can be several layers deep (e.g. LVM on LUKS)
   if [[ -z "$BOOT_DEV" || ! -b "$BOOT_DEV" ]]; then
       _walk_dev="$ROOT_PART"
       for _walk_hop in 1 2 3 4 5; do
@@ -1280,33 +1071,17 @@ configure_bootloader(){
   print_info "GRUB successfully installed to ${BOOT_DEV}"
 
   # --- Build kernel parameters ---
-  # mkinitcpio (configure_mkinitcpio) uses the systemd/sd-encrypt hooks for LUKS,
-  # which read rd.luks.name=/rd.luks.uuid=, not the legacy encrypt hook's
-  # cryptdevice= parameter — cryptdevice= is silently ignored under sd-encrypt,
-  # so the root device would never get unlocked at boot.
-  LUKS_OPTS=""
-  [[ $TRIM -eq 1 ]] && LUKS_OPTS=" rd.luks.options=discard"
-  if [[ $LVM -eq 1 ]]; then
-      CMDLINE="root=/dev/mapper/${VG_NAME}-${LV_ROOT} rw"
-  elif [[ $LUKS -eq 1 ]]; then
-      CMDLINE="root=/dev/mapper/${LUKS_NAME} rw"
+  partuuid=$(blkid -s PARTUUID -o value "$ROOT_PART")
+  if [[ -z "$partuuid" ]]; then
+      uuid=$(blkid -s UUID -o value "$ROOT_PART")
+      CMDLINE="root=UUID=${uuid} rw"
+      print_warning "PARTUUID not found; using filesystem UUID instead."
   else
-      partuuid=$(blkid -s PARTUUID -o value "$ROOT_PART")
-      if [[ -z "$partuuid" ]]; then
-          uuid=$(blkid -s UUID -o value "$ROOT_PART")
-          CMDLINE="root=UUID=${uuid} rw"
-          print_warning "PARTUUID not found; using filesystem UUID instead."
-      else
-          CMDLINE="root=PARTUUID=${partuuid} rw"
-      fi
+      CMDLINE="root=PARTUUID=${partuuid} rw"
   fi
-  [[ $LUKS -eq 1 ]] && CMDLINE="rd.luks.name=${LUKS_UUID}=${LUKS_NAME}${LUKS_OPTS} ${CMDLINE}"
 
   # --- Update /etc/default/grub inside chroot ---
   arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub && rm -f /etc/default/grub.bak"
-
-  # No GRUB_ENABLE_CRYPTODISK: /boot is never inside LUKS (ESP on UEFI,
-  # separate /boot on BIOS), so the initramfs does the only unlock
 
   # --- Generate GRUB configuration ---
   arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
@@ -1400,7 +1175,7 @@ welcome_screen(){
   echo -e "\t✓ Booted from ArchBang live ISO\n"
 
   echo -e "${Bold}Installation Steps (8 total):${Reset}"
-  echo -e "\t1. Partition your disk (Default, LVM, or LVM+LUKS)"
+  echo -e "\t1. Partition your disk (Auto or Manual)"
   echo -e "\t2. Install ArchBang system files"
   echo -e "\t3. Set hostname"
   echo -e "\t4. Configure timezone & mirrors"

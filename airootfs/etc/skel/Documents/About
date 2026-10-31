@@ -53,7 +53,6 @@ Desktop
 Installation
   - Menu-driven installer (abinstall)
   - UEFI and BIOS boot support
-  - Optional LVM and full-disk encryption (LUKS)
   - Automatic CPU microcode detection
 
 
