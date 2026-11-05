@@ -859,6 +859,7 @@ default_image="/boot/initramfs-linux.img"
 fallback_image="/boot/initramfs-linux-fallback.img"
 fallback_options="-S autodetect"
 EOF
+  rm -f "${MNT}/etc/mkinitcpio.conf.d/archiso.conf"
 
   # Remove abinstall from target device
   rm -f "${MNT}/home/${LIVE_USER}/Scripts/abinstall" &> /dev/null
@@ -977,7 +978,7 @@ configure_mkinitcpio(){
     print_title "Configuring mkinitcpio"
     print_info "Setting up initramfs hooks based on your system configuration."
 
-    MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block filesystems fsck"
+    MKINITCPIO_HOOKS="base systemd autodetect microcode modconf kms keyboard sd-vconsole block filesystems fsck"
 
     # Update mkinitcpio.conf with hooks
     arch_chroot "sed -i -E 's|^HOOKS=.*|HOOKS=(${MKINITCPIO_HOOKS})|' /etc/mkinitcpio.conf"
@@ -1087,18 +1088,8 @@ configure_bootloader(){
   fi
   print_info "GRUB successfully installed to ${BOOT_DEV}"
 
-  # --- Build kernel parameters ---
-  partuuid=$(blkid -s PARTUUID -o value "$ROOT_PART")
-  if [[ -z "$partuuid" ]]; then
-      uuid=$(blkid -s UUID -o value "$ROOT_PART")
-      CMDLINE="root=UUID=${uuid} rw"
-      print_warning "PARTUUID not found; using filesystem UUID instead."
-  else
-      CMDLINE="root=PARTUUID=${partuuid} rw"
-  fi
-
-  # --- Update /etc/default/grub inside chroot ---
-  arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"${CMDLINE}\"|' /etc/default/grub && rm -f /etc/default/grub.bak"
+  # grub-mkconfig adds root=UUID=... rw itself
+  arch_chroot "sed -i.bak -E 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX=\"\"|' /etc/default/grub && rm -f /etc/default/grub.bak"
 
   # --- Generate GRUB configuration ---
   arch_chroot "grub-mkconfig -o /boot/grub/grub.cfg"
