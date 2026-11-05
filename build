@@ -756,10 +756,10 @@ _make_bootmode_uefi.grub() {
         fi
 
         # Copy Memtest86+
-        # Only the x64 binary is built. See https://gitlab.archlinux.org/archlinux/packaging/packages/memtest86plus/-/merge_requests/2
-        if [[ -e "${pacstrap_dir}/boot/memtest86+/memtest.efi" ]]; then
+        # The memtest86+-efi package now ships the x64 binary as memtest86x64.efi. See https://gitlab.archlinux.org/archlinux/packaging/packages/memtest86plus/-/merge_requests/2
+        if [[ -e "${pacstrap_dir}/boot/memtest86+/memtest86x64.efi" ]]; then
             install -d -m 0755 -- "${isofs_dir}/boot/memtest86+/"
-            install -m 0644 -- "${pacstrap_dir}/boot/memtest86+/memtest.efi" "${isofs_dir}/boot/memtest86+/memtest.efi"
+            install -m 0644 -- "${pacstrap_dir}/boot/memtest86+/memtest86x64.efi" "${isofs_dir}/boot/memtest86+/memtest86x64.efi"
             install -m 0644 -- "${pacstrap_dir}/usr/share/licenses/spdx/GPL-2.0-only.txt" "${isofs_dir}/boot/memtest86+/LICENSE"
         fi
     fi
@@ -808,11 +808,11 @@ _make_common_bootmode_uefi.systemd-boot_copy_files() {
     fi
 
     # Copy Memtest86+
-    # Only the x64 binary is built. See https://gitlab.archlinux.org/archlinux/packaging/packages/memtest86plus/-/merge_requests/2
+    # The memtest86+-efi package now ships the x64 binary as memtest86x64.efi. See https://gitlab.archlinux.org/archlinux/packaging/packages/memtest86plus/-/merge_requests/2
     if [[ "$target_arch" == 'x64' ]]; then
-        if [[ -e "${pacstrap_dir}/boot/memtest86+/memtest.efi" ]]; then
+        if [[ -e "${pacstrap_dir}/boot/memtest86+/memtest86x64.efi" ]]; then
             install -d -m 0755 -- "${isofs_dir}/boot/memtest86+/"
-            install -m 0644 -- "${pacstrap_dir}/boot/memtest86+/memtest.efi" "${isofs_dir}/boot/memtest86+/memtest.efi"
+            install -m 0644 -- "${pacstrap_dir}/boot/memtest86+/memtest86x64.efi" "${isofs_dir}/boot/memtest86+/memtest86x64.efi"
             install -m 0644 -- "${pacstrap_dir}/usr/share/licenses/spdx/GPL-2.0-only.txt" "${isofs_dir}/boot/memtest86+/LICENSE"
         fi
     fi
@@ -870,7 +870,7 @@ _make_bootmode_uefi.systemd-boot() {
     efiboot_files=("${isofs_dir}/EFI/"
                    "${isofs_dir}/loader/"
                    "${isofs_dir}/shell"*'.efi'
-                   "${isofs_dir}/boot/memtest86+/memtest.efi"
+                   "${isofs_dir}/boot/memtest86+/memtest86x64.efi"
                    "${isofs_dir}/boot/memtest86+/LICENSE"
                    "${pacstrap_dir}/boot/vmlinuz-"*
                    "${pacstrap_dir}/boot/initramfs-"*".img"
@@ -886,10 +886,10 @@ _make_bootmode_uefi.systemd-boot() {
         efiboot_rootdir_files+=("${isofs_dir}/shell"*'.efi')
     fi
     mcopy -s -i "${efibootimg}" "${efiboot_rootdir_files[@]}" '::/'
-    if [[ -e "${isofs_dir}/boot/memtest86+/memtest.efi" ]]; then
+    if [[ -e "${isofs_dir}/boot/memtest86+/memtest86x64.efi" ]]; then
         mmd -i "${efibootimg}" '::/boot' '::/boot/memtest86+'
         mcopy -i "${efibootimg}" \
-            "${isofs_dir}/boot/memtest86+/memtest.efi" "${isofs_dir}/boot/memtest86+/LICENSE" '::/boot/memtest86+/'
+            "${isofs_dir}/boot/memtest86+/memtest86x64.efi" "${isofs_dir}/boot/memtest86+/LICENSE" '::/boot/memtest86+/'
     fi
 
     # Copy kernel and initramfs to FAT image.
