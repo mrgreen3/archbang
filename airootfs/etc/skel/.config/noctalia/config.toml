@@ -85,7 +85,7 @@ exec    = "l3afpad ~/Documents/Keybindings"
 colors_changed = "/home/live/Scripts/noctalia-theme-sync"
 
 [bar.default]
-position         = "bottom"
+position         = "top"
 thickness        = 24
 background_opacity = 0.75
 radius           = 2
@@ -101,8 +101,8 @@ reserve_space    = true
 capsule          = false
 
 start  = ["app_launcher", "workspaces"]
-center = ["active_window"]
-end    = ["tray", "network", "battery", "clock", "session"]
+center = ["clock"]
+end    = ["tray", "network", "battery", "session"]
 
 [widget.app_launcher]
 type = "custom_button"
