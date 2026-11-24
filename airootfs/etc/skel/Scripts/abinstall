@@ -1080,6 +1080,11 @@ configure_bootloader(){
   if [[ $UEFI -eq 1 || $PORTABLE_INSTALL -eq 1 ]]; then
       arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB$([[ $PORTABLE_INSTALL -eq 1 ]] && echo ' --removable') --recheck" \
         || { print_danger "GRUB installation failed for UEFI target!"; return 1; }
+      # Fallback EFI/BOOT/BOOTX64.EFI: boots even if the NVRAM entry is lost or failed to write
+      if [[ $PORTABLE_INSTALL -eq 0 ]]; then
+          arch_chroot "grub-install --target=x86_64-efi --efi-directory=/boot --removable --no-nvram" \
+            || print_warning "Fallback EFI/BOOT/BOOTX64.EFI install failed; relying on NVRAM entry."
+      fi
   fi
   if [[ $UEFI -eq 0 || $PORTABLE_INSTALL -eq 1 ]]; then
       grub-install --target=i386-pc --boot-directory="${MNT}/boot" "${BOOT_DEV}" \
