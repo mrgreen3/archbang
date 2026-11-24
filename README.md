@@ -18,4 +18,4 @@ ArchBang is a minimal Arch Linux-based distribution featuring the MangoWC Waylan
 
 ## Building
 
-See `profiledef.sh` and `airootfs/root/customize_airootfs.sh`.
+See `profiledef.sh`, `airootfs/etc/pacman.d/hooks/` (build-time hooks, removed from the image) and static files under `airootfs/etc`.

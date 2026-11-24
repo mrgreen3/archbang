@@ -43,7 +43,7 @@ printf '    (~170 MB download). This only happens on first launch.\n'
 printf '\n'
 
 
-sudo pacman -Sy --noconfirm --needed opencode
+sudo pacman -Syu --needed opencode
 
 if ! command -v opencode >/dev/null 2>&1; then
   notify -u critical "OpenCode" "Install failed. See the terminal for details."

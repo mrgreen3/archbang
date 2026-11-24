@@ -1,0 +1,11 @@
+# remove from airootfs!
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = pacman
+
+[Action]
+Description = Enabling ParallelDownloads in pacman.conf...
+When = PostTransaction
+Exec = /bin/sh -c 'sed -i "s/^#ParallelDownloads/ParallelDownloads/" /etc/pacman.conf'

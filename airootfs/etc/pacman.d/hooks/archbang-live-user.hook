@@ -1,0 +1,11 @@
+# remove from airootfs!
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+
+[Action]
+Description = Creating the live user...
+When = PostTransaction
+Exec = /bin/sh -c 'useradd -m -p "" -G wheel,video -s /bin/bash -g users live'

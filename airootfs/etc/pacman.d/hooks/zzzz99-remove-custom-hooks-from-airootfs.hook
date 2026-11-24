@@ -1,0 +1,15 @@
+# remove from airootfs!
+# Build-time hooks are deleted before the squashfs is made (archiso releng pattern).
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Work around FS#49347 and remove pacman hooks that are for build-time only...
+When = PostTransaction
+Depends = grep
+Depends = sh
+Exec = /bin/sh -c "rm -- $(grep -Frl 'remove from airootfs' /etc/pacman.d/hooks/)"

@@ -422,20 +422,6 @@ _make_customize_airootfs() {
         done <"${profile}/airootfs/etc/passwd"
         _msg_info "Done!"
     fi
-
-    if [[ -e "${pacstrap_dir}/root/customize_airootfs.sh" ]]; then
-        _msg_info "Running customize_airootfs.sh in '${pacstrap_dir}' chroot..."
-        _msg_warning "customize_airootfs.sh is deprecated! Support for it will be removed in a future archiso version."
-        _unshare chmod -f -- +x "${pacstrap_dir}/root/customize_airootfs.sh"
-        # Unset TMPDIR to work around https://bugs.archlinux.org/task/70580
-        if (( EUID != 0 )); then
-            eval -- env -u TMPDIR arch-chroot -N "${pacstrap_dir}" "/root/customize_airootfs.sh"
-        else
-            eval -- env -u TMPDIR arch-chroot "${pacstrap_dir}" "/root/customize_airootfs.sh"
-        fi
-        _unshare rm -- "${pacstrap_dir}/root/customize_airootfs.sh"
-        _msg_info "Done! customize_airootfs.sh run successfully."
-    fi
 }
 
 # Set up boot loaders

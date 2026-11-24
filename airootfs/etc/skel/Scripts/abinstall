@@ -271,7 +271,8 @@ select_location() {
     local _zones=($(timedatectl list-timezones | sed 's/\/.*$//' | uniq))
     pick ZONE "Select zone:" "${_zones[@]}"
     local _subzones=($(timedatectl list-timezones | grep "^${ZONE}/" | sed 's|^[^/]*/||'))
-    pick SUBZONE "Select subzone:" "${_subzones[@]}"
+    SUBZONE=""
+    (( ${#_subzones[@]} )) && pick SUBZONE "Select subzone:" "${_subzones[@]}"
   }
 
 #SELECT LANGUAGE (derives locale)
@@ -563,13 +564,13 @@ auto_partition_disk() {
   fi
   mkfs.ext4 -F $([[ $TRIM -eq 1 ]] && echo "-E discard") "${ROOT_PART}" || return 1
 
-  mount "${ROOT_PART}" "${MNT}"
+  mount "${ROOT_PART}" "${MNT}" || return 1
   if [[ -n "$EFI_PART" ]]; then
     mkdir -p "${MNT}/boot"
-    mount "${EFI_PART}" "${MNT}/boot"
+    mount "${EFI_PART}" "${MNT}/boot" || return 1
   fi
   if [[ -n "$SWAP_PART" ]]; then
-    swapon "${SWAP_PART}"
+    swapon "${SWAP_PART}" || print_warning "swapon ${SWAP_PART} failed (non-fatal)"
   fi
 
   AUTO_PARTITIONED=1
@@ -801,9 +802,6 @@ install_archbang(){
   print_title "INSTALL ARCHBANG"
   print_info "Installing please wait..."
 
-  # Check if running from live environment
-  check_archiso
-
   # copy source to new install
   if ! copy_progress /run/archiso/airootfs/ "${MNT}/"; then
     error_msg "ERROR: Failed to copy system files"
@@ -830,7 +828,7 @@ install_archbang(){
   UPPERDIR=$(find /run/archiso/cowspace -type d -path "*/persistent_*/x86_64/upperdir" 2>/dev/null | head -1)
   if [[ -n "$UPPERDIR" && -d "$UPPERDIR" ]]; then
     print_info "Syncing live session changes..."
-    rsync -av "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1 || print_warning "Cowspace sync had errors (non-fatal)"
+    rsync -rlptgoxv --no-D "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1 || print_warning "Cowspace sync had errors (non-fatal)"
   fi
 
   # Copy a default background to the fixed path the noctalia gtkgreet login
@@ -895,7 +893,7 @@ EOF
   sed -i '/^Hidden=true/d' "${MNT}/usr/share/applications/gparted.desktop"
 
   # Revert live NOPASSWD sudo — require password on installed system
-  sed -i 's/^%wheel ALL=(ALL:ALL) NOPASSWD: ALL/# %wheel ALL=(ALL:ALL) NOPASSWD: ALL/' "${MNT}/etc/sudoers"
+  rm -f "${MNT}/etc/sudoers.d/10-live-nopasswd"
   sed -i 's/^# %wheel ALL=(ALL:ALL) ALL$/%wheel ALL=(ALL:ALL) ALL/' "${MNT}/etc/sudoers"
 
 }
@@ -938,16 +936,17 @@ configure_timezone(){
   print_info "In an operating system the time (clock) is determined by four parts: Time value, Time standard, Time Zone, and DST (Daylight Saving Time if applicable)."
   if [[ -n "$DERIVED_TZ" && -e "/usr/share/zoneinfo/${DERIVED_TZ}" ]]; then
     ZONE="${DERIVED_TZ%%/*}"
-    SUBZONE="${DERIVED_TZ#*/}"
+    [[ $DERIVED_TZ == */* ]] && SUBZONE="${DERIVED_TZ#*/}" || SUBZONE=""
     print_info "Using timezone ${DERIVED_TZ} (derived from ${LOCATION:-your location})."
   else
     OPTION=n
     while [[ $OPTION != y ]]; do
       settimezone
-      read_input_text "Confirm timezone (${ZONE}/${SUBZONE})"
+      read_input_text "Confirm timezone (${ZONE}${SUBZONE:+/$SUBZONE})"
     done
   fi
-  arch_chroot "ln -sf /usr/share/zoneinfo/${ZONE}/${SUBZONE} /etc/localtime"
+  arch_chroot "ln -sf /usr/share/zoneinfo/${ZONE}${SUBZONE:+/$SUBZONE} /etc/localtime" \
+    || print_warning "Could not set timezone ${ZONE}${SUBZONE:+/$SUBZONE}"
 }
 #CONFIGURE HARDWARECLOCK
 configure_hardwareclock(){
@@ -1271,6 +1270,7 @@ run_step() {
 }
 
 check_root
+check_archiso
 check_boot_system
 check_trim
 

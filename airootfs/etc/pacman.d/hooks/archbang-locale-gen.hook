@@ -1,0 +1,11 @@
+# remove from airootfs!
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = glibc
+
+[Action]
+Description = Enabling en_US.UTF-8 and generating locales...
+When = PostTransaction
+Exec = /bin/sh -c 'sed -i "s/^#en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen && locale-gen'

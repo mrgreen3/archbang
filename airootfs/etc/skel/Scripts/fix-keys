@@ -17,7 +17,7 @@ sudo pacman-key --populate archlinux
 
 # Now that pacman can trust packages, update the keyring package
 echo "Updating archlinux-keyring package..."
-sudo pacman -Sy --noconfirm archlinux-keyring
+sudo pacman -Sy --noconfirm --needed archlinux-keyring && sudo pacman -Su
 
 echo "Pacman keyring setup complete."
 

@@ -1,0 +1,11 @@
+# remove from airootfs!
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = gparted
+
+[Action]
+Description = Hiding gparted from the application menu...
+When = PostTransaction
+Exec = /bin/sh -c 'sed -i "/^Categories=/a Hidden=true" /usr/share/applications/gparted.desktop'
