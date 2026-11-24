@@ -17,6 +17,7 @@ borders = true
 open_near_click_control_center = true
 
 [shell]
+corner_radius_scale = 0.25
 setup_wizard_enabled = false
 
 # Palette comes from the wallpaper (default is "builtin"): when the wallpaper
