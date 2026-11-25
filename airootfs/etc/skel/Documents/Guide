@@ -53,6 +53,11 @@ SUDO
 Installed system requires password for sudo. Live session used passwordless sudo
 for convenience — installed system does not.
 
+LOGIN SCREEN
+
+Installed systems log in through noctalia-greeter (greetd). To match a new
+wallpaper or colour scheme, use the greeter sync option in Noctalia's settings.
+
 ---
 
 INITIALIZE PACMAN
@@ -119,7 +124,8 @@ No additional Intel drivers needed — built-in kernel drivers handle accelerati
 BROADCOM WIFI
 
 Some older Broadcom wireless chips need the proprietary broadcom-wl driver
-instead of the in-kernel b43/brcmsmac/brcmfmac drivers. This package has been
+instead of the in-kernel b43/brcmsmac/brcmfmac drivers. It is not shipped on
+the ISO. This package has been
 dropped from Arch repos before and later reappeared, and is not currently in
 the AUR either. If your wifi chip needs it, check the AUR and Arch wiki
 (Broadcom wireless) for current availability before assuming it's missing
@@ -137,8 +143,9 @@ sudo ufw allow ssh          (needed if you enable sshd)
 sudo ufw allow 22000/tcp    (example: open a single port)
 sudo ufw delete allow ssh
 
-Docker writes its own rules that bypass ufw, so published container ports
-are reachable even when ufw status says otherwise.
+If you install Docker, note that it writes its own rules that bypass ufw,
+so published container ports are reachable even when ufw status says
+otherwise.
 
 ---
 
