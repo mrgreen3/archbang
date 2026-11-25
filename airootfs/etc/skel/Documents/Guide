@@ -127,6 +127,21 @@ permanently.
 
 ---
 
+FIREWALL (UFW)
+
+Installed systems have ufw enabled: incoming connections are blocked,
+outgoing are allowed. The live session has no firewall running.
+
+sudo ufw status verbose
+sudo ufw allow ssh          (needed if you enable sshd)
+sudo ufw allow 22000/tcp    (example: open a single port)
+sudo ufw delete allow ssh
+
+Docker writes its own rules that bypass ufw, so published container ports
+are reachable even when ufw status says otherwise.
+
+---
+
 LIVE SESSION DISK SPACE
 
 If the live session runs out of space:

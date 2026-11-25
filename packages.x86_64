@@ -63,6 +63,7 @@ ntfs-3g
 
 ## === NETWORK MANAGEMENT ===
 networkmanager
+ufw
 usb_modeswitch
 # Will not ship broadcom-wl-dkms in the live ISO...for now....
 #broadcom-wl-dkms

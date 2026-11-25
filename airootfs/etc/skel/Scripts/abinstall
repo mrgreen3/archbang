@@ -1026,6 +1026,15 @@ EOF
     print_info "Greeter configuration complete."
 }
 
+#CONFIGURE FIREWALL
+# ufw enable would touch the host's netfilter from the chroot, so set
+# ENABLED=yes and enable the unit; defaults deny incoming, allow outgoing
+configure_firewall(){
+    print_info "Enabling ufw firewall."
+    sed -i 's/^ENABLED=.*/ENABLED=yes/' "${MNT}/etc/ufw/ufw.conf"
+    arch_chroot "systemctl enable ufw.service"
+}
+
 #CONFIGURE BOOTLOADER
 configure_bootloader(){
   print_title "GRUB2 configuration"
@@ -1282,7 +1291,7 @@ check_trim
 welcome_screen
 
 run_step 1 "Partition Scheme"        umount_partitions create_partition_scheme format_partitions
-run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio configure_greeter
+run_step 2 "Install ArchBang"        install_archbang configure_fstab configure_mkinitcpio configure_greeter configure_firewall
 run_step 3 "Hostname"                configure_hostname
 run_step 4 "Location"                select_location configure_timezone configure_hardwareclock configure_mirrors
 run_step 5 "Locale"                  select_language configure_locale
