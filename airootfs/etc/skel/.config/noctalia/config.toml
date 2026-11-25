@@ -72,7 +72,7 @@ prefix  = "guide"
 glyph   = "book"
 global  = true
 command = "printf 'Guide\\n'"
-exec    = "l3afpad ~/Documents/Guide"
+exec    = "mousepad ~/Documents/Guide"
 
 [shell.launcher.dmenu.entry.keybinds]
 label   = "Keybinds"
@@ -80,7 +80,7 @@ prefix  = "keybinds"
 glyph   = "keyboard"
 global  = true
 command = "printf 'Keybinds\\n'"
-exec    = "l3afpad ~/Documents/Keybindings"
+exec    = "mousepad ~/Documents/Keybindings"
 
 [hooks]
 colors_changed = "/home/live/Scripts/noctalia-theme-sync"
