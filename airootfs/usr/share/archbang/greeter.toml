@@ -1,0 +1,30 @@
+# noctalia-greeter admin config, installed to /var/lib/noctalia-greeter/greeter.toml
+# by abinstall. Palette baked from winter-gold.jpg (m3-tonal-spot, dark).
+
+[appearance]
+hide_logo = true
+theme_mode = "dark"
+font_family = "JetBrains Mono"
+corner_radius_scale = 0.25
+
+[appearance.wallpaper]
+path = "/usr/share/backgrounds/archbang/current"
+fill_mode = "crop"
+
+[appearance.palette]
+primary = "#fbba73"
+on_primary = "#492900"
+secondary = "#e0c1a3"
+on_secondary = "#402d17"
+tertiary = "#becc9c"
+on_tertiary = "#293411"
+error = "#ffb4ab"
+on_error = "#690005"
+surface = "#19120c"
+on_surface = "#eee0d5"
+surface_variant = "#251e17"
+on_surface_variant = "#d5c4b5"
+outline = "#50453a"
+shadow = "#000000"
+hover = "#becc9c"
+on_hover = "#293411"

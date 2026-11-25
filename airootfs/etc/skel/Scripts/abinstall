@@ -831,9 +831,9 @@ install_archbang(){
     rsync -rlptgoxv --no-D "$UPPERDIR/" "${MNT}/" >/dev/null 2>&1 || print_warning "Cowspace sync had errors (non-fatal)"
   fi
 
-  # Copy a default background to the fixed path the noctalia gtkgreet login
-  # theme references (noctalia manages wallpapers live from ~/Backgrounds;
-  # this just seeds greetd's login background), before /etc/skel is deleted
+  # Copy a default background to the fixed path greeter.toml references
+  # (noctalia manages wallpapers live from ~/Backgrounds; this just seeds
+  # the login background), before /etc/skel is deleted
   # later in this function.
   WALLPAPER_NAME="winter-gold.jpg"
   if [[ -f "${MNT}/etc/skel/Backgrounds/${WALLPAPER_NAME}" ]]; then
@@ -995,7 +995,7 @@ configure_mkinitcpio(){
 #CONFIGURE GREETER
 configure_greeter(){
     print_title "Configuring login screen"
-    print_info "Setting up greetd (cage + gtkgreet) as the installed system's graphical login manager. The live ISO keeps its own autologin and is unaffected."
+    print_info "Setting up greetd (noctalia-greeter) as the installed system's graphical login manager. The live ISO keeps its own autologin and is unaffected."
 
     mkdir -p "${MNT}/etc/greetd"
 
@@ -1004,19 +1004,19 @@ configure_greeter(){
 vt = 1
 
 [default_session]
-command = "cage -s -- gtkgreet -s /etc/greetd/gtkgreet.css"
+command = "/usr/bin/noctalia-greeter-session"
 user = "greeter"
-# greetd-greeter has no matching /etc/pam.d file; reuse the "greetd" PAM service instead
 service = "greetd"
 EOF
 
-    # gtkgreet's session dropdown reads this flat list, not .desktop files
-    echo "mango" > "${MNT}/etc/greetd/environments"
+    # upstream PAM patch (adds pam_systemd to /etc/pam.d/greetd; idempotent)
+    arch_chroot "/usr/share/noctalia-greeter/setup_greetd_pam.sh" >/dev/null
 
-    # gtkgreet.css is not written here — already copied by install_archbang and
-    # kept current by the archbang-theme skill; writing it here would clobber that
+    install -d -m 0750 "${MNT}/var/lib/noctalia-greeter"
+    install -m 0644 "${MNT}/usr/share/archbang/greeter.toml" "${MNT}/var/lib/noctalia-greeter/greeter.toml"
+    arch_chroot "chown -R greeter:greeter /var/lib/noctalia-greeter"
 
-    # GTK_THEME via /etc/environment so gtkgreet matches the desktop's adw-gtk3-dark.
+    # Keep GTK apps on adw-gtk3-dark system-wide.
     # Step 2 is retryable, so guard against appending a duplicate line each retry.
     grep -q '^GTK_THEME=' "${MNT}/etc/environment" 2>/dev/null || echo "GTK_THEME=adw-gtk3-dark" >> "${MNT}/etc/environment"
 

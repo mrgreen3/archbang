@@ -28,8 +28,7 @@ reflector
 ## === GREETER (installed-system login only, configured/enabled by
 ## abinstall — not used or started on the live ISO itself) ===
 greetd
-greetd-gtkgreet
-cage
+noctalia-greeter
 
 ## === FILE MANAGER & UTILITIES ===
 thunar

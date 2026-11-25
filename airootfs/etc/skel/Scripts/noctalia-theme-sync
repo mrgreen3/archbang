@@ -1,6 +1,6 @@
 #!/bin/sh
-# Re-renders archbang-noctalia-templates.toml (mango border colors, foot, and the
-# gtkgreet login theme) against noctalia's currently active wallpaper/
+# Re-renders archbang-noctalia-templates.toml (mango border colors and foot)
+# against noctalia's currently active wallpaper/
 # scheme/mode. Triggered by noctalia's [hooks] colors_changed.
 SETTINGS="$HOME/.local/state/noctalia/settings.toml"
 
