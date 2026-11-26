@@ -39,6 +39,7 @@ directory = "/home/live/Backgrounds"
 
 [shell.launcher]
 categories = false
+default_view = "all"
 show_icons = true
 compact = true
 
